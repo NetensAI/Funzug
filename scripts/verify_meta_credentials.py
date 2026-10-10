@@ -4,10 +4,22 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+
+
+def safe_meta_message(message: str) -> str:
+    """Redact credentials and identifiers before emitting a short Meta error hint."""
+    message = re.sub(r"(?i)(access_token|oauth_token|appsecret_proof)=([^&\s]+)", r"\1=[REDACTED]", message)
+    message = re.sub(r"(?i)\bBearer\s+\S+", "Bearer [REDACTED]", message)
+    message = re.sub(r"\bEA[A-Za-z0-9_-]{20,}\b", "[REDACTED_TOKEN]", message)
+    message = re.sub(r"\b[A-Za-z0-9_-]{100,}\b", "[REDACTED_TOKEN]", message)
+    message = re.sub(r"https?://\S+", "[URL]", message)
+    message = re.sub(r"\b\d{10,}\b", "[ID]", message)
+    return " ".join(message.split())[:180]
 
 
 def verify_object(graph_version: str, object_id: str, token: str, label: str) -> bool:
@@ -45,6 +57,13 @@ def verify_object(graph_version: str, object_id: str, token: str, label: str) ->
                     safe_details.append("permission rejected")
                 elif "unsupported get request" in lowered:
                     safe_details.append("object ID or token cannot access this object")
+        if isinstance(message, str) and message:
+            safe_message = safe_meta_message(message)
+            if safe_message:
+                safe_details.append(f"Meta message: {safe_message}")
+        trace_id = details.get("fbtrace_id") if isinstance(details, dict) else None
+        if isinstance(trace_id, str) and trace_id.isascii() and trace_id.replace("_", "").isalnum():
+            safe_details.append(f"trace {trace_id[:64]}")
         suffix = f", {', '.join(safe_details)}" if safe_details else ""
         print(f"{label}: failed (Meta returned HTTP {exc.code}{suffix})")
         return False
