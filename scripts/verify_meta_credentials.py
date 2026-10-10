@@ -21,6 +21,10 @@ def safe_meta_message(message: str) -> str:
     message = re.sub(r"\b\d{10,}\b", "[ID]", message)
     return " ".join(message.split())[:180]
 
+def normalize_graph_version(value: str | None) -> str:
+    """Normalize an optional Actions variable, defaulting when it is empty."""
+    return (value or "").strip().removeprefix("v") or "26.0"
+
 
 def verify_object(graph_version: str, object_id: str, token: str, label: str) -> bool:
     query = urllib.parse.urlencode({"fields": "id"})
@@ -89,7 +93,7 @@ def main() -> int:
         print("Missing required GitHub Actions secrets: " + ", ".join(missing))
         return 1
 
-    version = os.environ.get("FUNZUG_META_GRAPH_VERSION", "").strip().removeprefix("v") or "26.0"
+    version = normalize_graph_version(os.environ.get("FUNZUG_META_GRAPH_VERSION"))
     results = [
         verify_object(
             version,
