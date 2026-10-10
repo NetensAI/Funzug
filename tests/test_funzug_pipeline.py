@@ -9,6 +9,9 @@ import funzug_pipeline as pipeline
 
 
 class ValidationTests(unittest.TestCase):
+    def test_empty_actions_variable_defaults_graph_api_version(self):
+        self.assertEqual(pipeline.GRAPH_VERSION, "v26.0")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parents[1])
         self.root = Path(self.temp.name)
