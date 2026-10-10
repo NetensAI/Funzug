@@ -16,7 +16,24 @@ def verify_object(graph_version: str, object_id: str, token: str, label: str) ->
         with urllib.request.urlopen(request, timeout=20) as response:
             payload = json.loads(response.read())
     except urllib.error.HTTPError as exc:
-        print(f"{label}: failed (Meta returned HTTP {exc.code})")
+        try:
+            error_payload = json.loads(exc.read())
+            details = error_payload.get("error", {})
+        except (json.JSONDecodeError, OSError):
+            details = {}
+        safe_details = []
+        if isinstance(details, dict):
+            error_type = details.get("type")
+            error_code = details.get("code")
+            error_subcode = details.get("error_subcode")
+            if isinstance(error_type, str) and error_type.isascii() and error_type.isalnum():
+                safe_details.append(error_type)
+            if isinstance(error_code, int):
+                safe_details.append(f"code {error_code}")
+            if isinstance(error_subcode, int):
+                safe_details.append(f"subcode {error_subcode}")
+        suffix = f", {', '.join(safe_details)}" if safe_details else ""
+        print(f"{label}: failed (Meta returned HTTP {exc.code}{suffix})")
         return False
     except (urllib.error.URLError, TimeoutError):
         print(f"{label}: failed (connection or timeout)")
