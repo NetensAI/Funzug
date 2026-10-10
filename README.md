@@ -54,13 +54,17 @@ Facebook Page publishing and Instagram publishing are separate API operations. I
 
 The latest Meta Developers check found the `Funzug Publisher` app (ID `2180210799547573`) is unpublished. Its Publish page shows the privacy policy URL as missing and the Publish button disabled. App settings also show no app domain or terms-of-service URL. The Required actions page has no current alerts. Do not submit the app for publication until the privacy and app details are accurate and the needed Meta review is complete. Current state is recorded in `meta_assets_snapshot.json`.
 
+Funzug.com links to an existing privacy policy at `https://www.funzug.com/funzug-com-privacy-policy`. That page covers the public website, including comments, cookies, advertising, and server logs, but does not describe the Meta publishing app, its access tokens, post content, or audit records. Do not put it into Meta's app settings unchanged. An accurate app policy and the responsible legal operator still need confirmation.
+
 Meta Business Suite already contains scheduled content through November 5, 2026. The visible recurring subjects are Valentina Tereshkova, Princess Leonor, El Niño, and Svalbard. These topic keys are present in `history.json`; check the live Business Suite schedule again before preparing new content. The listed times did not show a timezone.
 
 ## Codex-only workflow transition
 
-The requested direction is to prepare content inside Codex using the ChatGPT image tool and a Codex scheduled task, not an external image-generation API or server. That recurring Codex schedule has not yet been created or verified. The current GitHub Actions workflow remains enabled and checks the queue every five minutes; it currently has no queue items. Do not treat the system as Codex-only until a Codex schedule is configured and tested, the Meta publishing path is verified, and the external GitHub trigger is explicitly cut over.
+The requested direction is to prepare content inside Codex using the ChatGPT image tool and a Codex scheduled task, not an external image-generation API or server. The Codex app now has an active daily draft-preparation automation, named `Funzug daily draft preparation`, targeting 7 to 10 drafts per run. Its exact execution time has not been verified. The GitHub Actions file defines a five-minute schedule, but the latest Actions page showed only three manual runs and no scheduled run, so polling is not verified. The queue is empty. Do not treat the system as Codex-only until the Codex run is tested, the Meta publishing path is verified, and the GitHub trigger is explicitly cut over.
 
-The recurring run cadence is awaiting the owner's choice. A scheduled Codex run should prepare drafts only. Each post still requires explicit owner approval before any Meta scheduling or publishing. Availability of image generation and the Chrome extension within unattended scheduled runs must be tested before relying on them.
+The owner requested 7 to 10 posts per day. A scheduled Codex run should prepare drafts only. Each post still requires explicit owner approval before any Meta scheduling or publishing. Availability of image generation and the Chrome extension within unattended scheduled runs must be tested before relying on them.
+
+GitHub currently lists all four expected repository secret names: Facebook Page ID and token, and Instagram user ID and token. Secret values are not viewable in settings and have not been tested against Meta. There are no environment secrets or repository variables; the workflow defaults to Graph API `v26.0`. The latest visible smoke run succeeded with preflight complete and publishing skipped, so it did not validate credentials or create a post.
 
 ## Image generation boundary
 

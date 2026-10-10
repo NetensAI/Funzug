@@ -16,6 +16,12 @@
     "go_live_button_enabled": false,
     "app_domains_present": false,
     "terms_of_service_url_present": false,
+    "existing_site_privacy_policy": {
+      "url": "https://www.funzug.com/funzug-com-privacy-policy",
+      "found_linked_from": "https://www.funzug.com/contact-us",
+      "covers_meta_publishing_app_data": false,
+      "decision": "Do not enter as the app policy until updated to accurately cover this app"
+    },
     "observed_at": "2026-10-10"
   },
   "existing_meta_schedule": {
