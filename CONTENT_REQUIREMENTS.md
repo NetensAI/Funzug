@@ -31,4 +31,4 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 - Save the generated image as a project asset, include its verified `media_path`, and set `public_media_url` to the matching publicly accessible HTTPS image URL without query strings or embedded credentials.
 - Create queue items as drafts. Never add an approval record on behalf of the user. A named human reviewer must check sources, caption, image, platform targets, and schedule, then approve the specific item with a review note.
-- No workflow may publish until both the per-item approval and the GitHub `funzug-publish` environment review have been completed.
+- No workflow may publish without the item's explicit human approval, a non-empty review note, and a due schedule. The GitHub `funzug-publish` environment is restricted to `main`, but it does not add a separate reviewer gate.
