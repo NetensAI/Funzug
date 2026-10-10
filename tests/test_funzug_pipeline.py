@@ -30,7 +30,7 @@ class ValidationTests(unittest.TestCase):
             "scheduled_at": "2026-10-11T12:00:00-04:00",
             "media_path": "assets/post.png",
             "public_media_url": "https://cdn.example.com/post.png",
-            "claims": [{"text": "The supported fact.", "source_ids": ["source-1"]}],
+            "claims": [{"text": "The supported fact.", "source_ids": ["source-1"], "support_note": "The cited source directly reports this fact."}],
             "sources": [{
                 "id": "source-1",
                 "title": "Primary source",
@@ -69,6 +69,11 @@ class ValidationTests(unittest.TestCase):
         item["claims"][0]["source_ids"] = ["missing-source"]
         self.assertTrue(any("unknown source references" in error for error in pipeline.validate_item(item, (1080, 1350))))
 
+    def test_requires_claim_level_source_support_note(self):
+        item = json.loads(json.dumps(self.item))
+        del item["claims"][0]["support_note"]
+        self.assertTrue(any("support_note" in error for error in pipeline.validate_item(item, (1080, 1350))))
+
     def test_published_topic_in_history_does_not_break_future_validation(self):
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [dict(self.item, status="published", approval={
             "status": "approved",
@@ -100,10 +105,6 @@ class ValidationTests(unittest.TestCase):
         message = "bad access_token=EAAExample0123456789012345678901&other=1"
         self.assertNotIn("EAAExample", pipeline.safe_error_message(message))
         self.assertIn("[REDACTED]", pipeline.safe_error_message(message))
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
     def approved_item(self, scheduled_at="2000-01-01T00:00:00Z"):
@@ -165,3 +166,60 @@ if __name__ == "__main__":
         events = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
         self.assertEqual([event["platform"] for event in events], ["facebook", "instagram"])
         self.assertTrue(all(event["event"] == "published" for event in events))
+
+    def test_instagram_waits_until_container_is_finished_before_publish(self):
+        publisher = pipeline.MetaPublisher()
+        publisher.ig_user_id = "ig-test-user"
+        publisher.ig_token = "test-token"
+        with patch.object(pipeline, "api_post", side_effect=[{"id": "container-1"}, {"id": "media-1"}]) as post:
+            with patch.object(pipeline, "api_get", side_effect=[{"status_code": "IN_PROGRESS"}, {"status_code": "FINISHED"}]) as get:
+                with patch.object(pipeline.time, "sleep") as sleep:
+                    result = publisher.publish_instagram_image(self.item)
+        self.assertEqual(result, {"id": "media-1"})
+        self.assertEqual(get.call_count, 2)
+        sleep.assert_called_once_with(pipeline.CONTAINER_STATUS_INTERVAL)
+        self.assertEqual(post.call_args_list[1].args[0], "ig-test-user/media_publish")
+
+    def test_instagram_does_not_publish_container_with_error_status(self):
+        publisher = pipeline.MetaPublisher()
+        publisher.ig_user_id = "ig-test-user"
+        publisher.ig_token = "test-token"
+        with patch.object(pipeline, "api_post", return_value={"id": "container-1"}) as post:
+            with patch.object(pipeline, "api_get", return_value={"status_code": "ERROR"}):
+                with self.assertRaisesRegex(RuntimeError, r"not publishable \(ERROR\)"):
+                    publisher.publish_instagram_image(self.item)
+        self.assertEqual(post.call_count, 1)
+
+    def test_read_only_graph_request_keeps_token_out_of_url(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b'{"status_code":"FINISHED"}'
+
+        with patch.object(pipeline.urllib.request, "urlopen", return_value=Response()) as urlopen:
+            result = pipeline.api_get("container-1", "private-test-token", {"fields": "status_code"})
+        request = urlopen.call_args.args[0]
+        self.assertNotIn("private-test-token", request.full_url)
+        self.assertEqual(request.get_header("Authorization"), "Bearer private-test-token")
+        self.assertEqual(result["status_code"], "FINISHED")
+
+    def test_instagram_does_not_publish_container_that_never_finishes(self):
+        publisher = pipeline.MetaPublisher()
+        publisher.ig_user_id = "ig-test-user"
+        publisher.ig_token = "test-token"
+        with patch.object(pipeline, "CONTAINER_STATUS_ATTEMPTS", 2):
+            with patch.object(pipeline, "api_post", return_value={"id": "container-1"}) as post:
+                with patch.object(pipeline, "api_get", return_value={"status_code": "IN_PROGRESS"}):
+                    with patch.object(pipeline.time, "sleep"):
+                        with self.assertRaisesRegex(RuntimeError, "did not finish processing"):
+                            publisher.publish_instagram_image(self.item)
+        self.assertEqual(post.call_count, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

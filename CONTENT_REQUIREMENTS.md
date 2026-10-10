@@ -8,7 +8,8 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 - Prefer primary or authoritative sources. Do not repeat exaggerations from the reference. Omit unsupported names, dates, numbers, organizations, places, and conclusions.
 - Keep politics and current affairs neutral. Distinguish animal from human studies, observational research from trials, prototypes from proven treatments, association from causation, preprints from peer-reviewed research, and lab results from real-world performance.
 - Never invent quotes or attributions. Preserve puzzle and mystery answers unless explicitly requested.
-- Store each factual claim with one or more source IDs. Keep source URLs and notes in queue metadata, never in the public caption.
+- Store each factual claim with one or more source IDs and a concise `support_note` stating what the cited source establishes. Keep source URLs and notes in queue metadata, never in the public caption.
+- Inspect the source content during research. Queue validation checks URL shape, timestamps, and claim-to-source references, but cannot determine whether a source is reachable, authoritative, current, or actually supports a claim. The named human reviewer must verify sources and claims before approval.
 
 ## Image
 

@@ -10,6 +10,7 @@ import os
 import re
 import struct
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -23,6 +24,8 @@ HISTORY_PATH = ROOT / "history.json"
 LOG_PATH = ROOT / "logs" / "events.jsonl"
 _configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
 GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
+CONTAINER_STATUS_ATTEMPTS = 12
+CONTAINER_STATUS_INTERVAL = 5
 
 
 def iso_now() -> str:
@@ -175,6 +178,8 @@ def validate_item(item: dict[str, Any], required_size: tuple[int, int]) -> list[
             continue
         if not isinstance(claim.get("text"), str) or not claim.get("text").strip():
             errors.append("claim is missing text")
+        if not isinstance(claim.get("support_note"), str) or not claim["support_note"].strip():
+            errors.append("claim needs a support_note explaining what the cited source establishes")
         source_refs = claim.get("source_ids")
         if (
             not isinstance(source_refs, list)
@@ -294,6 +299,45 @@ def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
     return result
 
 
+def api_get(path: str, token: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+    """Issue an authenticated read-only Graph API request without putting tokens in URLs."""
+    query = urllib.parse.urlencode(params or {})
+    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+    if query:
+        url = f"{url}?{query}"
+    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        try:
+            error = json.loads(body).get("error", {})
+        except (json.JSONDecodeError, AttributeError):
+            error = {}
+        if not isinstance(error, dict):
+            error = {}
+        code = error.get("code")
+        error_type = error.get("type")
+        message = safe_error_message(str(error.get("message", "request failed")))
+        details = ", ".join(str(value) for value in (error_type, code) if value is not None)
+        raise RuntimeError(f"Meta API HTTP {exc.code}" + (f" ({details})" if details else "") + f": {message}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise RuntimeError("Meta API connection failed or timed out") from exc
+    if not isinstance(result, dict):
+        raise RuntimeError("Meta API returned an invalid response")
+    if "error" in result:
+        error = result["error"]
+        if not isinstance(error, dict):
+            error = {}
+        code = error.get("code")
+        error_type = error.get("type")
+        details = ", ".join(str(value) for value in (error_type, code) if value is not None)
+        message = safe_error_message(str(error.get("message", "request failed")))
+        raise RuntimeError("Meta API error" + (f" ({details})" if details else "") + f": {message}")
+    return result
+
+
 class MetaPublisher:
     def __init__(self) -> None:
         self.page_id = os.environ.get("FUNZUG_FACEBOOK_PAGE_ID")
@@ -313,6 +357,19 @@ class MetaPublisher:
         creation_id = container.get("id")
         if not creation_id:
             raise RuntimeError("Instagram container response did not include an id")
+        for attempt in range(CONTAINER_STATUS_ATTEMPTS):
+            status = api_get(str(creation_id), self.ig_token, {"fields": "status_code"})
+            status_code = status.get("status_code")
+            if status_code == "FINISHED":
+                break
+            if status_code in {"ERROR", "EXPIRED", "PUBLISHED"}:
+                raise RuntimeError(f"Instagram media container is not publishable ({status_code})")
+            if status_code != "IN_PROGRESS":
+                raise RuntimeError("Instagram media container returned an unknown status")
+            if attempt + 1 < CONTAINER_STATUS_ATTEMPTS:
+                time.sleep(CONTAINER_STATUS_INTERVAL)
+        else:
+            raise RuntimeError("Instagram media container did not finish processing before timeout")
         return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
 
 
