@@ -72,7 +72,9 @@ def image_size(path: Path) -> tuple[int, int] | None:
             marker = handle.read(1)
             while marker == b"\xff":
                 marker = handle.read(1)
-            if not marker or marker in {b"\xd8", b"\xd9"}:
+            if not marker:
+                return None
+            if marker in {b"\xd8", b"\xd9"}:
                 continue
             length_bytes = handle.read(2)
             if len(length_bytes) != 2:
