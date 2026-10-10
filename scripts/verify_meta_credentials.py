@@ -28,12 +28,23 @@ def verify_object(graph_version: str, object_id: str, token: str, label: str) ->
             error_type = details.get("type")
             error_code = details.get("code")
             error_subcode = details.get("error_subcode")
+            message = details.get("message", "")
             if isinstance(error_type, str) and error_type.isascii() and error_type.isalnum():
                 safe_details.append(error_type)
             if isinstance(error_code, int):
                 safe_details.append(f"code {error_code}")
             if isinstance(error_subcode, int):
                 safe_details.append(f"subcode {error_subcode}")
+            if isinstance(message, str):
+                lowered = message.lower()
+                if "active access token" in lowered:
+                    safe_details.append("token missing or inactive")
+                elif "access token" in lowered:
+                    safe_details.append("token rejected")
+                elif "permission" in lowered:
+                    safe_details.append("permission rejected")
+                elif "unsupported get request" in lowered:
+                    safe_details.append("object ID or token cannot access this object")
         suffix = f", {', '.join(safe_details)}" if safe_details else ""
         print(f"{label}: failed (Meta returned HTTP {exc.code}{suffix})")
         return False

@@ -54,7 +54,7 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
             hdrs=None,
             fp=io.BytesIO(
                 b'{"error":{"type":"OAuthException","code":190,'
-                b'"error_subcode":123,"message":"secret-token rejected"}}'
+                b'"error_subcode":123,"message":"An active access token is required"}}'
             ),
         )
         with patch("scripts.verify_meta_credentials.urllib.request.urlopen", side_effect=response):
@@ -64,8 +64,9 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
         message = output.call_args.args[0]
         self.assertIn("OAuthException", message)
         self.assertIn("code 190", message)
+        self.assertIn("token missing or inactive", message)
         self.assertNotIn("secret-token", message)
-        self.assertNotIn("rejected", message)
+        self.assertNotIn("An active access token is required", message)
 
 
 if __name__ == "__main__":
