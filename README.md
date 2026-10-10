@@ -54,6 +54,8 @@ Facebook Page publishing and Instagram publishing are separate API operations. I
 
 The latest Meta Developers check found the `Funzug Publisher` app (ID `2180210799547573`) is unpublished. Its Publish page shows the privacy policy URL as missing and the Publish button disabled. App settings also show no app domain or terms-of-service URL. The Required actions page has no current alerts. Do not submit the app for publication until the privacy and app details are accurate and the needed Meta review is complete. Current state is recorded in `meta_assets_snapshot.json`.
 
+Use the separate `Verify Meta credentials (read-only)` GitHub Actions workflow to check that the configured tokens can read the configured Page and Instagram account IDs. It never publishes. A passing check proves only object access, not content-publishing permission, app review, production readiness, or successful scheduling.
+
 Funzug.com links to an existing privacy policy at `https://www.funzug.com/funzug-com-privacy-policy`. That page covers the public website, including comments, cookies, advertising, and server logs, but does not describe the Meta publishing app, its access tokens, post content, or audit records. Do not put it into Meta's app settings unchanged. An accurate app policy and the responsible legal operator still need confirmation.
 
 Meta Business Suite already contains scheduled content through November 5, 2026. The visible recurring subjects are Valentina Tereshkova, Princess Leonor, El Niño, and Svalbard. These topic keys are present in `history.json`; check the live Business Suite schedule again before preparing new content. The listed times did not show a timezone.
