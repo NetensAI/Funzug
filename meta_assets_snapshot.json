@@ -13,7 +13,7 @@
     "status": "failed",
     "facebook_result": "OAuthException code 2500",
     "instagram_result": "OAuthException code 2500",
-    "run_url": "https://github.com/NetensAI/Funzug/actions/runs/38053734954",
+    "run_url": "https://github.com/NetensAI/Funzug/actions/runs/38054031707",
     "secret_values_logged": false,
     "publishing_attempted": false,
     "diagnosis": "Token/account access remains unverified; inspect token type, validity, and app configuration"
@@ -30,8 +30,16 @@
     "existing_site_privacy_policy": {
       "url": "https://www.funzug.com/funzug-com-privacy-policy",
       "found_linked_from": "https://www.funzug.com/contact-us",
-      "covers_meta_publishing_app_data": false,
-      "decision": "Do not enter as the app policy until updated to accurately cover this app"
+      "covers_meta_publishing_app_data": true,
+      "app_section_published_at": "2026-10-10",
+      "app_section_covers": [
+        "app data use",
+        "storage",
+        "service providers",
+        "retention"
+      ],
+      "personal_email_included": false,
+      "decision": "Updated policy is suitable to review for the Meta app settings; app URL field has not been rechecked or updated"
     },
     "observed_at": "2026-10-10"
   },
