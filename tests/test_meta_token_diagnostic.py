@@ -9,8 +9,8 @@ class DebugMetaTokensTests(unittest.TestCase):
             "data": {
                 "app_id": "2180210799547573",
                 "is_valid": True,
-                "expires_at": 2000000000,
-                "data_access_expires_at": 2000000000,
+                "expires_at": 0,
+                "data_access_expires_at": 0,
                 "scopes": sorted(PAGE_SCOPES),
                 "user_id": "private-identifier",
             }
@@ -19,22 +19,22 @@ class DebugMetaTokensTests(unittest.TestCase):
         self.assertTrue(passed)
         self.assertTrue(summary["valid"])
         self.assertEqual(summary["missing_scopes"], [])
-        self.assertTrue(summary["expiry_window_ok"])
+        self.assertTrue(summary["explicitly_non_expiring"])
         self.assertNotIn("user_id", summary)
 
-    def test_token_expiring_within_24_hours_is_not_ready(self):
+    def test_finite_lifetime_token_is_not_ready_even_if_far_in_future(self):
         payload = {
             "data": {
                 "app_id": "2180210799547573",
                 "is_valid": True,
-                "expires_at": 1900000000 + 3600,
-                "data_access_expires_at": 1900000000 + 86400 * 10,
+                "expires_at": 1900000000 + 86400 * 365,
+                "data_access_expires_at": 1900000000 + 86400 * 365,
                 "scopes": sorted(PAGE_SCOPES),
             }
         }
         summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertFalse(passed)
-        self.assertFalse(summary["expiry_window_ok"])
+        self.assertFalse(summary["explicitly_non_expiring"])
 
     def test_non_expiring_tokens_can_pass_with_explicit_zero_expiry(self):
         payload = {
@@ -48,7 +48,19 @@ class DebugMetaTokensTests(unittest.TestCase):
         }
         summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertTrue(passed)
-        self.assertTrue(summary["expiry_window_ok"])
+        self.assertTrue(summary["explicitly_non_expiring"])
+
+    def test_missing_expiry_metadata_fails_closed(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES)
+        self.assertFalse(passed)
+        self.assertFalse(summary["explicitly_non_expiring"])
 
     def test_missing_scope_fails(self):
         payload = {"data": {"app_id": "2180210799547573", "is_valid": True, "scopes": ["pages_show_list"]}}

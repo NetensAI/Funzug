@@ -5,13 +5,11 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
-import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 APP_ID = "2180210799547573"
-MIN_TOKEN_LIFETIME_SECONDS = 24 * 60 * 60
 PAGE_SCOPES = {"pages_manage_posts", "pages_show_list", "pages_read_engagement"}
 INSTAGRAM_SCOPES = {
     "instagram_content_publish",
@@ -27,13 +25,8 @@ def expiry_label(value: object) -> str:
     return datetime.fromtimestamp(value, timezone.utc).isoformat()
 
 
-def expiry_window_ok(value: object, now: float | None = None) -> bool:
-    if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
-        return False
-    if value == 0:
-        return True
-    current = time.time() if now is None else now
-    return value >= current + MIN_TOKEN_LIFETIME_SECONDS
+def explicitly_non_expiring(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == 0
 
 
 def summarize(
@@ -50,15 +43,15 @@ def summarize(
             "missing_scopes": sorted(required_scopes),
             "expires_at": "unknown",
             "data_access_expires_at": "unknown",
-            "expiry_window_ok": False,
+            "explicitly_non_expiring": False,
         }, False
     data = payload["data"]
     scopes = sorted({scope for scope in data.get("scopes", []) if isinstance(scope, str)})
     app_match = str(data.get("app_id", "")) == expected_app_id
     valid = data.get("is_valid") is True
     missing = sorted(required_scopes - set(scopes))
-    expiry_ok = expiry_window_ok(data.get("expires_at"), now) and expiry_window_ok(
-        data.get("data_access_expires_at"), now
+    no_expiry = explicitly_non_expiring(data.get("expires_at")) and explicitly_non_expiring(
+        data.get("data_access_expires_at")
     )
     result = {
         "valid": valid,
@@ -67,9 +60,9 @@ def summarize(
         "missing_scopes": missing,
         "expires_at": expiry_label(data.get("expires_at")),
         "data_access_expires_at": expiry_label(data.get("data_access_expires_at")),
-        "expiry_window_ok": expiry_ok,
+        "explicitly_non_expiring": no_expiry,
     }
-    return result, valid and app_match and not missing and expiry_ok
+    return result, valid and app_match and not missing and no_expiry
 
 
 def debug_token(graph_version: str, app_access_token: str, input_token: str) -> object:
@@ -114,7 +107,7 @@ def main() -> int:
         print(f"  scopes={', '.join(summary['scopes']) or '(none)'}")
         print(f"  missing_required_scopes={', '.join(summary['missing_scopes']) or '(none)'}")
         print(f"  expires_at_utc={summary['expires_at']}; data_access_expires_at_utc={summary['data_access_expires_at']}")
-        print(f"  at_least_24h_remaining={summary['expiry_window_ok']}")
+        print(f"  explicitly_non_expiring={summary['explicitly_non_expiring']}")
         all_valid = all_valid and passed
     return 0 if all_valid else 1
 

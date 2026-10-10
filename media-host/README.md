@@ -11,7 +11,7 @@ This small Docker service accepts authenticated image uploads and serves only im
 
 ## First-time setup on the server
 
-Copy this `media-host` directory to a dedicated server folder. For Cloudflare Tunnel, create a remotely managed tunnel in Cloudflare Zero Trust and add a Published application route for your media hostname. Set its service URL to `http://media:8080` so Cloudflare routes to the media container over the private Compose network. Cloudflare terminates public HTTPS; no home-router ports need to be opened. The published hostname is public, as required for Meta to fetch the image.
+Copy this `media-host` directory to a dedicated server folder. The Cloudflare remotely managed tunnel `funzug-media` and Published application route for `media.funzug.com` are already configured, targeting `http://media:8080`. Do not create another tunnel. Cloudflare terminates public HTTPS; no home-router ports need to be opened. The published hostname is public, as required for Meta to fetch the image. The connector is not yet running; install its token on the Linux server as described below.
 
 From the `media-host` folder:
 
@@ -22,7 +22,7 @@ openssl rand -hex 32 > secrets/upload_token
 chmod 600 secrets/upload_token
 ```
 
-Store the Cloudflare tunnel token in `secrets/tunnel_token` with restrictive permissions using a text editor, not a shell command. Create `.env` with only the public hostname, for example `FUNZUG_MEDIA_DOMAIN=media.funzug.com`. Set GitHub Actions secrets `FUNZUG_MEDIA_BASE_URL` to `https://media.funzug.com` and `FUNZUG_MEDIA_UPLOAD_TOKEN` to the exact random upload-token file value. Do not add either token to `.env`, compose environment, source control, terminal command arguments, or chat. The tunnel token stays on the server and is not needed by GitHub Actions.
+Store the Cloudflare tunnel token in `secrets/tunnel_token` with restrictive permissions using a text editor, not a shell command. Create `.env` with only `FUNZUG_MEDIA_DOMAIN=media.funzug.com`. Set GitHub Actions secrets `FUNZUG_MEDIA_BASE_URL` to `https://media.funzug.com` and `FUNZUG_MEDIA_UPLOAD_TOKEN` to the exact random upload-token file value. Do not add either token to `.env`, compose environment, source control, terminal command arguments, or chat. The tunnel token stays on the server and is not needed by GitHub Actions.
 
 For Cloudflare Tunnel, start the service:
 
