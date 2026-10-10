@@ -5,10 +5,15 @@ import urllib.parse
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-from scripts.verify_meta_credentials import verify_object
+from scripts.verify_meta_credentials import normalize_graph_version, verify_object
 
 
 class VerifyMetaCredentialsTests(unittest.TestCase):
+    def test_empty_graph_version_defaults_safely(self):
+        self.assertEqual(normalize_graph_version(None), "26.0")
+        self.assertEqual(normalize_graph_version(""), "26.0")
+        self.assertEqual(normalize_graph_version("v26.0"), "26.0")
+
     def test_validates_expected_object_id(self):
         class Response:
             def __enter__(self):
@@ -25,11 +30,9 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
                 self.assertTrue(verify_object("26.0", "12345", "secret-token", "Page"))
 
         request = open_url.call_args.args[0]
-        self.assertEqual(
-            urllib.parse.parse_qs(urllib.parse.urlsplit(request.full_url).query)["access_token"],
-            ["secret-token"],
-        )
-        self.assertIsNone(request.get_header("Authorization"))
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(request.full_url).query)
+        self.assertNotIn("access_token", query)
+        self.assertEqual(request.get_header("Authorization"), "Bearer secret-token")
 
     def test_rejects_mismatched_object_id(self):
         class Response:
@@ -66,7 +69,7 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
         self.assertIn("code 190", message)
         self.assertIn("token missing or inactive", message)
         self.assertNotIn("secret-token", message)
-        self.assertNotIn("An active access token is required", message)
+        self.assertIn("Meta message: An active access token is required", message)
 
 
 if __name__ == "__main__":
