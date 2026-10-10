@@ -15,27 +15,56 @@ class DebugMetaTokensTests(unittest.TestCase):
                 "user_id": "private-identifier",
             }
         }
-        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES)
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertTrue(passed)
         self.assertTrue(summary["valid"])
         self.assertEqual(summary["missing_scopes"], [])
+        self.assertTrue(summary["expiry_window_ok"])
         self.assertNotIn("user_id", summary)
+
+    def test_token_expiring_within_24_hours_is_not_ready(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 1900000000 + 3600,
+                "data_access_expires_at": 1900000000 + 86400 * 10,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
+        self.assertFalse(passed)
+        self.assertFalse(summary["expiry_window_ok"])
+
+    def test_non_expiring_tokens_can_pass_with_explicit_zero_expiry(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 0,
+                "data_access_expires_at": 0,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
+        self.assertTrue(passed)
+        self.assertTrue(summary["expiry_window_ok"])
 
     def test_missing_scope_fails(self):
         payload = {"data": {"app_id": "2180210799547573", "is_valid": True, "scopes": ["pages_show_list"]}}
-        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES)
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertFalse(passed)
         self.assertIn("pages_manage_posts", summary["missing_scopes"])
 
     def test_wrong_app_or_invalid_token_fails(self):
         payload = {"data": {"app_id": "other-app", "is_valid": False, "scopes": sorted(INSTAGRAM_SCOPES)}}
-        summary, passed = summarize(payload, "2180210799547573", INSTAGRAM_SCOPES)
+        summary, passed = summarize(payload, "2180210799547573", INSTAGRAM_SCOPES, now=1900000000)
         self.assertFalse(passed)
         self.assertFalse(summary["valid"])
         self.assertFalse(summary["app_match"])
 
     def test_malformed_payload_fails_closed(self):
-        summary, passed = summarize({"error": {"message": "must not be returned"}}, "2180210799547573", PAGE_SCOPES)
+        summary, passed = summarize({"error": {"message": "must not be returned"}}, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertFalse(passed)
         self.assertEqual(summary["scopes"], [])
         self.assertNotIn("must not be returned", repr(summary))

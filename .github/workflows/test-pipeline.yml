@@ -24,6 +24,17 @@ jobs:
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
+      - name: Check media-host Python syntax
+        run: python -m py_compile media-host/server.py scripts/upload_media.py
+
+      - name: Validate media-host Compose configuration and build
+        env:
+          FUNZUG_MEDIA_DOMAIN: media.example.com
+        run: |
+          python -c "from pathlib import Path; p=Path('media-host/secrets/upload_token'); p.parent.mkdir(parents=True, exist_ok=True); p.write_text('ci-only-placeholder-token-not-for-deployment')"
+          docker compose -f media-host/compose.yaml config --quiet
+          docker compose -f media-host/compose.yaml build media
+
       - name: Validate the publishing queue
         run: python funzug_pipeline.py validate
 
