@@ -1,0 +1,8 @@
+{
+  "brand": {
+    "name": "Funzug",
+    "timezone": "America/New_York",
+    "required_image_size": [1080, 1350]
+  },
+  "items": []
+}

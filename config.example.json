@@ -1,0 +1,12 @@
+{
+  "timezone": "America/New_York",
+  "facebook_page_id_env": "FUNZUG_FACEBOOK_PAGE_ID",
+  "facebook_page_token_env": "FUNZUG_FACEBOOK_PAGE_TOKEN",
+  "instagram_user_id_env": "FUNZUG_INSTAGRAM_USER_ID",
+  "instagram_access_token_env": "FUNZUG_INSTAGRAM_ACCESS_TOKEN",
+  "meta_graph_version_env": "FUNZUG_META_GRAPH_VERSION",
+  "meta_graph_version_default": "v26.0",
+  "queue_file": "queue.json",
+  "history_file": "history.json",
+  "event_log": "logs/events.jsonl"
+}
