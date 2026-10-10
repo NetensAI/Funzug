@@ -58,7 +58,7 @@ Use the separate `Verify Meta credentials (read-only)` GitHub Actions workflow t
 
 The latest read-only verification run failed for both accounts with Meta `OAuthException` code `2500`; see [run #4](https://github.com/NetensAI/Funzug/actions/runs/38054031707). The workflow does not log secret values. The token/account access remains unverified, and the code does not establish whether the cause is token type, validity, permissions, or app configuration. Do not publish until this check is resolved and publishing access is confirmed.
 
-The privacy policy at `https://www.funzug.com/funzug-com-privacy-policy` was updated and published on 2026-10-10 with a Funzug Publisher App section covering app data use, storage, service providers, and retention. The user's personal email address was not included. The Meta app's Privacy Policy URL setting has not been rechecked or updated since the site policy changed; verify that field before treating the app setup as complete.
+The privacy policy at `https://www.funzug.com/funzug-com-privacy-policy` was updated and published on 2026-10-10 with a Funzug Publisher App section covering app data use, storage, service providers, and retention. The user's personal email address was not included. This URL is now saved in the Meta app's Privacy Policy URL field. The app remains unpublished, and the remaining app details and publishing access still need verification.
 
 Meta Business Suite already contains scheduled content through November 5, 2026. The visible recurring subjects are Valentina Tereshkova, Princess Leonor, El Niño, and Svalbard. These topic keys are present in `history.json`; check the live Business Suite schedule again before preparing new content. The listed times did not show a timezone.
 

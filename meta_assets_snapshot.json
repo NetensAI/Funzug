@@ -23,7 +23,9 @@
     "app_id": "2180210799547573",
     "publish_status": "unpublished",
     "required_actions_visible": "none",
-    "privacy_policy_url_present": false,
+    "privacy_policy_url_present": true,
+    "privacy_policy_url": "https://www.funzug.com/funzug-com-privacy-policy",
+    "privacy_policy_url_saved_at": "2026-10-10",
     "go_live_button_enabled": false,
     "app_domains_present": false,
     "terms_of_service_url_present": false,
@@ -39,7 +41,7 @@
         "retention"
       ],
       "personal_email_included": false,
-      "decision": "Updated policy is suitable to review for the Meta app settings; app URL field has not been rechecked or updated"
+      "decision": "Updated policy published and saved in the Meta app Privacy Policy URL field"
     },
     "observed_at": "2026-10-10"
   },
