@@ -104,3 +104,64 @@ class ValidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def approved_item(self, scheduled_at="2000-01-01T00:00:00Z"):
+        item = json.loads(json.dumps(self.item))
+        item["status"] = "approved"
+        item["scheduled_at"] = scheduled_at
+        item["approval"] = {
+            "status": "approved",
+            "approved_by": "Vatsal",
+            "approved_at": "2000-01-01T00:00:00Z",
+            "note": "Reviewed sources, caption, image, platforms, and schedule",
+        }
+        return item
+
+    def test_future_approved_post_is_not_published(self):
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.approved_item("2999-01-01T00:00:00Z")]}
+        with patch.object(pipeline, "MetaPublisher") as publisher:
+            self.assertEqual(pipeline.publish_due(queue, execute=True, confirmation="FUNZUG"), 0)
+            publisher.assert_not_called()
+
+    def test_due_post_requires_explicit_publish_confirmation(self):
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.approved_item()]}
+        with patch.object(pipeline, "MetaPublisher") as publisher:
+            with self.assertRaisesRegex(RuntimeError, "publishing requires --confirm-publish FUNZUG"):
+                pipeline.publish_due(queue, execute=True, confirmation=None)
+            publisher.assert_not_called()
+
+    def test_approval_is_saved_with_reviewer_and_audit_event(self):
+        queue_path = self.root / "queue.json"
+        log_path = self.root / "logs" / "events.jsonl"
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
+        with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
+            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed sources, caption, image, platforms, and schedule")
+        saved = json.loads(queue_path.read_text(encoding="utf-8"))
+        self.assertEqual(saved["items"][0]["approval"]["approved_by"], "Vatsal")
+        event = json.loads(log_path.read_text(encoding="utf-8").splitlines()[0])
+        self.assertEqual(event["event"], "approved")
+        self.assertEqual(event["item_id"], self.item["id"])
+
+    def test_mocked_publish_updates_status_history_and_audit_log(self):
+        queue_path = self.root / "queue.json"
+        log_path = self.root / "logs" / "events.jsonl"
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.approved_item()]}
+        mock_publisher = patch.object(pipeline, "MetaPublisher").start()
+        instance = mock_publisher.return_value
+        instance.publish_facebook_image.return_value = {"post_id": "fb-test-post"}
+        instance.publish_instagram_image.return_value = {"id": "ig-test-post"}
+        try:
+            with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
+                self.assertEqual(pipeline.publish_due(queue, execute=True, confirmation="FUNZUG"), 0)
+        finally:
+            mock_publisher.stop()
+        saved = json.loads(queue_path.read_text(encoding="utf-8"))
+        self.assertEqual(saved["items"][0]["status"], "published")
+        self.assertEqual(saved["items"][0]["platform_results"]["facebook"]["post_id"], "fb-test-post")
+        self.assertEqual(saved["items"][0]["platform_results"]["instagram"]["post_id"], "ig-test-post")
+        history = json.loads((self.root / "history.json").read_text(encoding="utf-8"))
+        self.assertIn("example-story", history["topic_keys"])
+        events = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
+        self.assertEqual([event["platform"] for event in events], ["facebook", "instagram"])
+        self.assertTrue(all(event["event"] == "published" for event in events))
