@@ -71,3 +71,12 @@ GitHub currently lists all four expected repository secret names: Facebook Page 
 ## Image generation boundary
 
 The built-in ChatGPT/Codex image tool uses ChatGPT plan usage in this conversation, but GitHub Actions cannot invoke that tool. OpenAI's current Sign in with ChatGPT plan-usage preview also does not support image generation. Therefore images must be generated in a ChatGPT/Codex task, saved into this repository, and reviewed before their queue item can pass validation. No API key or paid image API has been configured.
+
+
+## Verification update (2026-10-10)
+
+- Read-only GitHub Actions run [#13](https://github.com/NetensAI/Funzug/actions/runs/38058473303) passed all 14 unit tests and confirmed read access to the configured Facebook Page and Instagram account. It did not call any publish endpoint.
+- All three manual runs of publish-approved.yml completed preflight and skipped the publish job. No post was published by those runs.
+- The repository queue is empty. Meta Business Suite currently shows existing scheduled content through November 5, 2026. The visible subjects are represented in history.json so new queue items can be checked for repeats. Existing scheduled posts were not modified.
+- The Meta app remains unpublished and in development mode. Meta lists instagram_content_publish and pages_manage_posts as ready for testing, but the saved tokens' specific publishing scopes and a real publish flow have not been verified. No test post was created.
+- The previous OAuthException code 2500 was caused by a blank Graph API version in Actions, not by token generation. Verifier and publisher code now default to v26.0.
