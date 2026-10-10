@@ -6,5 +6,39 @@
   "instagram_user_id": "17841461799288910",
   "facebook_followers_visible": "87.4K",
   "instagram_followers_visible": "1.2K",
-  "asset_relationship_visible": "Facebook Page + Instagram profile"
+  "asset_relationship_visible": "Facebook Page + Instagram profile",
+  "meta_app": {
+    "name": "Funzug Publisher",
+    "app_id": "2180210799547573",
+    "publish_status": "unpublished",
+    "required_actions_visible": "none",
+    "privacy_policy_url_present": false,
+    "go_live_button_enabled": false,
+    "app_domains_present": false,
+    "terms_of_service_url_present": false,
+    "observed_at": "2026-10-10"
+  },
+  "existing_meta_schedule": {
+    "view": "Meta Business Suite > Content > Scheduled",
+    "observed_at": "2026-10-10",
+    "visible_scheduled_slots": [
+      "2026-10-29 3:52am",
+      "2026-10-30 4:52am",
+      "2026-10-31 4:52am",
+      "2026-11-01 12:26am",
+      "2026-11-04 12:16am",
+      "2026-11-04 4:35am",
+      "2026-11-05 12:06am",
+      "2026-11-05 3:55am",
+      "2026-11-05 8:29am",
+      "2026-11-05 10:07am"
+    ],
+    "timezone_displayed": false,
+    "repeat_avoidance_topic_keys": [
+      "valentina-tereshkova",
+      "princess-leonor-military-training",
+      "el-nino-2026",
+      "svalbard-residency"
+    ]
+  }
 }

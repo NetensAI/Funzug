@@ -52,6 +52,16 @@ The scheduled runner can publish only items whose status and approval record bot
 
 Facebook Page publishing and Instagram publishing are separate API operations. Instagram's container publishing requires an Instagram Professional account and a media URL accessible to Meta. Meta app review, account linkage, Page task access, current permissions, API version, token lifetime, and rate limits depend on the app and endpoint and should be confirmed before production use. The connected app is currently in development/testing, so the stored token is not proof of production readiness.
 
+The latest Meta Developers check found the `Funzug Publisher` app (ID `2180210799547573`) is unpublished. Its Publish page shows the privacy policy URL as missing and the Publish button disabled. App settings also show no app domain or terms-of-service URL. The Required actions page has no current alerts. Do not submit the app for publication until the privacy and app details are accurate and the needed Meta review is complete. Current state is recorded in `meta_assets_snapshot.json`.
+
+Meta Business Suite already contains scheduled content through November 5, 2026. The visible recurring subjects are Valentina Tereshkova, Princess Leonor, El Niño, and Svalbard. These topic keys are present in `history.json`; check the live Business Suite schedule again before preparing new content. The listed times did not show a timezone.
+
+## Codex-only workflow transition
+
+The requested direction is to prepare content inside Codex using the ChatGPT image tool and a Codex scheduled task, not an external image-generation API or server. That recurring Codex schedule has not yet been created or verified. The current GitHub Actions workflow remains enabled and checks the queue every five minutes; it currently has no queue items. Do not treat the system as Codex-only until a Codex schedule is configured and tested, the Meta publishing path is verified, and the external GitHub trigger is explicitly cut over.
+
+The recurring run cadence is awaiting the owner's choice. A scheduled Codex run should prepare drafts only. Each post still requires explicit owner approval before any Meta scheduling or publishing. Availability of image generation and the Chrome extension within unattended scheduled runs must be tested before relying on them.
+
 ## Image generation boundary
 
 The built-in ChatGPT/Codex image tool uses ChatGPT plan usage in this conversation, but GitHub Actions cannot invoke that tool. OpenAI's current Sign in with ChatGPT plan-usage preview also does not support image generation. Therefore images must be generated in a ChatGPT/Codex task, saved into this repository, and reviewed before their queue item can pass validation. No API key or paid image API has been configured.
