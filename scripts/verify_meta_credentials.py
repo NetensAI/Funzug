@@ -6,12 +6,14 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 
 def verify_object(graph_version: str, object_id: str, token: str, label: str) -> bool:
-    url = f"https://graph.facebook.com/v{graph_version}/{object_id}?fields=id"
-    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    query = urllib.parse.urlencode({"fields": "id", "access_token": token})
+    url = f"https://graph.facebook.com/v{graph_version}/{object_id}?{query}"
+    request = urllib.request.Request(url)
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             payload = json.loads(response.read())

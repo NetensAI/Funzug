@@ -1,6 +1,7 @@
 import json
 import io
 import unittest
+import urllib.parse
 from unittest.mock import patch
 from urllib.error import HTTPError
 
@@ -24,8 +25,11 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
                 self.assertTrue(verify_object("26.0", "12345", "secret-token", "Page"))
 
         request = open_url.call_args.args[0]
-        self.assertNotIn("secret-token", request.full_url)
-        self.assertEqual(request.get_header("Authorization"), "Bearer secret-token")
+        self.assertEqual(
+            urllib.parse.parse_qs(urllib.parse.urlsplit(request.full_url).query)["access_token"],
+            ["secret-token"],
+        )
+        self.assertIsNone(request.get_header("Authorization"))
 
     def test_rejects_mismatched_object_id(self):
         class Response:
