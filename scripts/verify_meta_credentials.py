@@ -89,7 +89,7 @@ def main() -> int:
         print("Missing required GitHub Actions secrets: " + ", ".join(missing))
         return 1
 
-    version = os.environ.get("FUNZUG_META_GRAPH_VERSION", "26.0").strip().removeprefix("v")
+    version = os.environ.get("FUNZUG_META_GRAPH_VERSION", "").strip().removeprefix("v") or "26.0"
     results = [
         verify_object(
             version,
