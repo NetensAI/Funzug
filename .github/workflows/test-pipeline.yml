@@ -26,3 +26,6 @@ jobs:
 
       - name: Validate the publishing queue
         run: python funzug_pipeline.py validate
+
+      - name: Validate the review-only draft inbox
+        run: python funzug_pipeline.py validate-drafts

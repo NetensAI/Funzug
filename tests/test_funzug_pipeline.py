@@ -42,10 +42,13 @@ class ValidationTests(unittest.TestCase):
         }
         self.root_patch = patch.object(pipeline, "ROOT", self.root)
         self.history_patch = patch.object(pipeline, "HISTORY_PATH", self.root / "history.json")
+        self.draft_queue_patch = patch.object(pipeline, "DRAFT_QUEUE_PATH", self.root / "drafts" / "queue.json")
         self.root_patch.start()
         self.history_patch.start()
+        self.draft_queue_patch.start()
 
     def tearDown(self):
+        self.draft_queue_patch.stop()
         self.history_patch.stop()
         self.root_patch.stop()
         self.temp.cleanup()
@@ -73,6 +76,19 @@ class ValidationTests(unittest.TestCase):
         item = json.loads(json.dumps(self.item))
         del item["claims"][0]["support_note"]
         self.assertTrue(any("support_note" in error for error in pipeline.validate_item(item, (1080, 1350))))
+
+    def test_draft_inbox_allows_missing_public_url_but_checks_image_and_sources(self):
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        self.assertEqual(pipeline.validate_draft_queue(drafts), [])
+
+    def test_draft_inbox_rejects_approved_status(self):
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        draft["status"] = "approved"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        self.assertTrue(any("draft status only" in error for error in pipeline.validate_draft_queue(drafts)))
 
     def test_published_topic_in_history_does_not_break_future_validation(self):
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [dict(self.item, status="published", approval={
@@ -219,6 +235,24 @@ class ValidationTests(unittest.TestCase):
                         with self.assertRaisesRegex(RuntimeError, "did not finish processing"):
                             publisher.publish_instagram_image(self.item)
         self.assertEqual(post.call_count, 1)
+
+    def test_staging_draft_adds_url_without_approval_or_publication(self):
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        queue_path = self.root / "queue.json"
+        log_path = self.root / "logs" / "events.jsonl"
+        with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
+            pipeline.stage_draft(drafts, queue, draft["id"], "https://media.example.com/post.png")
+        staged = json.loads(queue_path.read_text(encoding="utf-8"))
+        item = staged["items"][0]
+        self.assertEqual(item["status"], "draft")
+        self.assertNotIn("approval", item)
+        self.assertEqual(item["public_media_url"], "https://media.example.com/post.png")
+        with patch.object(pipeline, "MetaPublisher") as publisher:
+            self.assertEqual(pipeline.publish_due(staged, execute=True, confirmation="FUNZUG"), 0)
+            publisher.assert_not_called()
 
 
 if __name__ == "__main__":

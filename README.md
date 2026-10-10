@@ -22,6 +22,8 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 
 
 - `queue.json`: content, approvals, schedule, sources, and media URLs.
+- `drafts/queue.json`: draft-only content and source evidence; public media URLs and approvals are not required.
+- `drafts/assets/`: locally generated 1080x1350 draft images.
 - `history.json`: inspected topics already visible in Meta, used to catch repeats.
 - `meta_assets_snapshot.json`: Meta IDs and visible account details observed during setup.
 - `config.example.json`: credential variable names and other settings.
@@ -36,9 +38,10 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 3. Add these secrets to the private GitHub repository under Settings > Secrets and variables > Actions: `FUNZUG_FACEBOOK_PAGE_ID`, `FUNZUG_FACEBOOK_PAGE_TOKEN`, `FUNZUG_INSTAGRAM_USER_ID`, and `FUNZUG_INSTAGRAM_ACCESS_TOKEN`. Set `FUNZUG_META_GRAPH_VERSION` as a repository variable if needed. Never commit tokens or paste them into chat.
 4. The `funzug-publish` GitHub Actions environment is restricted to the `main` branch. This repository's environment settings do not expose a required-reviewer control, so per-post approval in the queue is the human publishing gate.
 5. For each story, follow `CONTENT_REQUIREMENTS.md`. The ChatGPT/Codex built-in image generator can create the image within an interactive task using the ChatGPT plan. It is not callable by this GitHub Actions workflow. Do not put ChatGPT or Meta credentials in a prompt, queue item, image, or log.
-6. Add a draft to `queue.json` with a unique `topic_key`, exact 1080x1350 `media_path`, matching public HTTPS `public_media_url` without query strings, claims with source IDs and a concise `support_note` describing what each cited source establishes, source records, platforms, and an ISO-8601 scheduled time with timezone offset. Researchers must inspect source content. URL syntax, metadata, or availability alone is not fact-checking.
-7. Review the sources, caption, image, destinations, and scheduled time. Approve the item with a named reviewer and a non-empty review note only after it is ready to publish.
-8. GitHub Actions checks approved posts every five minutes. A due item publishes only if its named approval record, review note, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. It does not generate or approve content, and it does not publish drafts.
+6. Save locally reviewable posts and generated images in `drafts/queue.json` and `drafts/assets/`. Validate them with `python funzug_pipeline.py validate-drafts`. Drafts are not visible to the publishing workflow and do not need a public media URL.
+7. After reviewing a draft, make its image available at a public HTTPS URL and use `stage-draft` to copy it into `queue.json`. Staging does not approve it. Researchers must inspect source content; URL syntax, metadata, or availability alone is not fact-checking.
+8. Review the sources, caption, image, destinations, and scheduled time. Approve the item with a named reviewer and a non-empty review note only after it is ready to publish.
+9. GitHub Actions checks approved posts every five minutes. A due item publishes only if its named approval record, review note, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. It does not generate or approve content, and it does not publish drafts.
 
 
 ## Commands
@@ -46,6 +49,8 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 
 ```text
 python funzug_pipeline.py validate
+python funzug_pipeline.py validate-drafts
+python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url https://media.example.com/image.png
 python funzug_pipeline.py approve --id ITEM_ID --approved-by "Name" --note "Reviewed sources, caption, image, platforms, and schedule"
 python funzug_pipeline.py publish-due
 python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
