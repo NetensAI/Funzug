@@ -5,17 +5,42 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: funzug-publishing
   cancel-in-progress: false
 
 jobs:
-  publish:
+  preflight:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      due: ${{ steps.due.outputs.due }}
+    steps:
+      - name: Check out the approved queue
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate queue
+        run: python funzug_pipeline.py validate
+
+      - name: Check whether an approved post is due
+        id: due
+        run: echo "due=$(python funzug_pipeline.py check-due)" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: preflight
+    if: needs.preflight.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: funzug-publish
+    permissions:
+      contents: write
     env:
       FUNZUG_FACEBOOK_PAGE_ID: ${{ secrets.FUNZUG_FACEBOOK_PAGE_ID }}
       FUNZUG_FACEBOOK_PAGE_TOKEN: ${{ secrets.FUNZUG_FACEBOOK_PAGE_TOKEN }}
@@ -31,19 +56,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate queue
-        run: python funzug_pipeline.py validate
-
       - name: Publish due, approved posts
         run: python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
 
-      - name: Save publishing results
+      - name: Save publishing results and audit log
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet -- queue.json; then
-            git add queue.json
+          git add queue.json history.json
+          if [ -f logs/events.jsonl ]; then
+            git add logs/events.jsonl
+          fi
+          if ! git diff --cached --quiet; then
             git commit -m "Record Funzug publishing results"
             git push
           fi
