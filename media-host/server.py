@@ -16,7 +16,6 @@ CONTENT_TYPES = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
-    ".webp": "image/webp",
 }
 
 
@@ -40,8 +39,6 @@ def image_extension(data: bytes, content_type: str) -> str | None:
         return extension
     if extension == ".png" and data.startswith(b"\x89PNG\r\n\x1a\n"):
         return extension
-    if extension == ".webp" and len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return extension
     return None
 
 
@@ -60,7 +57,7 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"ok")
             return
-        match = re.fullmatch(r"/media/([0-9a-f]{32})\.(jpg|jpeg|png|webp)", self.path)
+        match = re.fullmatch(r"/media/([0-9a-f]{32})\.(jpg|jpeg|png)", self.path)
         if not match:
             self.send_error(404)
             return

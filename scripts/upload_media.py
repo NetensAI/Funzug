@@ -10,8 +10,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from funzug_pipeline import image_size
+
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
-CONTENT_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
+CONTENT_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
 
 
 class RejectRedirects(urllib.request.HTTPRedirectHandler):
@@ -33,7 +35,9 @@ def upload(path: Path, origin: str, token: str) -> str:
         raise ValueError("FUNZUG_MEDIA_UPLOAD_TOKEN is not set")
     content_type = CONTENT_TYPES.get(path.suffix.lower())
     if not content_type:
-        raise ValueError("image must be PNG, JPEG, or WebP")
+        raise ValueError("image must be PNG or JPEG")
+    if image_size(path) != (1080, 1350):
+        raise ValueError("image must be exactly 1080x1350")
     data = path.read_bytes()
     if not data or len(data) > MAX_UPLOAD_BYTES:
         raise ValueError("image is empty or exceeds the 12 MiB upload limit")
@@ -53,7 +57,7 @@ def upload(path: Path, origin: str, token: str) -> str:
         raise RuntimeError(f"media upload failed with HTTP {exc.code}; response omitted") from None
     except (urllib.error.URLError, TimeoutError):
         raise RuntimeError("media upload failed to connect or timed out") from None
-    if not re.fullmatch(r"/media/[0-9a-f]{32}\.(?:jpg|jpeg|png|webp)", media_path):
+    if not re.fullmatch(r"/media/[0-9a-f]{32}\.(?:jpg|jpeg|png)", media_path):
         raise RuntimeError("media host returned an invalid public path")
     return origin + media_path
 

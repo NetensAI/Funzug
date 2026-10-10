@@ -31,7 +31,7 @@ jobs:
         env:
           FUNZUG_MEDIA_DOMAIN: media.example.com
         run: |
-          python -c "from pathlib import Path; p=Path('media-host/secrets/upload_token'); p.parent.mkdir(parents=True, exist_ok=True); p.write_text('ci-only-placeholder-token-not-for-deployment')"
+          python -c "from pathlib import Path; d=Path('media-host/secrets'); d.mkdir(parents=True, exist_ok=True); (d/'upload_token').write_text('ci-only-placeholder-token-not-for-deployment'); (d/'tunnel_token').write_text('ci-only-placeholder-tunnel-token')"
           docker compose -f media-host/compose.yaml config --quiet
           docker compose -f media-host/compose.yaml build media
 

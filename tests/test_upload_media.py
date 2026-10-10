@@ -23,7 +23,10 @@ class UploadMediaTests(unittest.TestCase):
         path = Path(handle.name)
         handle.close()
         self.addCleanup(path.unlink, missing_ok=True)
-        path.write_bytes(b"png image bytes")
+        path.write_bytes(
+            b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0dIHDR"
+            + (1080).to_bytes(4, "big") + (1350).to_bytes(4, "big") + b"test payload"
+        )
         return path
 
     def test_requires_https_public_origin(self):
@@ -89,6 +92,15 @@ class UploadMediaTests(unittest.TestCase):
         request = urllib.request.Request("https://media.example.com/upload", data=b"image", method="POST")
         self.assertIsNone(redirect.redirect_request(request, None, 302, "Found", {}, "https://attacker.example/"))
 
+    def test_upload_refuses_noncompliant_dimensions_before_network(self):
+        path = self.image_file()
+        path.write_bytes(
+            b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0dIHDR"
+            + (1200).to_bytes(4, "big") + (1500).to_bytes(4, "big") + b"test payload"
+        )
+        with self.assertRaisesRegex(ValueError, "1080x1350"):
+            upload_media.upload(path, "https://media.example.com", "secret-value")
+
     def test_media_host_upload_then_public_read_round_trip(self):
         with TemporaryDirectory(dir=Path(__file__).parent) as folder:
             prior_media_dir = server.MEDIA_DIR
@@ -103,7 +115,11 @@ class UploadMediaTests(unittest.TestCase):
             try:
                 with patch.object(server, "read_upload_token", return_value=b"local-test-upload-token"):
                     connection = http.client.HTTPConnection("127.0.0.1", httpd.server_port, timeout=3)
-                    data = b"\x89PNG\r\n\x1a\nexample-png-payload"
+                    data = (
+                        b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0dIHDR"
+                        + (1080).to_bytes(4, "big") + (1350).to_bytes(4, "big")
+                        + b"example-png-payload"
+                    )
                     connection.request("POST", "/upload", data, {
                         "Authorization": "Bearer local-test-upload-token",
                         "Content-Type": "image/png",
@@ -135,7 +151,6 @@ class UploadMediaTests(unittest.TestCase):
     def test_server_checks_image_signatures_against_content_type(self):
         self.assertEqual(server.image_extension(b"\x89PNG\r\n\x1a\nrest", "image/png"), ".png")
         self.assertEqual(server.image_extension(b"\xff\xd8\xffrest", "image/jpeg"), ".jpeg")
-        self.assertEqual(server.image_extension(b"RIFF0000WEBPrest", "image/webp"), ".webp")
         self.assertIsNone(server.image_extension(b"not an image", "image/png"))
         self.assertIsNone(server.image_extension(b"\x89PNG\r\n\x1a\n", "text/html"))
 

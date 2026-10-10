@@ -29,6 +29,8 @@ services:
 
   caddy:
     image: caddy:2.11.6-alpine
+    profiles:
+      - direct
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -46,6 +48,25 @@ services:
       media:
         condition: service_healthy
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles:
+      - tunnel
+    command: ["tunnel", "--no-autoupdate", "run", "--token-file", "/run/secrets/tunnel_token"]
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 128m
+    depends_on:
+      media:
+        condition: service_healthy
+    secrets:
+      - tunnel_token
+
 volumes:
   media_data:
   caddy_data:
@@ -54,3 +75,5 @@ volumes:
 secrets:
   upload_token:
     file: ./secrets/upload_token
+  tunnel_token:
+    file: ./secrets/tunnel_token
