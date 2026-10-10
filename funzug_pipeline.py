@@ -21,7 +21,8 @@ ROOT = Path(__file__).resolve().parent
 QUEUE_PATH = ROOT / "queue.json"
 HISTORY_PATH = ROOT / "history.json"
 LOG_PATH = ROOT / "logs" / "events.jsonl"
-GRAPH_VERSION = os.getenv("FUNZUG_META_GRAPH_VERSION", "v26.0")
+_configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
+GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
 
 
 def iso_now() -> str:
