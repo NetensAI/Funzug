@@ -56,6 +56,8 @@ The latest Meta Developers check found the `Funzug Publisher` app (ID `218021079
 
 Use the separate `Verify Meta credentials (read-only)` GitHub Actions workflow to check that the configured tokens can read the configured Page and Instagram account IDs. It never publishes. A passing check proves only object access, not content-publishing permission, app review, production readiness, or successful scheduling.
 
+The latest read-only verification run failed for both accounts with Meta `OAuthException` code `2500`; see [run #3](https://github.com/NetensAI/Funzug/actions/runs/38053734954). The workflow does not log secret values. The token/account access remains unverified, and the code does not establish whether the cause is token type, validity, permissions, or app configuration. Do not publish until this check is resolved and publishing access is confirmed.
+
 Funzug.com links to an existing privacy policy at `https://www.funzug.com/funzug-com-privacy-policy`. That page covers the public website, including comments, cookies, advertising, and server logs, but does not describe the Meta publishing app, its access tokens, post content, or audit records. Do not put it into Meta's app settings unchanged. An accurate app policy and the responsible legal operator still need confirmation.
 
 Meta Business Suite already contains scheduled content through November 5, 2026. The visible recurring subjects are Valentina Tereshkova, Princess Leonor, El Niño, and Svalbard. These topic keys are present in `history.json`; check the live Business Suite schedule again before preparing new content. The listed times did not show a timezone.

@@ -7,6 +7,17 @@
   "facebook_followers_visible": "87.4K",
   "instagram_followers_visible": "1.2K",
   "asset_relationship_visible": "Facebook Page + Instagram profile",
+  "credential_verification": {
+    "workflow": "Verify Meta credentials (read-only)",
+    "observed_at": "2026-10-10",
+    "status": "failed",
+    "facebook_result": "OAuthException code 2500",
+    "instagram_result": "OAuthException code 2500",
+    "run_url": "https://github.com/NetensAI/Funzug/actions/runs/38053734954",
+    "secret_values_logged": false,
+    "publishing_attempted": false,
+    "diagnosis": "Token/account access remains unverified; inspect token type, validity, and app configuration"
+  },
   "meta_app": {
     "name": "Funzug Publisher",
     "app_id": "2180210799547573",
