@@ -1,0 +1,27 @@
+name: Inspect Instagram Login candidate (read-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    environment: funzug-publish
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Inspect account identity without posting
+        env:
+          FUNZUG_INSTAGRAM_LOGIN_CANDIDATE_TOKEN: ${{ secrets.FUNZUG_INSTAGRAM_LOGIN_CANDIDATE_TOKEN }}
+          FUNZUG_INSTAGRAM_APP_SECRET: ${{ secrets.FUNZUG_INSTAGRAM_APP_SECRET }}
+        run: python scripts/inspect_instagram_login_candidate.py
