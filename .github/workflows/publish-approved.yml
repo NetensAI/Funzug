@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: funzug-publishing
+  group: funzug-queue-writes
   cancel-in-progress: false
 
 jobs:
