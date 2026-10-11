@@ -10,7 +10,7 @@
   "items": [
     {
       "id": "funzug-2026-10-10-icecube-nobel",
-      "status": "approved",
+      "status": "failed",
       "format": "image",
       "headline": "The Universe Left Its Footprints in Ice",
       "caption": "A detector beneath Antarctic ice is helping scientists study some of the universe's most energetic messengers.\n\nThe IceCube Neutrino Observatory instruments about a cubic kilometer of glacial ice at the South Pole. It reported the discovery of high-energy astrophysical neutrinos in 2013, though their sources were not known at the time.\n\nResearchers have since reported evidence for neutrino emission from two galaxies, and IceCube announced the observation of neutrinos from the Milky Way in 2023.\n\nOn October 6, 2026, IceCube principal investigator Francis Halzen received the Nobel Prize in Physics for decisive contributions to the observatory and the discovery of high-energy neutrinos of astrophysical origin.\n\nWhat do you think scientists will learn next from these cosmic messengers?\n\n#IceCube #Neutrinos #NobelPrize #SpaceScience #Astrophysics",
@@ -91,7 +91,7 @@
       "platform_results": {
         "facebook": {
           "status": "failed",
-          "failed_at": "2026-10-11T17:16:06+00:00",
+          "failed_at": "2026-10-11T17:46:38+00:00",
           "error": "Meta API HTTP 403 (OAuthException, 200): (#200) The permission(s) publish_actions are not available. It has been deprecated. If you want to provide a way for your app users to share content to Facebook, we encourage you to use our Sharing products instead."
         },
         "instagram": {
@@ -100,7 +100,7 @@
           "post_id": "18134238472733382"
         }
       },
-      "last_attempt_at": "2026-10-11T17:16:21+00:00",
+      "last_attempt_at": "2026-10-11T17:46:38+00:00",
       "topic_key": "icecube-2026-nobel-neutrinos"
     }
   ]
