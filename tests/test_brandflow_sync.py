@@ -159,7 +159,8 @@ class BrandFlowPayloadTests(unittest.TestCase):
         ):
             self.assertEqual(sync.sync_results(), 0)
         request.assert_called_once()
-        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/publications")
+        self.assertEqual(request.call_args.args[0], "PUT")
+        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/drafts")
         payload = request.call_args.args[3]
         self.assertEqual(payload["externalId"], completed["id"])
         self.assertEqual(set(payload["platformResults"]), {"facebook", "instagram"})
