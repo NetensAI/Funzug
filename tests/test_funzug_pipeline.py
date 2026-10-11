@@ -128,6 +128,7 @@ class ValidationTests(unittest.TestCase):
             "approved_by": "Vatsal",
             "approved_at": "2026-10-10T10:00:00Z",
             "note": "Reviewed",
+            "review_checklist": {key: True for key in pipeline.REVIEW_CHECKS},
         })]}
         (self.root / "history.json").write_text(json.dumps({"topic_keys": ["example-story"]}), encoding="utf-8")
         self.assertEqual(pipeline.validate_queue(queue), [])
@@ -142,6 +143,13 @@ class ValidationTests(unittest.TestCase):
         errors = pipeline.validate_item(item, (1080, 1350))
         self.assertTrue(any("review note" in error for error in errors))
         self.assertTrue(any("approved_at" in error for error in errors))
+        self.assertTrue(any("review checklist" in error for error in errors))
+
+    def test_approval_checklist_must_cover_every_review_area(self):
+        item = self.approved_item()
+        item["approval"]["review_checklist"]["sources"] = False
+        errors = pipeline.validate_item(item, (1080, 1350))
+        self.assertTrue(any("review checklist" in error for error in errors))
 
     def test_draft_never_calls_meta_publisher_even_when_execute_is_requested(self):
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
@@ -164,6 +172,7 @@ class ValidationTests(unittest.TestCase):
             "approved_by": "Vatsal",
             "approved_at": "2000-01-01T00:00:00Z",
             "note": "Reviewed sources, caption, image, platforms, and schedule",
+            "review_checklist": {key: True for key in pipeline.REVIEW_CHECKS},
         }
         return item
 
@@ -185,12 +194,22 @@ class ValidationTests(unittest.TestCase):
         log_path = self.root / "logs" / "events.jsonl"
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
         with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
-            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed sources, caption, image, platforms, and schedule")
+            checklist = {key: True for key in pipeline.REVIEW_CHECKS}
+            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed sources, caption, image, platforms, and schedule", checklist)
         saved = json.loads(queue_path.read_text(encoding="utf-8"))
         self.assertEqual(saved["items"][0]["approval"]["approved_by"], "Vatsal")
+        self.assertEqual(saved["items"][0]["approval"]["review_checklist"], {key: True for key in pipeline.REVIEW_CHECKS})
         event = json.loads(log_path.read_text(encoding="utf-8").splitlines()[0])
         self.assertEqual(event["event"], "approved")
         self.assertEqual(event["item_id"], self.item["id"])
+
+    def test_approval_refuses_missing_review_checks(self):
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
+        checklist = {key: True for key in pipeline.REVIEW_CHECKS}
+        checklist["sources"] = False
+        with self.assertRaisesRegex(RuntimeError, "explicit review checks"):
+            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed", checklist)
+        self.assertEqual(queue["items"][0]["status"], "draft")
 
     def test_mocked_publish_updates_status_history_and_audit_log(self):
         queue_path = self.root / "queue.json"

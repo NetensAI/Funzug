@@ -41,8 +41,8 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 5. For each story, follow `CONTENT_REQUIREMENTS.md`. The ChatGPT/Codex built-in image generator can create the image within an interactive task using the ChatGPT plan. It is not callable by this GitHub Actions workflow. Do not put ChatGPT or Meta credentials in a prompt, queue item, image, or log.
 6. Save locally reviewable posts and generated images in `drafts/queue.json` and `drafts/assets/`. Validate them with `python funzug_pipeline.py validate-drafts`. Drafts are not visible to the publishing workflow and do not need a public media URL.
 7. After reviewing a draft, make its image or every carousel slide available at a public HTTPS URL and use `stage-draft` to copy it into `queue.json`. For a carousel, repeat `--public-media-url` once per slide in the same order as `media_paths`. The optional Docker media host in `media-host/` is prepared for a home server that is reachable over HTTPS; an authorized upload prints each public URL. Staging does not approve it. Researchers must inspect source content; URL syntax, metadata, or availability alone is not fact-checking.
-8. Review the sources, caption, image, destinations, and scheduled time. Approve the item with a named reviewer and a non-empty review note only after it is ready to publish.
-9. GitHub Actions checks approved posts every five minutes. Before any Meta publishing call, it verifies both tokens belong to the configured app, have the required scopes, and Meta explicitly reports both token expiry and data-access expiry as zero (non-expiring). A due item publishes only if its named approval record, review note, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. It does not generate or approve content, and it does not publish drafts.
+8. Review the claims against each cited source, then inspect the source pages, caption, every image, destinations, and scheduled time. Approval requires an explicit checklist for claims, sources, caption, images, platforms, and schedule, plus a named reviewer and non-empty note.
+9. GitHub Actions checks approved posts every five minutes. Before any Meta publishing call, it verifies both tokens belong to the configured app, have the required scopes, and Meta explicitly reports both token expiry and data-access expiry as zero (non-expiring). A due item publishes only if its named approval record, complete review checklist, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. It does not generate or approve content, and it does not publish drafts.
 
 
 ## Commands
@@ -53,7 +53,7 @@ python funzug_pipeline.py validate
 python funzug_pipeline.py validate-drafts
 python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url https://media.example.com/image.png
 python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url https://media.example.com/slide-1.png --public-media-url https://media.example.com/slide-2.png
-python funzug_pipeline.py approve --id ITEM_ID --approved-by "Name" --note "Reviewed sources, caption, image, platforms, and schedule"
+python funzug_pipeline.py approve --id ITEM_ID --approved-by "Name" --note "Reviewed and verified all checklist items" --review-claims --review-sources --review-caption --review-images --review-platforms --review-schedule
 python funzug_pipeline.py publish-due
 python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
 python funzug_pipeline.py check-due

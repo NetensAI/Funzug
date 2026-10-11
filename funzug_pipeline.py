@@ -23,6 +23,7 @@ QUEUE_PATH = ROOT / "queue.json"
 DRAFT_QUEUE_PATH = ROOT / "drafts" / "queue.json"
 HISTORY_PATH = ROOT / "history.json"
 LOG_PATH = ROOT / "logs" / "events.jsonl"
+REVIEW_CHECKS = ("claims", "sources", "caption", "images", "platforms", "schedule")
 _configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
 GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
 CONTAINER_STATUS_ATTEMPTS = 12
@@ -135,6 +136,9 @@ def validate_item(
             errors.append("approved item is missing approved_by")
         if not isinstance(approval.get("note"), str) or not approval["note"].strip():
             errors.append("approved item is missing its review note")
+        checklist = approval.get("review_checklist")
+        if not isinstance(checklist, dict) or any(checklist.get(key) is not True for key in REVIEW_CHECKS):
+            errors.append("approved item requires all review checklist checks: " + ", ".join(REVIEW_CHECKS))
         try:
             parse_time(approval["approved_at"])
         except (KeyError, TypeError, ValueError):
@@ -530,7 +534,10 @@ class MetaPublisher:
         return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
 
 
-def approve(queue: dict[str, Any], item_id: str, approved_by: str, note: str) -> None:
+def approve(
+    queue: dict[str, Any], item_id: str, approved_by: str, note: str,
+    review_checklist: dict[str, bool],
+) -> None:
     errors = validate_queue(queue)
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
@@ -544,8 +551,13 @@ def approve(queue: dict[str, Any], item_id: str, approved_by: str, note: str) ->
                 raise RuntimeError("approval requires a reviewer name")
             if not note.strip():
                 raise RuntimeError("approval requires a non-empty review note")
+            if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
+                raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
             item["status"] = "approved"
-            item["approval"] = {"status": "approved", "approved_by": approved_by, "approved_at": iso_now(), "note": note}
+            item["approval"] = {
+                "status": "approved", "approved_by": approved_by, "approved_at": iso_now(), "note": note,
+                "review_checklist": {key: True for key in REVIEW_CHECKS},
+            }
             save_json(QUEUE_PATH, queue)
             log_event({"event": "approved", "item_id": item_id, "approved_by": approved_by})
             print(f"approved {item_id}")
@@ -631,6 +643,8 @@ def main() -> int:
     approve_parser.add_argument("--id", required=True)
     approve_parser.add_argument("--approved-by", required=True)
     approve_parser.add_argument("--note", default="")
+    for check in REVIEW_CHECKS:
+        approve_parser.add_argument(f"--review-{check}", action="store_true", help=f"attest that {check} were reviewed")
     publish_parser = subparsers.add_parser("publish-due")
     publish_parser.add_argument("--execute", action="store_true")
     publish_parser.add_argument("--confirm-publish")
@@ -662,7 +676,8 @@ def main() -> int:
             print("true" if has_due_approved_items(queue) else "false")
             return 0
         if args.command == "approve":
-            approve(queue, args.id, args.approved_by, args.note)
+            checklist = {key: getattr(args, f"review_{key}") for key in REVIEW_CHECKS}
+            approve(queue, args.id, args.approved_by, args.note, checklist)
             return 0
         return publish_due(queue, args.execute, args.confirm_publish)
     except (OSError, ValueError, RuntimeError, KeyError, json.JSONDecodeError) as exc:
