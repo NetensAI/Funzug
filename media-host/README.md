@@ -11,7 +11,7 @@ This small Docker service accepts authenticated image uploads, validates the exa
 
 ## First-time setup on the server
 
-Copy this `media-host` directory to a dedicated server folder. The Cloudflare remotely managed tunnel `funzug-media` and Published application route for `media.funzug.com` are already configured, targeting `http://media:8080`. Do not create another tunnel. Cloudflare terminates public HTTPS; no home-router ports need to be opened. The published hostname is public, as required for Meta to fetch the image. The connector is not yet running; install its token on the Linux server as described below.
+Copy this `media-host` directory to a dedicated server folder. The Cloudflare remotely managed tunnel `funzug-media` and Published application route for `media.funzug.com` are already configured, targeting `http://media:8080`. Do not create another tunnel. Cloudflare terminates public HTTPS; no home-router ports need to be opened. The published hostname is public, as required for Meta to fetch the image. Keep a connector running on the Linux server. Before any public media upload, verify that Cloudflare shows the connector as connected and `https://media.funzug.com/health` returns HTTP 200.
 
 From the `media-host` folder:
 
