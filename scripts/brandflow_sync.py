@@ -56,9 +56,11 @@ def api_url() -> str:
 
 
 def secret() -> str:
-    value = os.environ.get("FUNZUG_DRAFT_INGEST_SECRET", "")
+    value = os.environ.get("FUNZUG_DRAFT_INGEST_SECRET", "").strip()
     if len(value) < 32:
         raise RuntimeError("FUNZUG_DRAFT_INGEST_SECRET is not configured")
+    if not value.isascii() or any(not 33 <= ord(char) <= 126 for char in value):
+        raise RuntimeError("FUNZUG_DRAFT_INGEST_SECRET contains invalid characters")
     return value
 
 

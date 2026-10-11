@@ -12,6 +12,16 @@ import scripts.brandflow_sync as sync
 
 
 class BrandFlowPayloadTests(unittest.TestCase):
+    def test_ingest_secret_trims_surrounding_whitespace(self):
+        with patch.dict("os.environ", {"FUNZUG_DRAFT_INGEST_SECRET": "  " + "s" * 64 + "\r\n"}):
+            self.assertEqual(sync.secret(), "s" * 64)
+
+    def test_ingest_secret_rejects_internal_control_characters_without_echoing_them(self):
+        with patch.dict("os.environ", {"FUNZUG_DRAFT_INGEST_SECRET": "s" * 32 + "\n" + "t" * 32}):
+            with self.assertRaisesRegex(RuntimeError, "contains invalid characters") as raised:
+                sync.secret()
+            self.assertNotIn("s" * 32, str(raised.exception))
+
     def test_cli_entrypoint_imports_pipeline_from_scripts_directory(self):
         result = subprocess.run(
             [sys.executable, str(sync.ROOT / "scripts" / "brandflow_sync.py"), "--help"],
