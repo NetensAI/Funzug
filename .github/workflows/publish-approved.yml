@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "2-59/5 * * * *"
   workflow_dispatch:
+    inputs:
+      retry_failed_facebook_item_id:
+        description: Approved failed Facebook item to publish immediately
+        required: false
+        type: string
 
 concurrency:
   group: funzug-queue-writes
@@ -11,6 +16,7 @@ concurrency:
 
 jobs:
   preflight:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
@@ -31,7 +37,14 @@ jobs:
 
       - name: Check whether an approved post is due
         id: due
-        run: echo "due=$(python funzug_pipeline.py check-due)" >> "$GITHUB_OUTPUT"
+        env:
+          RETRY_ITEM_ID: ${{ inputs.retry_failed_facebook_item_id }}
+        run: |
+          if [ -n "$RETRY_ITEM_ID" ]; then
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "due=$(python funzug_pipeline.py check-due)" >> "$GITHUB_OUTPUT"
+          fi
 
   publish:
     needs: preflight
@@ -59,9 +72,14 @@ jobs:
           FUNZUG_INSTAGRAM_ACCESS_TOKEN: ${{ secrets.FUNZUG_INSTAGRAM_ACCESS_TOKEN }}
           FUNZUG_META_GRAPH_VERSION: ${{ vars.FUNZUG_META_GRAPH_VERSION }}
           FUNZUG_INSTAGRAM_API_MODE: ${{ vars.FUNZUG_INSTAGRAM_API_MODE }}
+          RETRY_ITEM_ID: ${{ inputs.retry_failed_facebook_item_id }}
         run: |
           python scripts/meta_token_diagnostic.py
-          python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
+          if [ -n "$RETRY_ITEM_ID" ]; then
+            python funzug_pipeline.py retry-failed-facebook --id "$RETRY_ITEM_ID"
+          else
+            python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
+          fi
 
       - name: Save publishing results and audit log
         if: always()

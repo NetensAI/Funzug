@@ -713,12 +713,12 @@ def approve(
     raise RuntimeError(f"item not found: {item_id}")
 
 
-def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None) -> int:
+def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None, item_id: str | None = None) -> int:
     errors = validate_queue(queue)
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
-    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
+    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and (item_id is None or item.get("id") == item_id) and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
     if not due:
         print("no approved items are due")
         return 0
@@ -762,6 +762,35 @@ def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None) 
     history["topic_keys"] = sorted(known_topics)
     save_json(HISTORY_PATH, history)
     return 0 if batch_success else 1
+
+
+def retry_failed_facebook(queue: dict[str, Any], item_id: str) -> int:
+    """Retry one explicitly authorized failed Facebook post through the normal publisher."""
+    errors = validate_queue(queue)
+    if errors:
+        raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
+    item = next((row for row in queue.get("items", []) if row.get("id") == item_id), None)
+    if item is None or item.get("status") != "failed" or item.get("platforms") != ["facebook"]:
+        raise RuntimeError("retry requires one failed Facebook-only queue item")
+    results = item.get("platform_results", {})
+    if results.get("facebook", {}).get("status") != "failed":
+        raise RuntimeError("Facebook retry requires a recorded failed attempt")
+    approval = item.get("approval", {})
+    authorizations = approval.get("retry_authorizations", []) if isinstance(approval, dict) else []
+    if not any(
+        isinstance(entry, dict)
+        and entry.get("authorized_by") == "owner"
+        and entry.get("platforms") == ["facebook"]
+        and entry.get("topic_key") == item.get("topic_key")
+        for entry in authorizations
+    ):
+        raise RuntimeError("Facebook retry lacks explicit owner authorization")
+    if parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) > dt.datetime.now(dt.timezone.utc):
+        raise RuntimeError("Facebook retry is not due")
+    MetaPublisher().facebook_page_token()
+    item["status"] = "approved"
+    log_event({"event": "retry_started", "item_id": item_id, "platform": "facebook"})
+    return publish_due(queue, True, "FUNZUG", item_id=item_id)
 
 
 def has_due_approved_items(queue: dict[str, Any]) -> bool:
@@ -810,6 +839,8 @@ def main() -> int:
     publish_parser = subparsers.add_parser("publish-due")
     publish_parser.add_argument("--execute", action="store_true")
     publish_parser.add_argument("--confirm-publish")
+    retry_parser = subparsers.add_parser("retry-failed-facebook", help="retry one owner-authorized failed Facebook post")
+    retry_parser.add_argument("--id", required=True)
     subparsers.add_parser("check-due", help="print true only when an approved post is due")
     args = parser.parse_args()
     try:
@@ -851,6 +882,8 @@ def main() -> int:
                 return 1
             print(f"valid queue: {len(queue.get('items', []))} item(s)")
             return 0
+        if args.command == "retry-failed-facebook":
+            return retry_failed_facebook(queue, args.id)
         if args.command == "check-due":
             print("true" if has_due_approved_items(queue) else "false")
             return 0
