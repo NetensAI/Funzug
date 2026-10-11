@@ -2,11 +2,15 @@
 from __future__ import annotations
 
 import hmac
+from io import BytesIO
 import os
 from pathlib import Path
 import re
 import secrets
+import warnings
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 MEDIA_DIR = Path(os.environ.get("MEDIA_DIR", "/data"))
 TOKEN_FILE = Path(os.environ.get("UPLOAD_TOKEN_FILE", "/run/secrets/upload_token"))
@@ -36,10 +40,42 @@ def authorized(header: str | None, token: bytes) -> bool:
 def image_extension(data: bytes, content_type: str) -> str | None:
     extension = {value: key for key, value in CONTENT_TYPES.items()}.get(content_type.lower())
     if extension in {".jpg", ".jpeg"} and data.startswith(b"\xff\xd8\xff"):
-        return extension
+        return ".jpeg"
     if extension == ".png" and data.startswith(b"\x89PNG\r\n\x1a\n"):
-        return extension
+        return ".jpeg"
     return None
+
+
+def normalize_image(data: bytes, content_type: str) -> bytes:
+    """Validate the required canvas and normalize Meta-facing media to JPEG."""
+    expected_format = {"image/jpeg": {"JPEG"}, "image/png": {"PNG"}}.get(content_type.lower())
+    if expected_format is None or image_extension(data, content_type) is None:
+        raise ValueError("unsupported image format")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(BytesIO(data)) as source:
+                if source.format not in expected_format:
+                    raise ValueError("image signature does not match its content type")
+                image = ImageOps.exif_transpose(source)
+                if image.size != (1080, 1350):
+                    raise ValueError("image must be exactly 1080x1350")
+                image.load()
+                if "A" in image.getbands():
+                    rgba = image.convert("RGBA")
+                    rgb = Image.new("RGB", rgba.size, "white")
+                    rgb.paste(rgba, mask=rgba.getchannel("A"))
+                    image = rgb
+                else:
+                    image = image.convert("RGB")
+                output = BytesIO()
+                image.save(output, format="JPEG", quality=95, optimize=True, progressive=True, subsampling=0)
+                normalized = output.getvalue()
+    except (OSError, UnidentifiedImageError, Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+        raise ValueError("invalid or unsafe image data") from exc
+    if not normalized or len(normalized) > MAX_UPLOAD_BYTES:
+        raise ValueError("normalized image exceeds the upload limit")
+    return normalized
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -106,6 +142,11 @@ class Handler(BaseHTTPRequestHandler):
         extension = image_extension(data, self.headers.get("Content-Type", ""))
         if extension is None:
             self.send_error(415)
+            return
+        try:
+            data = normalize_image(data, self.headers.get("Content-Type", ""))
+        except ValueError as exc:
+            self.send_error(422, str(exc))
             return
         filename = secrets.token_hex(16) + extension
         destination = MEDIA_DIR / filename
