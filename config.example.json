@@ -1,5 +1,5 @@
 {
-  "timezone": "America/New_York",
+  "timezone": "Asia/Kolkata",
   "facebook_page_id_env": "FUNZUG_FACEBOOK_PAGE_ID",
   "facebook_page_token_env": "FUNZUG_FACEBOOK_PAGE_TOKEN",
   "instagram_user_id_env": "FUNZUG_INSTAGRAM_USER_ID",

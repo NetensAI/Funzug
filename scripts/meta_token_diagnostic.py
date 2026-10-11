@@ -33,6 +33,16 @@ def explicitly_non_expiring(value: object) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and value == 0
 
 
+def expiry_is_active(value: object, now: float) -> bool:
+    if explicitly_non_expiring(value):
+        return True
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and value > now
+    )
+
+
 def summarize(
     payload: object,
     expected_app_id: str,
@@ -48,14 +58,19 @@ def summarize(
             "expires_at": "unknown",
             "data_access_expires_at": "unknown",
             "explicitly_non_expiring": False,
+            "lifetime_active": False,
         }, False
     data = payload["data"]
     scopes = sorted({scope for scope in data.get("scopes", []) if isinstance(scope, str)})
     app_match = str(data.get("app_id", "")) == expected_app_id
     valid = data.get("is_valid") is True
     missing = sorted(required_scopes - set(scopes))
-    no_expiry = explicitly_non_expiring(data.get("expires_at")) and explicitly_non_expiring(
-        data.get("data_access_expires_at")
+    current_time = datetime.now(timezone.utc).timestamp() if now is None else now
+    expires_at = data.get("expires_at")
+    data_access_expires_at = data.get("data_access_expires_at")
+    no_expiry = explicitly_non_expiring(expires_at) and explicitly_non_expiring(data_access_expires_at)
+    lifetime_active = expiry_is_active(expires_at, current_time) and expiry_is_active(
+        data_access_expires_at, current_time
     )
     result = {
         "valid": valid,
@@ -65,8 +80,9 @@ def summarize(
         "expires_at": expiry_label(data.get("expires_at")),
         "data_access_expires_at": expiry_label(data.get("data_access_expires_at")),
         "explicitly_non_expiring": no_expiry,
+        "lifetime_active": lifetime_active,
     }
-    return result, valid and app_match and not missing and no_expiry
+    return result, valid and app_match and not missing and lifetime_active
 
 
 def debug_token(graph_version: str, app_access_token: str, input_token: str) -> object:
@@ -120,6 +136,8 @@ def main() -> int:
         print(f"  missing_required_scopes={', '.join(summary['missing_scopes']) or '(none)'}")
         print(f"  expires_at_utc={summary['expires_at']}; data_access_expires_at_utc={summary['data_access_expires_at']}")
         print(f"  explicitly_non_expiring={summary['explicitly_non_expiring']}")
+        if not summary["explicitly_non_expiring"] and summary["lifetime_active"]:
+            print("  warning=finite-lifetime token; publishing will fail after either expiry")
         all_valid = all_valid and passed
     return 0 if all_valid else 1
 

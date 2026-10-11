@@ -1,6 +1,8 @@
 import base64
 import json
+import subprocess
 import struct
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,17 @@ import scripts.brandflow_sync as sync
 
 
 class BrandFlowPayloadTests(unittest.TestCase):
+    def test_cli_entrypoint_imports_pipeline_from_scripts_directory(self):
+        result = subprocess.run(
+            [sys.executable, str(sync.ROOT / "scripts" / "brandflow_sync.py"), "--help"],
+            cwd=sync.ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("{sync,process-approvals}", result.stdout)
+
     def test_payload_preserves_claim_support_and_source_metadata(self):
         with tempfile.TemporaryDirectory(dir=sync.ROOT) as directory:
             root = Path(directory)
@@ -21,7 +34,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
                 "headline": "Example",
                 "caption": "Caption",
                 "media_path": str(image.relative_to(sync.ROOT)),
-                "scheduled_at": "2026-11-06T12:00:00-05:00",
+                "scheduled_at": "2026-11-06T22:30:00+05:30",
                 "platforms": ["facebook", "instagram"],
                 "claims": [{"text": "Fact", "source_ids": ["src-1"], "support_note": "The cited source states this."}],
                 "sources": [{"id": "src-1", "title": "Primary source", "publisher": "Example Institute", "url": "https://example.org/report", "published_at": "2026-10-01T00:00:00Z", "checked_at": "2026-10-11T00:00:00Z"}],

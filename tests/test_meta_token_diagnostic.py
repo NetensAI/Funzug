@@ -67,7 +67,7 @@ class DebugMetaTokensTests(unittest.TestCase):
                     self.assertEqual(main(), 0)
         self.assertEqual(debug.call_args_list[1].args[2], "instagram-token")
 
-    def test_finite_lifetime_token_is_not_ready_even_if_far_in_future(self):
+    def test_valid_finite_lifetime_token_passes_before_expiry(self):
         payload = {
             "data": {
                 "app_id": "2180210799547573",
@@ -78,8 +78,36 @@ class DebugMetaTokensTests(unittest.TestCase):
             }
         }
         summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
-        self.assertFalse(passed)
+        self.assertTrue(passed)
         self.assertFalse(summary["explicitly_non_expiring"])
+        self.assertTrue(summary["lifetime_active"])
+
+    def test_expired_finite_lifetime_token_fails(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 1900000000 - 1,
+                "data_access_expires_at": 1900000000 + 86400,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
+        self.assertFalse(passed)
+        self.assertFalse(summary["lifetime_active"])
+
+    def test_missing_expiry_metadata_fails_closed(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 0,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
+        self.assertFalse(passed)
+        self.assertFalse(summary["lifetime_active"])
 
     def test_non_expiring_tokens_can_pass_with_explicit_zero_expiry(self):
         payload = {
@@ -106,6 +134,7 @@ class DebugMetaTokensTests(unittest.TestCase):
         summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES)
         self.assertFalse(passed)
         self.assertFalse(summary["explicitly_non_expiring"])
+        self.assertFalse(summary["lifetime_active"])
 
     def test_missing_scope_fails(self):
         payload = {"data": {"app_id": "2180210799547573", "is_valid": True, "scopes": ["pages_show_list"]}}

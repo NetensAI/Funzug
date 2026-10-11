@@ -27,6 +27,7 @@ import funzug_pipeline as pipeline
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
 BATCH_ID = "funzug-draft-inbox-v1"
 SCHEDULE_TIMEZONE = ZoneInfo("Asia/Kolkata")
+
 def api_request(method: str, url: str, secret: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     body = json.dumps(payload, separators=(",", ":")).encode() if payload is not None else None
     request = urllib.request.Request(url, data=body, method=method)

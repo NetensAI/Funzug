@@ -1,6 +1,6 @@
 # Draft inbox
 
-Daily Codex runs save 7 to 10 review-only items here, with generated images under `drafts/assets/`. Each draft includes its caption, proposed US Eastern publishing time, source records, claim-to-source IDs, and a `support_note` for every factual claim. Images must be verified at exactly 1080x1350.
+Daily Codex runs save 7 to 10 review-only items here, with generated images under `drafts/assets/`. Every proposed publishing time uses India Standard Time (IST, `Asia/Kolkata`). Each draft includes its caption, source records, claim-to-source IDs, and a `support_note` for every factual claim. Images must be verified at exactly 1080x1350.
 
 Drafts do not need a public media URL and are never read by the publishing workflow. Check them with:
 

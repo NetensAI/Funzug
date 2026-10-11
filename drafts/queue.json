@@ -1,7 +1,7 @@
 {
   "brand": {
     "name": "Funzug",
-    "timezone": "America/New_York",
+    "timezone": "Asia/Kolkata",
     "required_image_size": [1080, 1350]
   },
   "items": [
@@ -16,7 +16,7 @@
         "facebook",
         "instagram"
       ],
-      "scheduled_at": "2026-11-06T12:00:00-05:00",
+      "scheduled_at": "2026-10-11T18:45:00+05:30",
       "media_path": "drafts/assets/2026-10-10-icecube-neutrino-nobel-v2.png",
       "claims": [
         {
@@ -65,6 +65,143 @@
           "published_at": "2026-10-09T00:00:00Z",
           "checked_at": "2026-10-11T05:39:32Z"
         }
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-frb-cosmic-dawn",
+      "status": "draft",
+      "format": "image",
+      "headline": "This Flash Came From The Early Universe",
+      "caption": "A radio flash lasting milliseconds has been traced to a galaxy from when the universe was about 3 billion years old.\n\nUsing the James Webb Space Telescope, astronomers identified the host of FRB 20240304B as a small dwarf galaxy actively forming stars.\n\nFast radio bursts are brief flashes whose origins remain uncertain. This distant host adds a clue for researchers, but it does not settle what causes every burst.\n\nWhat would you most like astronomers to uncover about these cosmic signals?\n\n#FastRadioBursts #JamesWebb #SpaceScience #Astronomy #Universe",
+      "topic_key": "frb-20240304b-distant-host-galaxy",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-07T19:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-frb-cosmic-dawn.png",
+      "claims": [
+        {"text": "Webb identified the host galaxy of FRB 20240304B as a small dwarf galaxy actively forming stars.", "source_ids": ["frb-nasa-webb-2026", "frb-keck-2026"], "support_note": "NASA describes the host as a small, actively star-forming dwarf galaxy; Keck Observatory independently summarizes the host identification."},
+        {"text": "The burst occurred about 3 billion years after the Big Bang.", "source_ids": ["frb-nasa-webb-2026", "frb-keck-2026"], "support_note": "NASA reports a measured redshift of 2.148 and dates the event to about 3 billion years after the Big Bang; Keck reports the same redshift and epoch."},
+        {"text": "Fast radio bursts are millisecond-long flashes and their origin remains uncertain.", "source_ids": ["frb-nasa-webb-2026"], "support_note": "NASA describes FRBs as millisecond-long radio flashes and says their origin remains uncertain."}
+      ],
+      "sources": [
+        {"id": "frb-nasa-webb-2026", "title": "Webb Measures Distance to Farthest Fast Radio Burst, Suggesting Origin", "publisher": "NASA Science", "url": "https://science.nasa.gov/missions/webb/webb-measures-distance-to-farthest-fast-radio-burst-suggesting-origin/", "published_at": "2026-10-08T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"},
+        {"id": "frb-keck-2026", "title": "Astronomers Pinpoint Host Galaxy of the Most Distant Fast Radio Burst to Date", "publisher": "W. M. Keck Observatory", "url": "https://keckobservatory.org/frb20240304b/", "published_at": "2026-10-08T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-spherex-brown-dwarfs",
+      "status": "draft",
+      "format": "image",
+      "headline": "A World Between Star And Planet",
+      "caption": "Brown dwarfs occupy a curious middle ground: they form like stars but do not have enough mass to sustain hydrogen fusion in their cores.\n\nNASA’s SPHEREx telescope studied 37 nearby brown dwarfs across a wide temperature range. Its spectra revealed atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.\n\nThese objects can resemble giant planets while still sharing a star-like origin. The new observations give researchers a broader view of how their cloudy atmospheres vary.\n\nWhat would you call a world that is neither quite a star nor quite a planet?\n\n#SPHEREx #BrownDwarfs #NASA #SpaceScience #Astronomy",
+      "topic_key": "spherex-brown-dwarf-atmospheres-2026",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-07T21:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-brown-dwarf-spherex.png",
+      "claims": [
+        {"text": "Brown dwarfs form from collapsing gas clouds but lack enough mass to sustain hydrogen fusion in their cores.", "source_ids": ["spherex-brown-dwarf-jpl-2026"], "support_note": "NASA JPL states that brown dwarfs form from collapsing clouds like stars but are not massive enough for sustained hydrogen fusion."},
+        {"text": "The SPHEREx study analyzed 37 nearby brown dwarfs and found atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.", "source_ids": ["spherex-brown-dwarf-jpl-2026"], "support_note": "The NASA JPL article reports 37 observed brown dwarfs and lists these molecules in the measured spectra."},
+        {"text": "SPHEREx records their brightness in 102 different colors spanning visible red into infrared wavelengths.", "source_ids": ["spherex-brown-dwarf-jpl-2026"], "support_note": "NASA JPL explains the instrument's 102-color spectral measurements and their range into infrared light."}
+      ],
+      "sources": [
+        {"id": "spherex-brown-dwarf-jpl-2026", "title": "NASA’s SPHEREx Telescope Sees Menagerie of Brown Dwarfs", "publisher": "NASA Jet Propulsion Laboratory", "url": "https://www.jpl.nasa.gov/news/nasas-spherex-telescope-sees-menagerie-of-brown-dwarfs/", "published_at": "2026-10-08T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-curiosity-martian-dawn",
+      "status": "draft",
+      "format": "image",
+      "headline": "Mars Wakes In Blue Light",
+      "caption": "A new Curiosity panorama shows sunlight reaching wind-carved cliffs on Mars. The rover captured six Mastcam images at 8:30 a.m. local Mars time on its 4,982nd Martian day.\n\nThe team processed this panorama without its usual white balancing, preserving the scene’s early-morning appearance. The blue foreground is part of that processed view, not a claim that Mars looks exactly like this to human eyes.\n\nThe distant yardang layer stretches about 16 kilometers across the northwestern side of Mount Sharp. Scientists are still working out how it formed, with ancient volcanic ash among the possibilities.\n\nWould you explore this landscape at sunrise?\n\n#Mars #CuriosityRover #NASA #SpaceExploration #PlanetaryScience",
+      "topic_key": "curiosity-mars-dawn-yardangs-2026",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-07T23:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-curiosity-martian-dawn.png",
+      "claims": [
+        {"text": "Curiosity captured the six-frame Mastcam panorama at 8:30 a.m. local Mars time on its 4,982nd sol.", "source_ids": ["curiosity-martian-dawn-jpl-2026"], "support_note": "NASA JPL gives the local Mars time, instrument, capture date, six-image construction, and mission sol."},
+        {"text": "The panorama was processed without the usual white balancing to preserve its early-morning appearance.", "source_ids": ["curiosity-martian-dawn-jpl-2026"], "support_note": "NASA JPL explicitly describes the processing choice and its purpose."},
+        {"text": "The yardang layer extends roughly 16 kilometers across the northwestern reaches of Mount Sharp, and its origin is uncertain.", "source_ids": ["curiosity-martian-dawn-jpl-2026"], "support_note": "NASA JPL gives the layer's extent and says scientists are still investigating its formation; ancient volcanic ash is one idea."}
+      ],
+      "sources": [
+        {"id": "curiosity-martian-dawn-jpl-2026", "title": "NASA’s Curiosity Rover Catches Stunning Martian Dawn", "publisher": "NASA Jet Propulsion Laboratory", "url": "https://www.jpl.nasa.gov/news/nasas-curiosity-rover-catches-stunning-martian-dawn/", "published_at": "2026-10-06T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-hubble-white-dwarf-candidate",
+      "status": "draft",
+      "format": "image",
+      "headline": "Could A Dead Star Grow New Worlds?",
+      "caption": "Could a planet form after its star dies? A new analysis of archival Hubble observations points to that possibility around the white dwarf HS 0209+0832.\n\nResearchers found an unusual abundance of niobium in the star’s atmosphere. The chemical pattern is consistent with material from a candidate planet that may have formed from matter expelled as the star evolved.\n\nThe team describes this as a second-generation planet candidate, not a directly photographed world. The result, published in Nature Astronomy, suggests planetary systems may have a more complicated afterlife than once assumed.\n\nDo you think a star’s planetary story can have a second chapter?\n\n#Hubble #Exoplanets #WhiteDwarf #SpaceScience #Astronomy",
+      "topic_key": "hubble-white-dwarf-second-generation-planet-candidate",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-08T01:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-hubble-second-generation-world.png",
+      "claims": [
+        {"text": "Researchers reanalyzed archival Hubble observations of white dwarf HS 0209+0832 and identified niobium among unusual atmospheric abundances.", "source_ids": ["hubble-second-generation-nasa-2026", "hubble-second-generation-nature-2026"], "support_note": "NASA describes the archival Hubble reanalysis and niobium clue; the Nature Astronomy paper details the spectroscopic identification."},
+        {"text": "The chemical evidence is consistent with a candidate second-generation planet formed from material ejected during the star's giant phase.", "source_ids": ["hubble-second-generation-nasa-2026", "hubble-second-generation-nature-2026"], "support_note": "Both NASA and the peer-reviewed paper frame the proposed origin as a possibility or candidate, rather than a directly imaged planet."},
+        {"text": "The study was published in Nature Astronomy.", "source_ids": ["hubble-second-generation-nasa-2026", "hubble-second-generation-nature-2026"], "support_note": "NASA identifies the journal, and the primary journal page hosts the study."}
+      ],
+      "sources": [
+        {"id": "hubble-second-generation-nasa-2026", "title": "Suspected Second-generation Planet Solves NASA Hubble Cold Case", "publisher": "NASA Science", "url": "https://science.nasa.gov/missions/hubble/suspected-second-generation-planet-solves-nasa-hubble-cold-case/", "published_at": "2026-10-05T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"},
+        {"id": "hubble-second-generation-nature-2026", "title": "Discovery of a second-generation planet candidate accreting onto a white dwarf", "publisher": "Nature Astronomy", "url": "https://www.nature.com/articles/s41550-026-02983-7", "published_at": "2026-10-05T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-orionid-meteor-shower",
+      "status": "draft",
+      "format": "image",
+      "headline": "Debris From Halley Lights October Skies",
+      "caption": "The Orionids are made from debris left behind by Halley’s Comet. Each year, Earth crosses that stream, and some particles burn through our atmosphere as meteors.\n\nNASA lists the 2026 shower as active from October 2 through November 7, with its peak night on October 21–22. Under dark skies, observers may see around 10 to 20 meteors per hour.\n\nMoonlight may hide some of the fainter streaks this year. NASA recommends looking before dawn after the Moon sets, from a dark location with time for your eyes to adjust.\n\nAre you planning to watch the sky this month?\n\n#Orionids #HalleysComet #MeteorShower #Stargazing #NASA",
+      "topic_key": "orionids-2026-halley-meteor-shower",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-08T03:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-orionid-meteor-shower.png",
+      "claims": [
+        {"text": "The Orionids are produced by debris from Halley's Comet, and the 2026 peak night is October 21–22.", "source_ids": ["orionids-nasa-2026", "nasa-october-skywatching-2026"], "support_note": "NASA's Orionids page identifies Halley's Comet as the source and lists the 2026 peak; NASA JPL's October guide confirms the peak window."},
+        {"text": "NASA estimates about 10 to 20 Orionid meteors per hour under dark skies.", "source_ids": ["orionids-nasa-2026"], "support_note": "NASA's shower facts list the expected rate under dark skies."},
+        {"text": "Moonlight may reduce visibility of fainter meteors, and viewing before dawn after moonset can help.", "source_ids": ["nasa-october-skywatching-2026"], "support_note": "NASA JPL says moonlight may interfere and recommends the hours before dawn after moonset."}
+      ],
+      "sources": [
+        {"id": "orionids-nasa-2026", "title": "Orionids Meteor Shower", "publisher": "NASA Science", "url": "https://science.nasa.gov/solar-system/meteors-meteorites/orionids/", "published_at": "2026-10-07T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"},
+        {"id": "nasa-october-skywatching-2026", "title": "What’s Up: October 2026 Skywatching Tips from NASA", "publisher": "NASA Jet Propulsion Laboratory", "url": "https://www.jpl.nasa.gov/videos/whats-up-october-2026-skywatching-tips-from-nasa/", "published_at": "2026-10-01T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-noaa-ocean-carbon-data",
+      "status": "draft",
+      "format": "image",
+      "headline": "44 Million Ocean Carbon Clues",
+      "caption": "A new NOAA data release brings together about 44 million measurements of carbon dioxide at the ocean surface. The observations span 1957 through 2025.\n\nThe Surface Ocean CO₂ Atlas is built from measurements collected by an international network, including instruments on cargo ships, cruise liners, and research vessels. The data are quality controlled before being added to the atlas.\n\nResearchers use these measurements to study how carbon moves between ocean and atmosphere and to track changes in the global carbon cycle. This is a large observation archive, not a single snapshot of every part of the ocean.\n\nWhat other hidden patterns might decades of ocean readings reveal?\n\n#OceanScience #NOAA #ClimateData #CarbonCycle #MarineScience",
+      "topic_key": "noaa-socat-2026-ocean-carbon-observations",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-08T05:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-noaa-ocean-carbon.png",
+      "claims": [
+        {"text": "The 2026 Surface Ocean CO2 Atlas release includes about 44 million quality-controlled observations collected from 1957 through 2025.", "source_ids": ["noaa-socat-2026-release", "noaa-socat-2026-data"], "support_note": "NOAA AOML gives the approximate count and date range; NOAA's data service identifies the 2026 SOCAT collection."},
+        {"text": "NOAA researchers and international collaborators collect surface ocean CO2 readings using instruments on ships and other platforms, then quality-control the data.", "source_ids": ["noaa-socat-2026-release"], "support_note": "NOAA AOML describes ship-based underway instruments and international quality-control work for SOCAT."},
+        {"text": "The dataset supports research on ocean-atmosphere carbon exchange and ocean change.", "source_ids": ["noaa-socat-2026-release"], "support_note": "NOAA says the data products help monitor global biogeochemical cycles and measure surface-ocean carbon dioxide."}
+      ],
+      "sources": [
+        {"id": "noaa-socat-2026-release", "title": "Celebrating the release of major data products to monitor global carbon cycle", "publisher": "NOAA Atlantic Oceanographic and Meteorological Laboratory", "url": "https://www.aoml.noaa.gov/celebrating-the-release-of-major-data-products-to-monitor-global-carbon-cycle/", "published_at": "2026-10-05T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"},
+        {"id": "noaa-socat-2026-data", "title": "Surface Ocean CO2 Atlas Database Version 2026", "publisher": "NOAA National Centers for Environmental Information", "url": "https://data.pmel.noaa.gov/socat/erddap/tabledap/socat_v2026_fulldata.html", "published_at": "2026-06-16T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
+      ]
+    },
+    {
+      "id": "funzug-2026-10-11-nasa-sunrise-mission",
+      "status": "draft",
+      "format": "image",
+      "headline": "Six Tiny Satellites, One Giant Eye",
+      "caption": "NASA’s SunRISE mission is designed to make six small satellites work together as one giant radio telescope. Each spacecraft is about the size of a toaster oven.\n\nFlying in formation above geosynchronous orbit, the satellites will track radio bursts from the Sun’s corona. Those bursts can be linked to energetic particles that may pose hazards to spacecraft and astronauts.\n\nThe mission is planned to launch no earlier than mid-2027. It is not in orbit yet; the concept is to combine the satellites’ observations into a much larger virtual instrument.\n\nWhat questions about the Sun could a formation of tiny spacecraft help answer?\n\n#NASA #SunRISE #SolarScience #SpaceTechnology #Astronomy",
+      "topic_key": "nasa-sunrise-six-satellite-radio-telescope",
+      "platforms": ["facebook", "instagram"],
+      "scheduled_at": "2026-11-08T07:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-nasa-sunrise-mission.png",
+      "claims": [
+        {"text": "NASA's SunRISE mission consists of six small satellites intended to operate together as one large radio telescope.", "source_ids": ["nasa-sunrise-jpl-2026"], "support_note": "NASA JPL states the satellite count, small spacecraft size, and virtual-radio-telescope operation."},
+        {"text": "The spacecraft will study solar radio bursts from the Sun's corona that are generated by energetic particle events and may pose hazards to satellites and astronauts.", "source_ids": ["nasa-sunrise-jpl-2026"], "support_note": "NASA JPL describes the target radio bursts, their location, and their potential relevance to spacecraft and astronaut safety."},
+        {"text": "The mission is not planned to launch before mid-2027.", "source_ids": ["nasa-sunrise-jpl-2026"], "support_note": "NASA JPL lists the launch target as no earlier than mid-2027."}
+      ],
+      "sources": [
+        {"id": "nasa-sunrise-jpl-2026", "title": "NASA’s SunRISE Mission Targets No Earlier Than Mid-2027 Launch", "publisher": "NASA Jet Propulsion Laboratory", "url": "https://www.jpl.nasa.gov/news/nasas-sunrise-mission-targets-no-earlier-than-mid-2027-launch/", "published_at": "2026-10-06T00:00:00Z", "checked_at": "2026-10-11T08:20:12Z"}
       ]
     }
   ]

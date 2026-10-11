@@ -74,6 +74,13 @@ def parse_time(value: str) -> dt.datetime:
     return parsed
 
 
+def parse_schedule_time(value: str) -> dt.datetime:
+    parsed = parse_time(value)
+    if parsed.utcoffset() != dt.timedelta(hours=5, minutes=30):
+        raise ValueError("scheduled_at must use IST (UTC+05:30)")
+    return parsed
+
+
 def https_url(value: Any) -> bool:
     if not isinstance(value, str):
         return False
@@ -170,7 +177,7 @@ def validate_item(
     if all(isinstance(platform, str) for platform in platforms) and len(set(platforms)) != len(platforms):
         errors.append("platforms contains duplicates")
     try:
-        parse_time(item["scheduled_at"])
+        parse_schedule_time(item["scheduled_at"])
     except (KeyError, TypeError, ValueError) as exc:
         errors.append(f"invalid scheduled_at: {exc}")
     for field in ("caption", "headline", "topic_key"):
@@ -422,7 +429,7 @@ def host_and_approve_draft(
     candidate = next((item for item in drafts.get("items", []) if item.get("id") == item_id), None)
     if candidate is None:
         raise RuntimeError(f"draft not found: {item_id}")
-    if parse_time(candidate["scheduled_at"]).astimezone(dt.timezone.utc) <= dt.datetime.now(dt.timezone.utc):
+    if parse_schedule_time(candidate["scheduled_at"]).astimezone(dt.timezone.utc) <= dt.datetime.now(dt.timezone.utc):
         raise RuntimeError("scheduled_at must be in the future when the post is approved")
     if not upload_token:
         raise RuntimeError("FUNZUG_MEDIA_UPLOAD_TOKEN is not set")
@@ -656,7 +663,7 @@ def approve(
         if item.get("id") == item_id:
             if item.get("status", "draft") != "draft":
                 raise RuntimeError(f"item {item_id} is not a draft")
-            if parse_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= dt.datetime.now(dt.timezone.utc):
+            if parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= dt.datetime.now(dt.timezone.utc):
                 raise RuntimeError("scheduled_at must be in the future when the post is approved")
             if not approved_by.strip():
                 raise RuntimeError("approval requires a reviewer name")
@@ -683,7 +690,7 @@ def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None) 
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
-    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and parse_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
+    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
     if not due:
         print("no approved items are due")
         return 0
@@ -736,7 +743,7 @@ def has_due_approved_items(queue: dict[str, Any]) -> bool:
     current = dt.datetime.now(dt.timezone.utc)
     return any(
         item.get("status") == "approved"
-        and parse_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current
+        and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current
         for item in queue.get("items", [])
     )
 
