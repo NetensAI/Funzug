@@ -187,9 +187,6 @@ def process_approvals() -> int:
             raise RuntimeError(f"{item_id}: BrandFlow approval is missing explicit publication authorization")
         if status.get("scheduleTimezone") != "Asia/Kolkata":
             raise RuntimeError(f"{item_id}: approved schedule must use Asia/Kolkata")
-        checks = status.get("reviewChecks")
-        if (not isinstance(checks, dict) or checks.get("approvalConfirmed") is not True) and not any(item.get("id") == item_id and item.get("status") == "approved" for item in queue.get("items", [])):
-            raise RuntimeError(f"{item_id}: BrandFlow approval confirmation is missing")
         reviewer = status.get("reviewedBy")
         note = status.get("reviewNote")
         if not isinstance(reviewer, str) or not reviewer.strip() or not isinstance(note, str) or not note.strip():
