@@ -144,6 +144,35 @@ def sync_pending() -> int:
     return 0
 
 
+def reschedule_approved_item(queue: dict[str, Any], item_id: str, scheduled_at: str, changed_by: str, note: str, changed_at: str) -> tuple[str, str]:
+    new_time = pipeline.parse_time(scheduled_at).astimezone(dt.timezone.utc)
+    if new_time <= dt.datetime.now(dt.timezone.utc):
+        raise RuntimeError("rescheduled time must be in the future")
+    change_time = pipeline.parse_time(changed_at)
+    if not changed_by.strip() or not note.strip():
+        raise RuntimeError("reschedule requires a reviewer name and note")
+    for item in queue.get("items", []):
+        if item.get("id") != item_id:
+            continue
+        approval = item.get("approval")
+        if item.get("status") != "approved" or not isinstance(approval, dict) or approval.get("status") != "approved":
+            raise RuntimeError(f"{item_id}: only an approved, unpublished post can be rescheduled")
+        previous = pipeline.parse_time(item["scheduled_at"])
+        if previous.astimezone(dt.timezone.utc) == new_time:
+            return previous.isoformat(), previous.isoformat()
+        updated = new_time.astimezone(SCHEDULE_TIMEZONE).isoformat(timespec="seconds")
+        item["scheduled_at"] = updated
+        approval.setdefault("schedule_changes", []).append({
+            "previous_schedule": previous.isoformat(),
+            "scheduled_at": updated,
+            "changed_by": changed_by.strip(),
+            "changed_at": change_time.isoformat(),
+            "note": note.strip(),
+        })
+        return previous.isoformat(), updated
+    raise RuntimeError(f"{item_id}: approved post is absent from the publishing queue")
+
+
 def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
@@ -158,11 +187,6 @@ def process_approvals() -> int:
             raise RuntimeError(f"{item_id}: BrandFlow approval is missing explicit publication authorization")
         if status.get("scheduleTimezone") != "Asia/Kolkata":
             raise RuntimeError(f"{item_id}: approved schedule must use Asia/Kolkata")
-        if any(item.get("id") == item_id for item in queue.get("items", [])):
-            continue
-        item = local.get(item_id)
-        if not item or item.get("status") != "draft":
-            raise RuntimeError(f"{item_id}: approved post is absent from the local draft inbox")
         checks = status.get("reviewChecks")
         if not isinstance(checks, dict) or checks.get("approvalConfirmed") is not True:
             raise RuntimeError(f"{item_id}: BrandFlow approval confirmation is missing")
@@ -174,12 +198,40 @@ def process_approvals() -> int:
         if not isinstance(selected_schedule, str):
             raise RuntimeError(f"{item_id}: approved schedule is missing")
         local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
+        dashboard_time = status.get("reviewedAt")
+        existing = next((item for item in queue.get("items", []) if item.get("id") == item_id), None)
+        if existing is not None:
+            if existing.get("status") != "approved":
+                raise RuntimeError(f"{item_id}: only an approved, unpublished post can be rescheduled")
+            if pipeline.parse_time(existing["scheduled_at"]).astimezone(dt.timezone.utc) == local_schedule.astimezone(dt.timezone.utc):
+                continue
+            approval = existing.get("approval", {})
+            approved_at = approval.get("approved_at") if isinstance(approval, dict) else None
+            if not isinstance(dashboard_time, str) or not isinstance(approved_at, str):
+                raise RuntimeError(f"{item_id}: reschedule requires the original approval and a new review timestamp")
+            if pipeline.parse_time(dashboard_time).astimezone(dt.timezone.utc) <= pipeline.parse_time(approved_at).astimezone(dt.timezone.utc):
+                raise RuntimeError(f"{item_id}: schedule change has no new BrandFlow review timestamp")
+            previous, updated = reschedule_approved_item(
+                queue, item_id, local_schedule.isoformat(), reviewer, note, dashboard_time,
+            )
+            pipeline.save_json(pipeline.QUEUE_PATH, queue)
+            pipeline.log_event({
+                "event": "schedule_rescheduled",
+                "item_id": item_id,
+                "changed_by": reviewer,
+                "previous_schedule": previous,
+                "scheduled_at": updated,
+            })
+            completed += 1
+            continue
+        item = local.get(item_id)
+        if not item or item.get("status") != "draft":
+            raise RuntimeError(f"{item_id}: approved post is absent from the local draft inbox")
         if local_schedule <= dt.datetime.now(SCHEDULE_TIMEZONE):
             print(f"{item_id}: skipped expired BrandFlow approval; no media upload or queue change")
             continue
         item["scheduled_at"] = local_schedule.isoformat()
         checklist = {"approvalConfirmed": True}
-        dashboard_time = status.get("reviewedAt")
         pipeline.host_and_approve_draft(
             drafts, queue, item_id, reviewer, note, checklist,
             os.environ.get("FUNZUG_MEDIA_BASE_URL", ""),
@@ -191,7 +243,6 @@ def process_approvals() -> int:
         completed += 1
     print(f"BrandFlow approvals processed: {completed}")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
