@@ -14,6 +14,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,7 @@ import funzug_pipeline as pipeline
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
 BATCH_ID = "funzug-draft-inbox-v1"
+SCHEDULE_TIMEZONE = ZoneInfo("Asia/Kolkata")
 BRANDFLOW_CHECKS = (
     "factualAccuracy", "sourcesVerified", "imageReviewed", "captionReviewed",
     "scheduleReviewed", "rightsConfirmed", "finalAuthorization",
@@ -91,7 +93,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
     sources = item.get("sources", [])
     claims = item.get("claims", [])
     source_urls = [source["url"] for source in sources]
-    schedule = pipeline.parse_time(item["scheduled_at"])
+    schedule = pipeline.parse_time(item["scheduled_at"]).astimezone(SCHEDULE_TIMEZONE)
     return {
         "schemaVersion": 1,
         "brandSlug": "funzug",
@@ -115,7 +117,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
             } for source in sources],
             "platforms": item["platforms"],
             "proposedSchedule": schedule.isoformat(),
-            "scheduleTimezone": "America/New_York",
+            "scheduleTimezone": "Asia/Kolkata",
             "image": {
                 "kind": "base64",
                 "mimeType": mime,

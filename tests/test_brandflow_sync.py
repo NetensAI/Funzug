@@ -41,7 +41,8 @@ class BrandFlowPayloadTests(unittest.TestCase):
             payload = sync.payload_for(item)
             draft = payload["drafts"][0]
             self.assertEqual(payload["brandSlug"], "funzug")
-            self.assertEqual(draft["scheduleTimezone"], "America/New_York")
+            self.assertEqual(draft["scheduleTimezone"], "Asia/Kolkata")
+            self.assertEqual(draft["proposedSchedule"], "2026-11-06T22:30:00+05:30")
             self.assertEqual(draft["claims"][0]["support_note"], "The cited source states this.")
             self.assertEqual(draft["sources"][0]["publisher"], "Example Institute")
             self.assertEqual(base64.b64decode(draft["image"]["data"]), image.read_bytes())
