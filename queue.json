@@ -2,7 +2,83 @@
   "brand": {
     "name": "Funzug",
     "timezone": "Asia/Kolkata",
-    "required_image_size": [1080, 1350]
+    "required_image_size": [
+      1080,
+      1350
+    ]
   },
-  "items": []
+  "items": [
+    {
+      "id": "funzug-2026-10-10-icecube-nobel",
+      "status": "approved",
+      "format": "image",
+      "headline": "The Universe Left Its Footprints in Ice",
+      "caption": "A detector beneath Antarctic ice is helping scientists study some of the universe's most energetic messengers.\n\nThe IceCube Neutrino Observatory instruments about a cubic kilometer of glacial ice at the South Pole. It reported the discovery of high-energy astrophysical neutrinos in 2013, though their sources were not known at the time.\n\nResearchers have since reported evidence for neutrino emission from two galaxies, and IceCube announced the observation of neutrinos from the Milky Way in 2023.\n\nOn October 6, 2026, IceCube principal investigator Francis Halzen received the Nobel Prize in Physics for decisive contributions to the observatory and the discovery of high-energy neutrinos of astrophysical origin.\n\nWhat do you think scientists will learn next from these cosmic messengers?\n\n#IceCube #Neutrinos #NobelPrize #SpaceScience #Astrophysics",
+      "topic_key": "icecube-2026-nobel-neutrinos",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-11T22:45:00+05:30",
+      "media_path": "drafts/assets/2026-10-10-icecube-neutrino-nobel-v2.png",
+      "claims": [
+        {
+          "text": "Francis Halzen received the 2026 Nobel Prize in Physics for contributions to IceCube and the discovery of high-energy neutrinos of astrophysical origin.",
+          "source_ids": [
+            "icecube-nobel-2026"
+          ],
+          "support_note": "IceCube's October 6, 2026 announcement states the award citation and identifies Halzen as the observatory's principal investigator."
+        },
+        {
+          "text": "IceCube instruments about a cubic kilometer of glacial ice at the South Pole.",
+          "source_ids": [
+            "icecube-nobel-2026"
+          ],
+          "support_note": "The IceCube announcement describes the observatory as a cubic kilometer detector within South Pole glacial ice."
+        },
+        {
+          "text": "IceCube discovered astrophysical neutrinos in 2013, when their sources were not yet known.",
+          "source_ids": [
+            "icecube-nobel-2026"
+          ],
+          "support_note": "The IceCube announcement dates the discovery to 2013 and says the sources were then unknown."
+        },
+        {
+          "text": "IceCube has reported evidence for neutrino emission from two galaxies and announced neutrino observations from the Milky Way in 2023.",
+          "source_ids": [
+            "icecube-nobel-2026"
+          ],
+          "support_note": "The IceCube announcement names TXS 0506+056 and NGC 1068 as galaxies with reported evidence, and notes the 2023 Milky Way observation."
+        }
+      ],
+      "sources": [
+        {
+          "id": "icecube-nobel-2026",
+          "title": "Francis Halzen, IceCube principal investigator, wins 2026 Physics Nobel Prize",
+          "publisher": "IceCube Neutrino Observatory, University of Wisconsin–Madison",
+          "url": "https://icecube.wisc.edu/news/awards/2026/10/francis-halzen-icecube-principal-investigator-wins-2026-physics-nobel-prize/",
+          "published_at": "2026-10-06T00:00:00Z",
+          "checked_at": "2026-10-11T05:39:32Z"
+        },
+        {
+          "id": "nasa-icecube-nobel-2026",
+          "title": "Nobel Prize for Astrophysical Neutrino Observations with IceCube",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/astrophysics/programs/physics-of-the-cosmos/community/nobel-prize-for-astrophysical-neutrino-observations-with-icecube/",
+          "published_at": "2026-10-09T00:00:00Z",
+          "checked_at": "2026-10-11T05:39:32Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/d0a758fd838dc8cad3d00a27910ce65d.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-11T17:01:13.523Z",
+        "note": "Owner request: move the approved post to 10:45 PM IST on 11 Oct 2026. Schedule via the publishing workflow.",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    }
+  ]
 }
