@@ -94,3 +94,9 @@ jobs:
             git commit -m "Record Funzug publishing results"
             git push
           fi
+
+      - name: Sync completed publication status to BrandFlow
+        env:
+          FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
+          FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+        run: python scripts/brandflow_sync.py sync-results

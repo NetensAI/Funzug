@@ -144,6 +144,40 @@ def sync_pending() -> int:
     return 0
 
 
+def sync_results() -> int:
+    token, base = secret(), api_url()
+    endpoint = base.rsplit("/", 1)[0] + "/publications"
+    drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
+    known_ids = {item["id"] for item in drafts.get("items", [])}
+    queue = pipeline.load_json(pipeline.QUEUE_PATH)
+    sent = 0
+    for item in queue.get("items", []):
+        if item.get("status") != "published" or item.get("id") not in known_ids:
+            continue
+        expected = set(item.get("platforms", []))
+        results = item.get("platform_results", {})
+        if not expected or set(results) != expected:
+            raise RuntimeError(f"{item['id']}: published platform results are incomplete")
+        summary = {}
+        for platform in sorted(expected):
+            result = results[platform]
+            if result.get("status") != "published" or not result.get("post_id") or not result.get("published_at"):
+                raise RuntimeError(f"{item['id']}: published platform result is invalid")
+            summary[platform] = {
+                "status": "published",
+                "postId": result["post_id"],
+                "publishedAt": result["published_at"],
+            }
+        api_request("POST", endpoint, token, {
+            "batchId": BATCH_ID,
+            "externalId": item["id"],
+            "platformResults": summary,
+        })
+        sent += 1
+    print(f"BrandFlow publication results synced: {sent}")
+    return 0
+
+
 def reschedule_approved_item(queue: dict[str, Any], item_id: str, scheduled_at: str, changed_by: str, note: str, changed_at: str) -> tuple[str, str]:
     new_time = pipeline.parse_time(scheduled_at).astimezone(dt.timezone.utc)
     if new_time <= dt.datetime.now(dt.timezone.utc):
@@ -247,10 +281,14 @@ def process_approvals() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("sync", "process-approvals"))
+    parser.add_argument("command", choices=("sync", "process-approvals", "sync-results"))
     args = parser.parse_args()
     try:
-        return sync_pending() if args.command == "sync" else process_approvals()
+        if args.command == "sync":
+            return sync_pending()
+        if args.command == "sync-results":
+            return sync_results()
+        return process_approvals()
     except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
