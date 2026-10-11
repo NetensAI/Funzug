@@ -33,7 +33,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
                 "headline": "Example",
                 "caption": "Caption",
                 "media_path": str(image.relative_to(sync.ROOT)),
-                "scheduled_at": "2026-11-06T12:00:00-05:00",
+                "scheduled_at": "2026-11-06T22:30:00+05:30",
                 "platforms": ["facebook", "instagram"],
                 "claims": [{"text": "Fact", "source_ids": ["src-1"], "support_note": "The cited source states this."}],
                 "sources": [{"id": "src-1", "title": "Primary source", "publisher": "Example Institute", "url": "https://example.org/report", "published_at": "2026-10-01T00:00:00Z", "checked_at": "2026-10-11T00:00:00Z"}],
