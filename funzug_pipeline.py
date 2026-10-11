@@ -378,6 +378,68 @@ def stage_draft(
     print(f"staged {item_id} as an unapproved draft")
 
 
+def host_and_approve_draft(
+    drafts: dict[str, Any],
+    queue: dict[str, Any],
+    item_id: str,
+    approved_by: str,
+    note: str,
+    review_checklist: dict[str, bool],
+    media_origin: str,
+    upload_token: str,
+    public_upload_confirmation: str,
+    publication_authorization: str,
+) -> None:
+    """Upload reviewed draft media publicly, stage it, and record explicit approval."""
+    if public_upload_confirmation != "FUNZUG":
+        raise RuntimeError("explicit public-upload confirmation is required")
+    if publication_authorization != "Yes, upload publicly and publish at scheduled time":
+        raise RuntimeError("explicit publication authorization is required")
+    if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
+        raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
+    if not approved_by.strip() or not note.strip():
+        raise RuntimeError("approval requires a reviewer name and non-empty review note")
+
+    draft_errors = validate_draft_queue(drafts)
+    if draft_errors:
+        raise RuntimeError("draft validation failed:\n" + "\n".join(draft_errors))
+    queue_errors = validate_queue(queue)
+    if queue_errors:
+        raise RuntimeError("publish queue validation failed:\n" + "\n".join(queue_errors))
+    if any(item.get("id") == item_id for item in queue.get("items", [])):
+        raise RuntimeError(f"item {item_id} is already in the publishing queue")
+    candidate = next((item for item in drafts.get("items", []) if item.get("id") == item_id), None)
+    if candidate is None:
+        raise RuntimeError(f"draft not found: {item_id}")
+    if parse_time(candidate["scheduled_at"]).astimezone(dt.timezone.utc) <= dt.datetime.now(dt.timezone.utc):
+        raise RuntimeError("scheduled_at must be in the future when the post is approved")
+    if not upload_token:
+        raise RuntimeError("FUNZUG_MEDIA_UPLOAD_TOKEN is not set")
+
+    from scripts import upload_media
+
+    origin = upload_media.public_origin(media_origin)
+    media_paths = candidate.get("media_paths") if candidate.get("format") == "carousel" else [candidate["media_path"]]
+    media_urls: list[str] = []
+    try:
+        for media_path in media_paths:
+            path = (ROOT / media_path).resolve()
+            media_urls.append(upload_media.upload(path, origin, upload_token))
+    except Exception as exc:
+        if media_urls:
+            log_event({
+                "event": "public_media_upload_incomplete",
+                "item_id": item_id,
+                "uploaded_media_urls": media_urls,
+                "error": safe_error_message(str(exc)),
+            })
+        raise
+
+    stage_draft(drafts, queue, item_id, media_urls)
+    staged_queue = load_json(QUEUE_PATH)
+    approve(staged_queue, item_id, approved_by, note, review_checklist)
+
+
 def api_post(path: str, form: dict[str, str], token: str, host: str = GRAPH_HOST) -> dict[str, Any]:
     if host not in {GRAPH_HOST, INSTAGRAM_LOGIN_HOST}:
         raise RuntimeError("Meta API host is not allowed")
@@ -677,6 +739,20 @@ def main() -> int:
         "--public-media-url", action="append", required=True,
         help="repeat once per image in a carousel; provide one URL for a single-image post",
     )
+    host_approve_parser = subparsers.add_parser(
+        "host-and-approve-draft",
+        help="upload a reviewed draft image publicly and approve it for its scheduled publication",
+    )
+    host_approve_parser.add_argument("--id", required=True)
+    host_approve_parser.add_argument("--approved-by", required=True)
+    host_approve_parser.add_argument("--note", required=True)
+    host_approve_parser.add_argument("--media-origin", default=os.environ.get("FUNZUG_MEDIA_BASE_URL", ""))
+    host_approve_parser.add_argument("--confirm-public-upload", choices=["FUNZUG"], required=True)
+    host_approve_parser.add_argument(
+        "--authorize-publication", choices=["Yes, upload publicly and publish at scheduled time"], required=True,
+    )
+    for check in REVIEW_CHECKS:
+        host_approve_parser.add_argument(f"--review-{check}", action="store_true", required=True)
     approve_parser = subparsers.add_parser("approve")
     approve_parser.add_argument("--id", required=True)
     approve_parser.add_argument("--approved-by", required=True)
@@ -701,6 +777,23 @@ def main() -> int:
             drafts = load_json(DRAFT_QUEUE_PATH)
             queue = load_json(QUEUE_PATH)
             stage_draft(drafts, queue, args.id, args.public_media_url)
+            return 0
+        if args.command == "host-and-approve-draft":
+            drafts = load_json(DRAFT_QUEUE_PATH)
+            queue = load_json(QUEUE_PATH)
+            checklist = {key: getattr(args, f"review_{key}") for key in REVIEW_CHECKS}
+            host_and_approve_draft(
+                drafts,
+                queue,
+                args.id,
+                args.approved_by,
+                args.note,
+                checklist,
+                args.media_origin,
+                os.environ.get("FUNZUG_MEDIA_UPLOAD_TOKEN", ""),
+                args.confirm_public_upload,
+                args.authorize_publication,
+            )
             return 0
         queue = load_json(QUEUE_PATH)
         if args.command == "validate":

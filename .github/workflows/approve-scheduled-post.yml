@@ -12,12 +12,12 @@ on:
         required: true
         type: string
       authorize_publication:
-        description: Explicitly authorize this post to publish at its scheduled time
+        description: Upload the reviewed image publicly and authorize publication at its scheduled time
         required: true
         type: choice
         options:
           - No, keep it as a draft
-          - Yes, publish at scheduled time
+          - Yes, upload publicly and publish at scheduled time
       claims:
         description: I verified every factual claim
         required: true
@@ -61,6 +61,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    environment: funzug-publish
     steps:
       - name: Check out main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -70,8 +71,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate the staged publishing queue
-        run: python funzug_pipeline.py validate
+      - name: Validate the draft inbox and publishing queue
+        run: |
+          python funzug_pipeline.py validate-drafts
+          python funzug_pipeline.py validate
 
       - name: Require explicit publication authorization and full review
         env:
@@ -83,8 +86,8 @@ jobs:
           REVIEW_PLATFORMS: ${{ inputs.platforms }}
           REVIEW_SCHEDULE: ${{ inputs.schedule }}
         run: |
-          if [[ "$AUTHORIZE_PUBLICATION" != "Yes, publish at scheduled time" ]]; then
-            echo "Publication authorization was not granted; no approval was recorded."
+          if [[ "$AUTHORIZE_PUBLICATION" != "Yes, upload publicly and publish at scheduled time" ]]; then
+            echo "Public upload and publication authorization were not granted; no upload or approval was made."
             exit 1
           fi
           for check in "$REVIEW_CLAIMS" "$REVIEW_SOURCES" "$REVIEW_CAPTION" "$REVIEW_IMAGES" "$REVIEW_PLATFORMS" "$REVIEW_SCHEDULE"; do
@@ -94,15 +97,21 @@ jobs:
             fi
           done
 
-      - name: Record the named human approval
+      - name: Upload approved media and record named human approval
         env:
           ITEM_ID: ${{ inputs.item_id }}
           REVIEW_NOTE: ${{ inputs.review_note }}
+          AUTHORIZE_PUBLICATION: ${{ inputs.authorize_publication }}
+          FUNZUG_MEDIA_BASE_URL: ${{ vars.FUNZUG_MEDIA_BASE_URL }}
+          FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
         run: |
-          python funzug_pipeline.py approve \
+          python funzug_pipeline.py host-and-approve-draft \
             --id "$ITEM_ID" \
             --approved-by "$GITHUB_ACTOR" \
             --note "$REVIEW_NOTE" \
+            --media-origin "$FUNZUG_MEDIA_BASE_URL" \
+            --confirm-public-upload FUNZUG \
+            --authorize-publication "$AUTHORIZE_PUBLICATION" \
             --review-claims \
             --review-sources \
             --review-caption \
@@ -111,10 +120,16 @@ jobs:
             --review-schedule
           python funzug_pipeline.py validate
 
-      - name: Save approval and audit log
+      - name: Save approval and upload audit log
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add queue.json logs/events.jsonl
-          git commit -m "Approve scheduled Funzug post"
-          git push
+          git add queue.json
+          if [ -f logs/events.jsonl ]; then
+            git add logs/events.jsonl
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Record Funzug post approval and media upload"
+            git push
+          fi
