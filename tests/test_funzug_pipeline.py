@@ -9,6 +9,10 @@ import funzug_pipeline as pipeline
 
 
 class ValidationTests(unittest.TestCase):
+    def test_single_brandflow_approval_confirmation_is_valid(self):
+        self.assertTrue(pipeline.valid_review_checklist({"approvalConfirmed": True}))
+        self.assertFalse(pipeline.valid_review_checklist({"approvalConfirmed": False}))
+
     def test_empty_actions_variable_defaults_graph_api_version(self):
         self.assertEqual(pipeline.GRAPH_VERSION, "v26.0")
 
