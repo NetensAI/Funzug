@@ -10,6 +10,7 @@ import os
 import re
 import struct
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -19,10 +20,13 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent
 QUEUE_PATH = ROOT / "queue.json"
+DRAFT_QUEUE_PATH = ROOT / "drafts" / "queue.json"
 HISTORY_PATH = ROOT / "history.json"
 LOG_PATH = ROOT / "logs" / "events.jsonl"
 _configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
 GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
+CONTAINER_STATUS_ATTEMPTS = 12
+CONTAINER_STATUS_INTERVAL = 5
 
 
 def iso_now() -> str:
@@ -112,7 +116,11 @@ def image_size(path: Path) -> tuple[int, int] | None:
             handle.seek(length - 2, os.SEEK_CUR)
 
 
-def validate_item(item: dict[str, Any], required_size: tuple[int, int]) -> list[str]:
+def validate_item(
+    item: dict[str, Any],
+    required_size: tuple[int, int],
+    require_public_media_url: bool = True,
+) -> list[str]:
     errors: list[str] = []
     item_id = item.get("id", "<missing id>")
     if not isinstance(item_id, str) or not item_id.strip():
@@ -151,10 +159,13 @@ def validate_item(item: dict[str, Any], required_size: tuple[int, int]) -> list[
         if not isinstance(item.get(field), str) or not item[field].strip():
             errors.append(f"missing {field}")
     media_url = item.get("public_media_url")
-    if not https_url(media_url):
+    if require_public_media_url and not https_url(media_url):
         errors.append("public_media_url must be a valid HTTPS URL without embedded credentials")
-    elif urllib.parse.urlsplit(media_url).query or urllib.parse.urlsplit(media_url).fragment:
-        errors.append("public_media_url must not contain query strings or fragments")
+    elif media_url:
+        if not https_url(media_url):
+            errors.append("public_media_url must be a valid HTTPS URL without embedded credentials")
+        elif urllib.parse.urlsplit(media_url).query or urllib.parse.urlsplit(media_url).fragment:
+            errors.append("public_media_url must not contain query strings or fragments")
     claims = item.get("claims", [])
     source_records = item.get("sources", [])
     if not isinstance(claims, list) or not isinstance(source_records, list):
@@ -175,6 +186,8 @@ def validate_item(item: dict[str, Any], required_size: tuple[int, int]) -> list[
             continue
         if not isinstance(claim.get("text"), str) or not claim.get("text").strip():
             errors.append("claim is missing text")
+        if not isinstance(claim.get("support_note"), str) or not claim["support_note"].strip():
+            errors.append("claim needs a support_note explaining what the cited source establishes")
         source_refs = claim.get("source_ids")
         if (
             not isinstance(source_refs, list)
@@ -259,6 +272,72 @@ def validate_queue(queue: dict[str, Any]) -> list[str]:
     return errors
 
 
+def validate_draft_queue(queue: dict[str, Any]) -> list[str]:
+    """Validate locally reviewable content drafts that do not have public media URLs yet."""
+    errors: list[str] = []
+    required_size = tuple(queue.get("brand", {}).get("required_image_size", [1080, 1350]))
+    if required_size != (1080, 1350):
+        errors.append("brand.required_image_size must be [1080, 1350]")
+    items = queue.get("items", [])
+    if not isinstance(items, list):
+        return errors + ["draft items must be an array"]
+    topic_history = load_json(HISTORY_PATH).get("topic_keys", []) if HISTORY_PATH.exists() else []
+    history = {topic for topic in topic_history if isinstance(topic, str)} if isinstance(topic_history, list) else set()
+    seen_ids: set[str] = set()
+    seen_topics: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            errors.append("draft items must be objects")
+            continue
+        item_id = item.get("id", "<missing id>")
+        if item.get("status", "draft") != "draft":
+            errors.append(f"{item_id}: draft inbox accepts draft status only")
+        if isinstance(item.get("approval"), dict) and item["approval"].get("status") == "approved":
+            errors.append(f"{item_id}: draft inbox must not contain an approval")
+        topic_key = item.get("topic_key")
+        if isinstance(item_id, str):
+            if item_id in seen_ids:
+                errors.append(f"{item_id}: duplicate draft id")
+            seen_ids.add(item_id)
+        errors.extend(
+            f"{item_id}: {error}"
+            for error in validate_item(item, required_size, require_public_media_url=False)
+        )
+        if isinstance(topic_key, str) and topic_key and topic_key in history:
+            errors.append(f"{item_id}: topic already appears in Meta history: {topic_key}")
+        if isinstance(topic_key, str) and topic_key and topic_key in seen_topics:
+            errors.append(f"{item_id}: topic_key duplicates another draft")
+        if isinstance(topic_key, str) and topic_key:
+            seen_topics.add(topic_key)
+    return errors
+
+
+def stage_draft(
+    drafts: dict[str, Any],
+    queue: dict[str, Any],
+    item_id: str,
+    public_media_url: str,
+) -> None:
+    """Copy a locally reviewed draft to the publish queue, without approving it."""
+    draft_errors = validate_draft_queue(drafts)
+    if draft_errors:
+        raise RuntimeError("draft validation failed:\n" + "\n".join(draft_errors))
+    candidate = next((item for item in drafts.get("items", []) if item.get("id") == item_id), None)
+    if candidate is None:
+        raise RuntimeError(f"draft not found: {item_id}")
+    staged_item = json.loads(json.dumps(candidate))
+    staged_item["status"] = "draft"
+    staged_item["public_media_url"] = public_media_url
+    staged_item.pop("approval", None)
+    staged_queue = {**queue, "items": [*queue.get("items", []), staged_item]}
+    queue_errors = validate_queue(staged_queue)
+    if queue_errors:
+        raise RuntimeError("publish queue validation failed:\n" + "\n".join(queue_errors))
+    save_json(QUEUE_PATH, staged_queue)
+    log_event({"event": "draft_staged", "item_id": item_id})
+    print(f"staged {item_id} as an unapproved draft")
+
+
 def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
     url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
     payload = urllib.parse.urlencode({**form, "access_token": token}).encode("utf-8")
@@ -294,6 +373,45 @@ def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
     return result
 
 
+def api_get(path: str, token: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+    """Issue an authenticated read-only Graph API request without putting tokens in URLs."""
+    query = urllib.parse.urlencode(params or {})
+    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+    if query:
+        url = f"{url}?{query}"
+    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        try:
+            error = json.loads(body).get("error", {})
+        except (json.JSONDecodeError, AttributeError):
+            error = {}
+        if not isinstance(error, dict):
+            error = {}
+        code = error.get("code")
+        error_type = error.get("type")
+        message = safe_error_message(str(error.get("message", "request failed")))
+        details = ", ".join(str(value) for value in (error_type, code) if value is not None)
+        raise RuntimeError(f"Meta API HTTP {exc.code}" + (f" ({details})" if details else "") + f": {message}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise RuntimeError("Meta API connection failed or timed out") from exc
+    if not isinstance(result, dict):
+        raise RuntimeError("Meta API returned an invalid response")
+    if "error" in result:
+        error = result["error"]
+        if not isinstance(error, dict):
+            error = {}
+        code = error.get("code")
+        error_type = error.get("type")
+        details = ", ".join(str(value) for value in (error_type, code) if value is not None)
+        message = safe_error_message(str(error.get("message", "request failed")))
+        raise RuntimeError("Meta API error" + (f" ({details})" if details else "") + f": {message}")
+    return result
+
+
 class MetaPublisher:
     def __init__(self) -> None:
         self.page_id = os.environ.get("FUNZUG_FACEBOOK_PAGE_ID")
@@ -313,6 +431,19 @@ class MetaPublisher:
         creation_id = container.get("id")
         if not creation_id:
             raise RuntimeError("Instagram container response did not include an id")
+        for attempt in range(CONTAINER_STATUS_ATTEMPTS):
+            status = api_get(str(creation_id), self.ig_token, {"fields": "status_code"})
+            status_code = status.get("status_code")
+            if status_code == "FINISHED":
+                break
+            if status_code in {"ERROR", "EXPIRED", "PUBLISHED"}:
+                raise RuntimeError(f"Instagram media container is not publishable ({status_code})")
+            if status_code != "IN_PROGRESS":
+                raise RuntimeError("Instagram media container returned an unknown status")
+            if attempt + 1 < CONTAINER_STATUS_ATTEMPTS:
+                time.sleep(CONTAINER_STATUS_INTERVAL)
+        else:
+            raise RuntimeError("Instagram media container did not finish processing before timeout")
         return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
 
 
@@ -402,6 +533,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Approval-gated Funzug publisher")
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("validate")
+    subparsers.add_parser("validate-drafts", help="validate locally reviewable draft content and images")
+    stage_parser = subparsers.add_parser("stage-draft", help="copy a draft with a public image URL into the unapproved publish queue")
+    stage_parser.add_argument("--id", required=True)
+    stage_parser.add_argument("--public-media-url", required=True)
     approve_parser = subparsers.add_parser("approve")
     approve_parser.add_argument("--id", required=True)
     approve_parser.add_argument("--approved-by", required=True)
@@ -411,8 +546,21 @@ def main() -> int:
     publish_parser.add_argument("--confirm-publish")
     subparsers.add_parser("check-due", help="print true only when an approved post is due")
     args = parser.parse_args()
-    queue = load_json(QUEUE_PATH)
     try:
+        if args.command == "validate-drafts":
+            drafts = load_json(DRAFT_QUEUE_PATH)
+            errors = validate_draft_queue(drafts)
+            if errors:
+                print("\n".join(errors), file=sys.stderr)
+                return 1
+            print(f"valid draft inbox: {len(drafts.get('items', []))} item(s)")
+            return 0
+        if args.command == "stage-draft":
+            drafts = load_json(DRAFT_QUEUE_PATH)
+            queue = load_json(QUEUE_PATH)
+            stage_draft(drafts, queue, args.id, args.public_media_url)
+            return 0
+        queue = load_json(QUEUE_PATH)
         if args.command == "validate":
             errors = validate_queue(queue)
             if errors:

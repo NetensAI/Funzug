@@ -25,14 +25,34 @@ def expiry_label(value: object) -> str:
     return datetime.fromtimestamp(value, timezone.utc).isoformat()
 
 
-def summarize(payload: object, expected_app_id: str, required_scopes: set[str]) -> tuple[dict, bool]:
+def explicitly_non_expiring(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value == 0
+
+
+def summarize(
+    payload: object,
+    expected_app_id: str,
+    required_scopes: set[str],
+    now: float | None = None,
+) -> tuple[dict, bool]:
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), dict):
-        return {"valid": False, "app_match": False, "scopes": [], "missing_scopes": sorted(required_scopes), "expires_at": "unknown", "data_access_expires_at": "unknown"}, False
+        return {
+            "valid": False,
+            "app_match": False,
+            "scopes": [],
+            "missing_scopes": sorted(required_scopes),
+            "expires_at": "unknown",
+            "data_access_expires_at": "unknown",
+            "explicitly_non_expiring": False,
+        }, False
     data = payload["data"]
     scopes = sorted({scope for scope in data.get("scopes", []) if isinstance(scope, str)})
     app_match = str(data.get("app_id", "")) == expected_app_id
     valid = data.get("is_valid") is True
     missing = sorted(required_scopes - set(scopes))
+    no_expiry = explicitly_non_expiring(data.get("expires_at")) and explicitly_non_expiring(
+        data.get("data_access_expires_at")
+    )
     result = {
         "valid": valid,
         "app_match": app_match,
@@ -40,8 +60,9 @@ def summarize(payload: object, expected_app_id: str, required_scopes: set[str]) 
         "missing_scopes": missing,
         "expires_at": expiry_label(data.get("expires_at")),
         "data_access_expires_at": expiry_label(data.get("data_access_expires_at")),
+        "explicitly_non_expiring": no_expiry,
     }
-    return result, valid and app_match and not missing
+    return result, valid and app_match and not missing and no_expiry
 
 
 def debug_token(graph_version: str, app_access_token: str, input_token: str) -> object:
@@ -86,6 +107,7 @@ def main() -> int:
         print(f"  scopes={', '.join(summary['scopes']) or '(none)'}")
         print(f"  missing_required_scopes={', '.join(summary['missing_scopes']) or '(none)'}")
         print(f"  expires_at_utc={summary['expires_at']}; data_access_expires_at_utc={summary['data_access_expires_at']}")
+        print(f"  explicitly_non_expiring={summary['explicitly_non_expiring']}")
         all_valid = all_valid and passed
     return 0 if all_valid else 1
 

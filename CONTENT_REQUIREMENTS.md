@@ -8,7 +8,8 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 - Prefer primary or authoritative sources. Do not repeat exaggerations from the reference. Omit unsupported names, dates, numbers, organizations, places, and conclusions.
 - Keep politics and current affairs neutral. Distinguish animal from human studies, observational research from trials, prototypes from proven treatments, association from causation, preprints from peer-reviewed research, and lab results from real-world performance.
 - Never invent quotes or attributions. Preserve puzzle and mystery answers unless explicitly requested.
-- Store each factual claim with one or more source IDs. Keep source URLs and notes in queue metadata, never in the public caption.
+- Store each factual claim with one or more source IDs and a concise `support_note` stating what the cited source establishes. Keep source URLs and notes in queue metadata, never in the public caption.
+- Inspect the source content during research. Queue validation checks URL shape, timestamps, and claim-to-source references, but cannot determine whether a source is reachable, authoritative, current, or actually supports a claim. The named human reviewer must verify sources and claims before approval.
 
 ## Image
 
@@ -29,6 +30,7 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 ## Queue and approval
 
-- Save the generated image as a project asset, include its verified `media_path`, and set `public_media_url` to the matching publicly accessible HTTPS image URL without query strings or embedded credentials.
+- Save generated images as project assets under `drafts/assets/`, include the verified `media_path`, and store each review-only post in `drafts/queue.json`. Run `python funzug_pipeline.py validate-drafts` before handing over the batch. Drafts may omit `public_media_url` and are not visible to the publisher.
+- Only after a human reviews the content and the image is available at a public HTTPS URL, stage it with `python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url URL`. This copies it into `queue.json` as an unapproved draft. The URL must be public, match the exact image, and contain no query string or embedded credentials.
 - Create queue items as drafts. Never add an approval record on behalf of the user. A named human reviewer must check sources, caption, image, platform targets, and schedule, then approve the specific item with a review note.
 - No workflow may publish without the item's explicit human approval, a non-empty review note, and a due schedule. The GitHub `funzug-publish` environment is restricted to `main`, but it does not add a separate reviewer gate.

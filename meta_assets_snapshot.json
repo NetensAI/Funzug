@@ -22,6 +22,13 @@
     "name": "Funzug Publisher",
     "app_id": "2180210799547573",
     "publish_status": "unpublished",
+    "mode_decision": {
+      "mode": "development",
+      "decision": "Owner chose Development mode for Funzug's own accounts",
+      "app_review_submitted": false,
+      "tech_provider_designation_accepted": false,
+      "observed_at": "2026-10-10"
+    },
     "required_actions_visible": "none",
     "privacy_policy_url_present": true,
     "privacy_policy_url": "https://www.funzug.com/funzug-com-privacy-policy",
@@ -40,6 +47,15 @@
       "pages_manage_posts": "Ready for testing",
       "instagram_api_calls_visible": 0,
       "page_api_calls_visible": 0
+    },
+    "latest_token_diagnostic": {
+      "workflow_run": "https://github.com/NetensAI/Funzug/actions/runs/38065854271",
+      "observed_at": "2026-10-10",
+      "status": "passed",
+      "token_values_logged": false,
+      "publishing_attempted": false,
+      "displayed_expiry_utc": "2026-10-10T17:00:00Z",
+      "note": "Validity, app match, and required scopes passed at diagnostic time; tokens were close to expiry."
     },
     "publish_page_instruction": "Review use cases and App Review approvals before publishing",
     "existing_site_privacy_policy": {

@@ -1,0 +1,79 @@
+services:
+  media:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 128m
+    cpus: 0.50
+    expose:
+      - "8080"
+    volumes:
+      - media_data:/data
+    secrets:
+      - upload_token
+    environment:
+      MEDIA_DIR: /data
+      UPLOAD_TOKEN_FILE: /run/secrets/upload_token
+      MAX_UPLOAD_BYTES: "12582912"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  caddy:
+    image: caddy:2.11.6-alpine
+    profiles:
+      - direct
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      FUNZUG_MEDIA_DOMAIN: ${FUNZUG_MEDIA_DOMAIN:?Set FUNZUG_MEDIA_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      media:
+        condition: service_healthy
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles:
+      - tunnel
+    command: ["tunnel", "--no-autoupdate", "run", "--token-file", "/run/secrets/tunnel_token"]
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    mem_limit: 128m
+    depends_on:
+      media:
+        condition: service_healthy
+    secrets:
+      - tunnel_token
+
+volumes:
+  media_data:
+  caddy_data:
+  caddy_config:
+
+secrets:
+  upload_token:
+    file: ./secrets/upload_token
+  tunnel_token:
+    file: ./secrets/tunnel_token
