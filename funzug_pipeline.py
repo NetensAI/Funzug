@@ -389,6 +389,7 @@ def host_and_approve_draft(
     upload_token: str,
     public_upload_confirmation: str,
     publication_authorization: str,
+    approved_at: str | None = None,
 ) -> None:
     """Upload reviewed draft media publicly, stage it, and record explicit approval."""
     if public_upload_confirmation != "FUNZUG":
@@ -437,7 +438,7 @@ def host_and_approve_draft(
 
     stage_draft(drafts, queue, item_id, media_urls)
     staged_queue = load_json(QUEUE_PATH)
-    approve(staged_queue, item_id, approved_by, note, review_checklist)
+    approve(staged_queue, item_id, approved_by, note, review_checklist, approved_at)
 
 
 def api_post(path: str, form: dict[str, str], token: str, host: str = GRAPH_HOST) -> dict[str, Any]:
@@ -636,7 +637,7 @@ class MetaPublisher:
 
 def approve(
     queue: dict[str, Any], item_id: str, approved_by: str, note: str,
-    review_checklist: dict[str, bool],
+    review_checklist: dict[str, bool], approved_at: str | None = None,
 ) -> None:
     errors = validate_queue(queue)
     if errors:
@@ -654,8 +655,10 @@ def approve(
             if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
                 raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
             item["status"] = "approved"
+            approval_time = approved_at or iso_now()
+            parse_time(approval_time)
             item["approval"] = {
-                "status": "approved", "approved_by": approved_by, "approved_at": iso_now(), "note": note,
+                "status": "approved", "approved_by": approved_by, "approved_at": approval_time, "note": note,
                 "review_checklist": {key: True for key in REVIEW_CHECKS},
             }
             save_json(QUEUE_PATH, queue)

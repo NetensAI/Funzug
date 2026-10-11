@@ -28,7 +28,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Check media-host Python syntax
-        run: python -m py_compile media-host/server.py scripts/upload_media.py
+        run: python -m py_compile media-host/server.py scripts/upload_media.py scripts/refresh_instagram_token.py scripts/meta_token_diagnostic.py scripts/verify_meta_credentials.py scripts/brandflow_sync.py
 
       - name: Validate media-host Compose configuration and build
         env:
