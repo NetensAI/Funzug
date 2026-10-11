@@ -6,6 +6,8 @@ Workflow starter for Funzug's Facebook Page and linked Instagram Professional ac
 
 Publishing uses Meta's Graph API. The queue is approval-gated, every factual claim needs a source, and images must be 1080x1350.
 
+All publishing and proposed schedule times use India Standard Time (IST, `Asia/Kolkata`) only. Queue timestamps include the `+05:30` offset, and dashboard schedule fields use `Asia/Kolkata`.
+
 
 ## Safety
 

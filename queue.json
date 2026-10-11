@@ -1,7 +1,7 @@
 {
   "brand": {
     "name": "Funzug",
-    "timezone": "America/New_York",
+    "timezone": "Asia/Kolkata",
     "required_image_size": [1080, 1350]
   },
   "items": []

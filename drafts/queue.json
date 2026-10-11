@@ -1,7 +1,7 @@
 {
   "brand": {
     "name": "Funzug",
-    "timezone": "America/New_York",
+    "timezone": "Asia/Kolkata",
     "required_image_size": [1080, 1350]
   },
   "items": [
@@ -16,7 +16,7 @@
         "facebook",
         "instagram"
       ],
-      "scheduled_at": "2026-11-06T12:00:00-05:00",
+      "scheduled_at": "2026-11-06T22:30:00+05:30",
       "media_path": "drafts/assets/2026-10-10-icecube-neutrino-nobel-v2.png",
       "claims": [
         {
@@ -75,7 +75,7 @@
       "caption": "A radio flash lasting milliseconds has been traced to a galaxy from when the universe was about 3 billion years old.\n\nUsing the James Webb Space Telescope, astronomers identified the host of FRB 20240304B as a small dwarf galaxy actively forming stars.\n\nFast radio bursts are brief flashes whose origins remain uncertain. This distant host adds a clue for researchers, but it does not settle what causes every burst.\n\nWhat would you most like astronomers to uncover about these cosmic signals?\n\n#FastRadioBursts #JamesWebb #SpaceScience #Astronomy #Universe",
       "topic_key": "frb-20240304b-distant-host-galaxy",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T09:00:00-05:00",
+      "scheduled_at": "2026-11-07T19:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-frb-cosmic-dawn.png",
       "claims": [
         {"text": "Webb identified the host galaxy of FRB 20240304B as a small dwarf galaxy actively forming stars.", "source_ids": ["frb-nasa-webb-2026", "frb-keck-2026"], "support_note": "NASA describes the host as a small, actively star-forming dwarf galaxy; Keck Observatory independently summarizes the host identification."},
@@ -95,7 +95,7 @@
       "caption": "Brown dwarfs occupy a curious middle ground: they form like stars but do not have enough mass to sustain hydrogen fusion in their cores.\n\nNASA’s SPHEREx telescope studied 37 nearby brown dwarfs across a wide temperature range. Its spectra revealed atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.\n\nThese objects can resemble giant planets while still sharing a star-like origin. The new observations give researchers a broader view of how their cloudy atmospheres vary.\n\nWhat would you call a world that is neither quite a star nor quite a planet?\n\n#SPHEREx #BrownDwarfs #NASA #SpaceScience #Astronomy",
       "topic_key": "spherex-brown-dwarf-atmospheres-2026",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T11:00:00-05:00",
+      "scheduled_at": "2026-11-07T21:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-brown-dwarf-spherex.png",
       "claims": [
         {"text": "Brown dwarfs form from collapsing gas clouds but lack enough mass to sustain hydrogen fusion in their cores.", "source_ids": ["spherex-brown-dwarf-jpl-2026"], "support_note": "NASA JPL states that brown dwarfs form from collapsing clouds like stars but are not massive enough for sustained hydrogen fusion."},
@@ -114,7 +114,7 @@
       "caption": "A new Curiosity panorama shows sunlight reaching wind-carved cliffs on Mars. The rover captured six Mastcam images at 8:30 a.m. local Mars time on its 4,982nd Martian day.\n\nThe team processed this panorama without its usual white balancing, preserving the scene’s early-morning appearance. The blue foreground is part of that processed view, not a claim that Mars looks exactly like this to human eyes.\n\nThe distant yardang layer stretches about 16 kilometers across the northwestern side of Mount Sharp. Scientists are still working out how it formed, with ancient volcanic ash among the possibilities.\n\nWould you explore this landscape at sunrise?\n\n#Mars #CuriosityRover #NASA #SpaceExploration #PlanetaryScience",
       "topic_key": "curiosity-mars-dawn-yardangs-2026",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T13:00:00-05:00",
+      "scheduled_at": "2026-11-07T23:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-curiosity-martian-dawn.png",
       "claims": [
         {"text": "Curiosity captured the six-frame Mastcam panorama at 8:30 a.m. local Mars time on its 4,982nd sol.", "source_ids": ["curiosity-martian-dawn-jpl-2026"], "support_note": "NASA JPL gives the local Mars time, instrument, capture date, six-image construction, and mission sol."},
@@ -133,7 +133,7 @@
       "caption": "Could a planet form after its star dies? A new analysis of archival Hubble observations points to that possibility around the white dwarf HS 0209+0832.\n\nResearchers found an unusual abundance of niobium in the star’s atmosphere. The chemical pattern is consistent with material from a candidate planet that may have formed from matter expelled as the star evolved.\n\nThe team describes this as a second-generation planet candidate, not a directly photographed world. The result, published in Nature Astronomy, suggests planetary systems may have a more complicated afterlife than once assumed.\n\nDo you think a star’s planetary story can have a second chapter?\n\n#Hubble #Exoplanets #WhiteDwarf #SpaceScience #Astronomy",
       "topic_key": "hubble-white-dwarf-second-generation-planet-candidate",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T15:00:00-05:00",
+      "scheduled_at": "2026-11-08T01:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-hubble-second-generation-world.png",
       "claims": [
         {"text": "Researchers reanalyzed archival Hubble observations of white dwarf HS 0209+0832 and identified niobium among unusual atmospheric abundances.", "source_ids": ["hubble-second-generation-nasa-2026", "hubble-second-generation-nature-2026"], "support_note": "NASA describes the archival Hubble reanalysis and niobium clue; the Nature Astronomy paper details the spectroscopic identification."},
@@ -153,7 +153,7 @@
       "caption": "The Orionids are made from debris left behind by Halley’s Comet. Each year, Earth crosses that stream, and some particles burn through our atmosphere as meteors.\n\nNASA lists the 2026 shower as active from October 2 through November 7, with its peak night on October 21–22. Under dark skies, observers may see around 10 to 20 meteors per hour.\n\nMoonlight may hide some of the fainter streaks this year. NASA recommends looking before dawn after the Moon sets, from a dark location with time for your eyes to adjust.\n\nAre you planning to watch the sky this month?\n\n#Orionids #HalleysComet #MeteorShower #Stargazing #NASA",
       "topic_key": "orionids-2026-halley-meteor-shower",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T17:00:00-05:00",
+      "scheduled_at": "2026-11-08T03:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-orionid-meteor-shower.png",
       "claims": [
         {"text": "The Orionids are produced by debris from Halley's Comet, and the 2026 peak night is October 21–22.", "source_ids": ["orionids-nasa-2026", "nasa-october-skywatching-2026"], "support_note": "NASA's Orionids page identifies Halley's Comet as the source and lists the 2026 peak; NASA JPL's October guide confirms the peak window."},
@@ -173,7 +173,7 @@
       "caption": "A new NOAA data release brings together about 44 million measurements of carbon dioxide at the ocean surface. The observations span 1957 through 2025.\n\nThe Surface Ocean CO₂ Atlas is built from measurements collected by an international network, including instruments on cargo ships, cruise liners, and research vessels. The data are quality controlled before being added to the atlas.\n\nResearchers use these measurements to study how carbon moves between ocean and atmosphere and to track changes in the global carbon cycle. This is a large observation archive, not a single snapshot of every part of the ocean.\n\nWhat other hidden patterns might decades of ocean readings reveal?\n\n#OceanScience #NOAA #ClimateData #CarbonCycle #MarineScience",
       "topic_key": "noaa-socat-2026-ocean-carbon-observations",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T19:00:00-05:00",
+      "scheduled_at": "2026-11-08T05:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-noaa-ocean-carbon.png",
       "claims": [
         {"text": "The 2026 Surface Ocean CO2 Atlas release includes about 44 million quality-controlled observations collected from 1957 through 2025.", "source_ids": ["noaa-socat-2026-release", "noaa-socat-2026-data"], "support_note": "NOAA AOML gives the approximate count and date range; NOAA's data service identifies the 2026 SOCAT collection."},
@@ -193,7 +193,7 @@
       "caption": "NASA’s SunRISE mission is designed to make six small satellites work together as one giant radio telescope. Each spacecraft is about the size of a toaster oven.\n\nFlying in formation above geosynchronous orbit, the satellites will track radio bursts from the Sun’s corona. Those bursts can be linked to energetic particles that may pose hazards to spacecraft and astronauts.\n\nThe mission is planned to launch no earlier than mid-2027. It is not in orbit yet; the concept is to combine the satellites’ observations into a much larger virtual instrument.\n\nWhat questions about the Sun could a formation of tiny spacecraft help answer?\n\n#NASA #SunRISE #SolarScience #SpaceTechnology #Astronomy",
       "topic_key": "nasa-sunrise-six-satellite-radio-telescope",
       "platforms": ["facebook", "instagram"],
-      "scheduled_at": "2026-11-07T21:00:00-05:00",
+      "scheduled_at": "2026-11-08T07:30:00+05:30",
       "media_path": "drafts/assets/2026-10-11-nasa-sunrise-mission.png",
       "claims": [
         {"text": "NASA's SunRISE mission consists of six small satellites intended to operate together as one large radio telescope.", "source_ids": ["nasa-sunrise-jpl-2026"], "support_note": "NASA JPL states the satellite count, small spacecraft size, and virtual-radio-telescope operation."},
