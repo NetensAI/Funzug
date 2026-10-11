@@ -80,6 +80,42 @@ class DebugMetaTokensTests(unittest.TestCase):
         summary, passed = summarize(payload, "2180210799547573", PAGE_SCOPES, now=1900000000)
         self.assertFalse(passed)
         self.assertFalse(summary["explicitly_non_expiring"])
+        self.assertFalse(summary["lifetime_ready"])
+
+    def test_instagram_login_accepts_finite_lifetime_with_refresh_margin(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 1900000000 + 86400 * 30,
+                "data_access_expires_at": 1900000000 + 86400 * 30,
+                "scopes": sorted(INSTAGRAM_LOGIN_SCOPES),
+            }
+        }
+        summary, passed = summarize(
+            payload, "2180210799547573", INSTAGRAM_LOGIN_SCOPES,
+            now=1900000000, allow_expiring=True,
+        )
+        self.assertTrue(passed)
+        self.assertFalse(summary["explicitly_non_expiring"])
+        self.assertTrue(summary["lifetime_ready"])
+
+    def test_instagram_login_fails_when_refresh_margin_is_under_seven_days(self):
+        payload = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 1900000000 + 86400 * 6,
+                "data_access_expires_at": 1900000000 + 86400 * 6,
+                "scopes": sorted(INSTAGRAM_LOGIN_SCOPES),
+            }
+        }
+        summary, passed = summarize(
+            payload, "2180210799547573", INSTAGRAM_LOGIN_SCOPES,
+            now=1900000000, allow_expiring=True,
+        )
+        self.assertFalse(passed)
+        self.assertFalse(summary["lifetime_ready"])
 
     def test_non_expiring_tokens_can_pass_with_explicit_zero_expiry(self):
         payload = {

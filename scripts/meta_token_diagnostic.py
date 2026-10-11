@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 import os
 import sys
+import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -38,6 +39,7 @@ def summarize(
     expected_app_id: str,
     required_scopes: set[str],
     now: float | None = None,
+    allow_expiring: bool = False,
 ) -> tuple[dict, bool]:
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), dict):
         return {
@@ -48,14 +50,30 @@ def summarize(
             "expires_at": "unknown",
             "data_access_expires_at": "unknown",
             "explicitly_non_expiring": False,
+            "lifetime_ready": False,
         }, False
     data = payload["data"]
     scopes = sorted({scope for scope in data.get("scopes", []) if isinstance(scope, str)})
     app_match = str(data.get("app_id", "")) == expected_app_id
     valid = data.get("is_valid") is True
     missing = sorted(required_scopes - set(scopes))
-    no_expiry = explicitly_non_expiring(data.get("expires_at")) and explicitly_non_expiring(
-        data.get("data_access_expires_at")
+    no_expiry = explicitly_non_expiring(data.get("expires_at")) and explicitly_non_expiring(data.get("data_access_expires_at"))
+    current_time = time.time() if now is None else now
+
+    def has_safe_lifetime(value: object) -> bool:
+        if explicitly_non_expiring(value):
+            return True
+        return (
+            allow_expiring
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and value >= current_time + 7 * 86400
+        )
+
+    lifetime_ready = no_expiry or (
+        allow_expiring
+        and has_safe_lifetime(data.get("expires_at"))
+        and has_safe_lifetime(data.get("data_access_expires_at"))
     )
     result = {
         "valid": valid,
@@ -65,8 +83,9 @@ def summarize(
         "expires_at": expiry_label(data.get("expires_at")),
         "data_access_expires_at": expiry_label(data.get("data_access_expires_at")),
         "explicitly_non_expiring": no_expiry,
+        "lifetime_ready": lifetime_ready,
     }
-    return result, valid and app_match and not missing and no_expiry
+    return result, valid and app_match and not missing and lifetime_ready
 
 
 def debug_token(graph_version: str, app_access_token: str, input_token: str) -> object:
@@ -114,12 +133,17 @@ def main() -> int:
             print(f"{label}: diagnostic failed ({exc})")
             all_valid = False
             continue
-        summary, passed = summarize(payload, APP_ID, required_scopes)
+        summary, passed = summarize(
+            payload,
+            APP_ID,
+            required_scopes,
+            allow_expiring=(label == "Instagram token" and instagram_api_mode == "instagram_login"),
+        )
         print(f"{label}: valid={summary['valid']}; app_match={summary['app_match']}")
         print(f"  scopes={', '.join(summary['scopes']) or '(none)'}")
         print(f"  missing_required_scopes={', '.join(summary['missing_scopes']) or '(none)'}")
         print(f"  expires_at_utc={summary['expires_at']}; data_access_expires_at_utc={summary['data_access_expires_at']}")
-        print(f"  explicitly_non_expiring={summary['explicitly_non_expiring']}")
+        print(f"  explicitly_non_expiring={summary['explicitly_non_expiring']}; lifetime_ready={summary['lifetime_ready']}")
         all_valid = all_valid and passed
     return 0 if all_valid else 1
 
