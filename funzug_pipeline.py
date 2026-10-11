@@ -564,20 +564,36 @@ class MetaPublisher:
             raise RuntimeError("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
         self.ig_api_host = INSTAGRAM_LOGIN_HOST if self.ig_api_mode == "instagram_login" else GRAPH_HOST
 
-    def publish_facebook_image(self, item: dict[str, Any]) -> dict[str, Any]:
+    def facebook_page_token(self) -> str:
+        """Derive and verify a Page token from the saved system user credential."""
         if not self.page_id or not self.page_token:
             raise RuntimeError("Facebook API environment is incomplete")
-        return api_post(f"{self.page_id}/photos", {"url": item["public_media_url"], "caption": item["caption"]}, self.page_token)
+        if getattr(self, "_verified_page_token", None):
+            return self._verified_page_token
+        page = api_get(self.page_id, self.page_token, {"fields": "id,access_token"})
+        if str(page.get("id")) != self.page_id:
+            raise RuntimeError("Facebook Page token lookup returned the wrong Page")
+        token = page.get("access_token")
+        if not isinstance(token, str) or not token:
+            raise RuntimeError("Facebook Page access token is unavailable")
+        identity = api_get("me", token, {"fields": "id"})
+        if str(identity.get("id")) != self.page_id:
+            raise RuntimeError("Facebook publishing token does not represent the configured Page")
+        self._verified_page_token = token
+        return token
+
+    def publish_facebook_image(self, item: dict[str, Any]) -> dict[str, Any]:
+        page_token = self.facebook_page_token()
+        return api_post(f"{self.page_id}/photos", {"url": item["public_media_url"], "caption": item["caption"]}, page_token)
 
     def publish_facebook_carousel(self, item: dict[str, Any]) -> dict[str, Any]:
-        if not self.page_id or not self.page_token:
-            raise RuntimeError("Facebook API environment is incomplete")
+        page_token = self.facebook_page_token()
         media_ids = []
         for media_url in item["public_media_urls"]:
             photo = api_post(
                 f"{self.page_id}/photos",
                 {"url": media_url, "published": "false"},
-                self.page_token,
+                page_token,
             )
             photo_id = photo.get("id")
             if not photo_id:
@@ -588,7 +604,7 @@ class MetaPublisher:
             f"attached_media[{index}]": json.dumps({"media_fbid": media_id}, separators=(",", ":"))
             for index, media_id in enumerate(media_ids)
         })
-        return api_post(f"{self.page_id}/feed", form, self.page_token)
+        return api_post(f"{self.page_id}/feed", form, page_token)
 
     def publish_instagram_image(self, item: dict[str, Any]) -> dict[str, Any]:
         if not self.ig_user_id or not self.ig_token:

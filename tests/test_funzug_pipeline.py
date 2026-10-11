@@ -299,18 +299,48 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(post.call_args_list[2].args[1]["children"], "child-1,child-2")
         self.assertEqual(post.call_args_list[3].args[0], "ig-test-user/media_publish")
 
+    def test_facebook_image_uses_verified_page_token(self):
+        publisher = pipeline.MetaPublisher()
+        publisher.page_id = "page-1"
+        publisher.page_token = "system-user-token"
+        with patch.object(pipeline, "api_get", side_effect=[
+            {"id": "page-1", "access_token": "page-token"}, {"id": "page-1"},
+        ]) as get:
+            with patch.object(pipeline, "api_post", return_value={"id": "photo-1"}) as post:
+                result = publisher.publish_facebook_image(self.item)
+        self.assertEqual(result, {"id": "photo-1"})
+        self.assertEqual(get.call_args_list[0].args, ("page-1", "system-user-token", {"fields": "id,access_token"}))
+        self.assertEqual(get.call_args_list[1].args, ("me", "page-token", {"fields": "id"}))
+        self.assertEqual(post.call_args.args[2], "page-token")
+
+    def test_facebook_rejects_token_for_wrong_page_before_posting(self):
+        publisher = pipeline.MetaPublisher()
+        publisher.page_id = "page-1"
+        publisher.page_token = "system-user-token"
+        with patch.object(pipeline, "api_get", side_effect=[
+            {"id": "page-1", "access_token": "wrong-page-token"}, {"id": "page-2"},
+        ]):
+            with patch.object(pipeline, "api_post") as post:
+                with self.assertRaisesRegex(RuntimeError, "does not represent the configured Page"):
+                    publisher.publish_facebook_image(self.item)
+                post.assert_not_called()
+
     def test_facebook_carousel_uploads_unpublished_slides_then_creates_one_post(self):
         publisher = pipeline.MetaPublisher()
         publisher.page_id = "page-1"
-        publisher.page_token = "test-token"
+        publisher.page_token = "system-user-token"
         item = self.carousel_item()
-        with patch.object(pipeline, "api_post", side_effect=[
-            {"id": "photo-1"}, {"id": "photo-2"}, {"id": "post-1"},
-        ]) as post:
-            result = publisher.publish_facebook_carousel(item)
+        with patch.object(pipeline, "api_get", side_effect=[
+            {"id": "page-1", "access_token": "page-token"}, {"id": "page-1"},
+        ]):
+            with patch.object(pipeline, "api_post", side_effect=[
+                {"id": "photo-1"}, {"id": "photo-2"}, {"id": "post-1"},
+            ]) as post:
+                result = publisher.publish_facebook_carousel(item)
         self.assertEqual(result, {"id": "post-1"})
         self.assertEqual(post.call_args_list[0].args[1]["published"], "false")
         self.assertEqual(post.call_args_list[2].args[0], "page-1/feed")
+        self.assertTrue(all(call.args[2] == "page-token" for call in post.call_args_list))
         self.assertEqual(json.loads(post.call_args_list[2].args[1]["attached_media[0]"]), {"media_fbid": "photo-1"})
         self.assertEqual(json.loads(post.call_args_list[2].args[1]["attached_media[1]"]), {"media_fbid": "photo-2"})
 
