@@ -27,11 +27,6 @@ import funzug_pipeline as pipeline
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
 BATCH_ID = "funzug-draft-inbox-v1"
 SCHEDULE_TIMEZONE = ZoneInfo("Asia/Kolkata")
-BRANDFLOW_CHECKS = (
-    "factualAccuracy", "sourcesVerified", "imageReviewed", "captionReviewed",
-    "scheduleReviewed", "rightsConfirmed", "finalAuthorization",
-)
-
 
 def api_request(method: str, url: str, secret: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
     body = json.dumps(payload, separators=(",", ":")).encode() if payload is not None else None
@@ -159,25 +154,26 @@ def process_approvals() -> int:
             continue
         if status.get("publicationAuthorized") is not True:
             raise RuntimeError(f"{item_id}: BrandFlow approval is missing explicit publication authorization")
+        if status.get("scheduleTimezone") != "Asia/Kolkata":
+            raise RuntimeError(f"{item_id}: approved schedule must use Asia/Kolkata")
         if any(item.get("id") == item_id for item in queue.get("items", [])):
             continue
         item = local.get(item_id)
         if not item or item.get("status") != "draft":
             raise RuntimeError(f"{item_id}: approved post is absent from the local draft inbox")
         checks = status.get("reviewChecks")
-        if not isinstance(checks, dict) or any(checks.get(key) is not True for key in BRANDFLOW_CHECKS):
-            raise RuntimeError(f"{item_id}: BrandFlow approval checklist is incomplete")
+        if not isinstance(checks, dict) or checks.get("approvalConfirmed") is not True:
+            raise RuntimeError(f"{item_id}: BrandFlow approval confirmation is missing")
         reviewer = status.get("reviewedBy")
         note = status.get("reviewNote")
         if not isinstance(reviewer, str) or not reviewer.strip() or not isinstance(note, str) or not note.strip():
             raise RuntimeError(f"{item_id}: approval is missing reviewer identity or note")
-        checklist = {key: True for key in pipeline.REVIEW_CHECKS}
-        checklist["claims"] = checks["factualAccuracy"]
-        checklist["sources"] = checks["sourcesVerified"]
-        checklist["images"] = checks["imageReviewed"]
-        checklist["caption"] = checks["captionReviewed"]
-        checklist["platforms"] = checks["scheduleReviewed"]
-        checklist["schedule"] = checks["scheduleReviewed"]
+        selected_schedule = status.get("proposedSchedule")
+        if not isinstance(selected_schedule, str):
+            raise RuntimeError(f"{item_id}: approved schedule is missing")
+        local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
+        item["scheduled_at"] = local_schedule.isoformat()
+        checklist = {"approvalConfirmed": True}
         dashboard_time = status.get("reviewedAt")
         pipeline.host_and_approve_draft(
             drafts, queue, item_id, reviewer, note, checklist,

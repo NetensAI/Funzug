@@ -33,6 +33,16 @@ CONTAINER_STATUS_ATTEMPTS = 12
 CONTAINER_STATUS_INTERVAL = 5
 
 
+def valid_review_checklist(value: Any) -> bool:
+    """Accept legacy detailed reviews or BrandFlow's single explicit approval."""
+    if not isinstance(value, dict):
+        return False
+    return (
+        all(value.get(key) is True for key in REVIEW_CHECKS)
+        or value.get("approvalConfirmed") is True
+    )
+
+
 def iso_now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 
@@ -147,8 +157,8 @@ def validate_item(
         if not isinstance(approval.get("note"), str) or not approval["note"].strip():
             errors.append("approved item is missing its review note")
         checklist = approval.get("review_checklist")
-        if not isinstance(checklist, dict) or any(checklist.get(key) is not True for key in REVIEW_CHECKS):
-            errors.append("approved item requires all review checklist checks: " + ", ".join(REVIEW_CHECKS))
+        if not valid_review_checklist(checklist):
+            errors.append("approved item requires review checklist checks or a single approval confirmation")
         try:
             parse_time(approval["approved_at"])
         except (KeyError, TypeError, ValueError):
@@ -403,8 +413,8 @@ def host_and_approve_draft(
         raise RuntimeError("explicit public-upload confirmation is required")
     if publication_authorization != "Yes, upload publicly and publish at scheduled time":
         raise RuntimeError("explicit publication authorization is required")
-    if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
-        raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
+    if not valid_review_checklist(review_checklist):
+        raise RuntimeError("approval requires explicit review checks or a single approval confirmation")
     if not approved_by.strip() or not note.strip():
         raise RuntimeError("approval requires a reviewer name and non-empty review note")
 
@@ -659,14 +669,14 @@ def approve(
                 raise RuntimeError("approval requires a reviewer name")
             if not note.strip():
                 raise RuntimeError("approval requires a non-empty review note")
-            if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
-                raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
+            if not valid_review_checklist(review_checklist):
+                raise RuntimeError("approval requires explicit review checks or a single approval confirmation")
             item["status"] = "approved"
             approval_time = approved_at or iso_now()
             parse_time(approval_time)
             item["approval"] = {
                 "status": "approved", "approved_by": approved_by, "approved_at": approval_time, "note": note,
-                "review_checklist": {key: True for key in REVIEW_CHECKS},
+                "review_checklist": dict(review_checklist),
             }
             save_json(QUEUE_PATH, queue)
             log_event({"event": "approved", "item_id": item_id, "approved_by": approved_by})
