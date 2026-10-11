@@ -1,0 +1,120 @@
+name: Approve Funzug post for scheduled publication
+
+on:
+  workflow_dispatch:
+    inputs:
+      item_id:
+        description: Draft ID shown in the Funzug draft inbox
+        required: true
+        type: string
+      review_note:
+        description: Brief note confirming what you reviewed
+        required: true
+        type: string
+      authorize_publication:
+        description: Explicitly authorize this post to publish at its scheduled time
+        required: true
+        type: choice
+        options:
+          - No, keep it as a draft
+          - Yes, publish at scheduled time
+      claims:
+        description: I verified every factual claim
+        required: true
+        type: boolean
+        default: false
+      sources:
+        description: I inspected the cited sources and they support the claims
+        required: true
+        type: boolean
+        default: false
+      caption:
+        description: I reviewed the public caption
+        required: true
+        type: boolean
+        default: false
+      images:
+        description: I inspected every image and confirmed it is ready for public use
+        required: true
+        type: boolean
+        default: false
+      platforms:
+        description: I confirmed the Facebook and Instagram destinations
+        required: true
+        type: boolean
+        default: false
+      schedule:
+        description: I confirmed the scheduled date and time
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: funzug-queue-writes
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate the staged publishing queue
+        run: python funzug_pipeline.py validate
+
+      - name: Require explicit publication authorization and full review
+        env:
+          AUTHORIZE_PUBLICATION: ${{ inputs.authorize_publication }}
+          REVIEW_CLAIMS: ${{ inputs.claims }}
+          REVIEW_SOURCES: ${{ inputs.sources }}
+          REVIEW_CAPTION: ${{ inputs.caption }}
+          REVIEW_IMAGES: ${{ inputs.images }}
+          REVIEW_PLATFORMS: ${{ inputs.platforms }}
+          REVIEW_SCHEDULE: ${{ inputs.schedule }}
+        run: |
+          if [[ "$AUTHORIZE_PUBLICATION" != "Yes, publish at scheduled time" ]]; then
+            echo "Publication authorization was not granted; no approval was recorded."
+            exit 1
+          fi
+          for check in "$REVIEW_CLAIMS" "$REVIEW_SOURCES" "$REVIEW_CAPTION" "$REVIEW_IMAGES" "$REVIEW_PLATFORMS" "$REVIEW_SCHEDULE"; do
+            if [[ "$check" != "true" ]]; then
+              echo "Every review checkbox must be selected; no approval was recorded."
+              exit 1
+            fi
+          done
+
+      - name: Record the named human approval
+        env:
+          ITEM_ID: ${{ inputs.item_id }}
+          REVIEW_NOTE: ${{ inputs.review_note }}
+        run: |
+          python funzug_pipeline.py approve \
+            --id "$ITEM_ID" \
+            --approved-by "$GITHUB_ACTOR" \
+            --note "$REVIEW_NOTE" \
+            --review-claims \
+            --review-sources \
+            --review-caption \
+            --review-images \
+            --review-platforms \
+            --review-schedule
+          python funzug_pipeline.py validate
+
+      - name: Save approval and audit log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add queue.json logs/events.jsonl
+          git commit -m "Approve scheduled Funzug post"
+          git push

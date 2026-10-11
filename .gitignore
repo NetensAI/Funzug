@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
 .env
+/media-host/secrets/
 logs/*
 !logs/events.jsonl

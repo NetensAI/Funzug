@@ -1,6 +1,6 @@
 # Funzug media host
 
-This small Docker service accepts authenticated image uploads and serves only immutable, randomly named public image files. Uploads use a bearer token stored as a Docker secret. Public image GETs require no token so Meta can fetch them. It does not accept arbitrary paths, overwrite files, or provide deletion through HTTP.
+This small Docker service accepts authenticated image uploads, validates the exact 1080x1350 canvas, converts PNG or JPEG input to JPEG, and serves only immutable, randomly named public image files. JPEG output is required by Instagram's content publishing API. Uploads use a bearer token stored as a Docker secret. Public image GETs require no token so Meta can fetch them. It does not accept arbitrary paths, overwrite files, or provide deletion through HTTP.
 
 ## Requirements
 
@@ -46,4 +46,4 @@ python scripts/upload_media.py drafts/assets/IMAGE.png --confirm-public-upload F
 
 Set `FUNZUG_MEDIA_BASE_URL` and `FUNZUG_MEDIA_UPLOAD_TOKEN` in the local environment or CI secret store. Use the returned URL with `stage-draft`; staging leaves the item unapproved. A separate human approval is still required before Meta publishing.
 
-The uploader requires exact 1080x1350 dimensions and limits uploads to 12 MiB. The host accepts PNG or JPEG with matching file signatures. It runs as a non-root user with a read-only container filesystem, dropped Linux capabilities, a read-only public surface, and no upload credential in logs or image URLs.
+The uploader requires exact 1080x1350 dimensions and limits uploads to 12 MiB. The host decodes PNG or JPEG input, validates its dimensions and signature, composites transparency onto white, and publishes a normalized JPEG without changing the canvas dimensions. It runs as a non-root user with a read-only container filesystem, dropped Linux capabilities, a read-only public surface, and no upload credential in logs or image URLs.

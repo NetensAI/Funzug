@@ -26,9 +26,18 @@ def normalize_graph_version(value: str | None) -> str:
     return (value or "").strip().removeprefix("v") or "26.0"
 
 
-def verify_object(graph_version: str, object_id: str, token: str, label: str) -> bool:
+def verify_object(
+    graph_version: str,
+    object_id: str,
+    token: str,
+    label: str,
+    host: str = "graph.facebook.com",
+) -> bool:
+    if host not in {"graph.facebook.com", "graph.instagram.com"}:
+        print(f"{label}: failed (Meta API host is not allowed)")
+        return False
     query = urllib.parse.urlencode({"fields": "id"})
-    url = f"https://graph.facebook.com/v{graph_version}/{object_id}?{query}"
+    url = f"https://{host}/v{graph_version}/{object_id}?{query}"
     request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
@@ -94,6 +103,10 @@ def main() -> int:
         return 1
 
     version = normalize_graph_version(os.environ.get("FUNZUG_META_GRAPH_VERSION"))
+    instagram_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
+    if instagram_api_mode not in {"facebook_login", "instagram_login"}:
+        print("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
+        return 1
     results = [
         verify_object(
             version,
@@ -106,6 +119,7 @@ def main() -> int:
             os.environ["FUNZUG_INSTAGRAM_USER_ID"],
             os.environ["FUNZUG_INSTAGRAM_ACCESS_TOKEN"],
             "Instagram credential",
+            "graph.instagram.com" if instagram_api_mode == "instagram_login" else "graph.facebook.com",
         ),
     ]
     return 0 if all(results) else 1

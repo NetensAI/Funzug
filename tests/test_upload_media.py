@@ -1,6 +1,7 @@
 import unittest
 import importlib.util
 import http.client
+from io import BytesIO
 import threading
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -8,6 +9,7 @@ from http.server import ThreadingHTTPServer
 from unittest.mock import patch
 import urllib.error
 import urllib.request
+from PIL import Image
 
 from scripts import upload_media
 
@@ -47,7 +49,7 @@ class UploadMediaTests(unittest.TestCase):
                 return None
 
             def read(self, size):
-                return b"/media/0123456789abcdef0123456789abcdef.png"
+                return b"/media/0123456789abcdef0123456789abcdef.jpeg"
 
         class Opener:
             def open(self, request, timeout):
@@ -62,7 +64,7 @@ class UploadMediaTests(unittest.TestCase):
 
         with patch.object(upload_media.urllib.request, "build_opener", return_value=Opener()):
             result = upload_media.upload(path, "https://media.example.com", "secret-value")
-        self.assertEqual(result, "https://media.example.com/media/0123456789abcdef0123456789abcdef.png")
+        self.assertEqual(result, "https://media.example.com/media/0123456789abcdef0123456789abcdef.jpeg")
 
     def test_refuses_invalid_host_return_path(self):
         path = self.image_file()
@@ -115,11 +117,10 @@ class UploadMediaTests(unittest.TestCase):
             try:
                 with patch.object(server, "read_upload_token", return_value=b"local-test-upload-token"):
                     connection = http.client.HTTPConnection("127.0.0.1", httpd.server_port, timeout=3)
-                    data = (
-                        b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0dIHDR"
-                        + (1080).to_bytes(4, "big") + (1350).to_bytes(4, "big")
-                        + b"example-png-payload"
-                    )
+                    source = Image.new("RGB", (1080, 1350), (20, 40, 60))
+                    encoded = BytesIO()
+                    source.save(encoded, format="PNG")
+                    data = encoded.getvalue()
                     connection.request("POST", "/upload", data, {
                         "Authorization": "Bearer local-test-upload-token",
                         "Content-Type": "image/png",
@@ -127,11 +128,15 @@ class UploadMediaTests(unittest.TestCase):
                     response = connection.getresponse()
                     self.assertEqual(response.status, 201)
                     media_path = response.read().decode("ascii")
+                    self.assertTrue(media_path.endswith(".jpeg"))
                     connection.request("GET", media_path)
                     response = connection.getresponse()
                     self.assertEqual(response.status, 200)
-                    self.assertEqual(response.headers.get_content_type(), "image/png")
-                    self.assertEqual(response.read(), data)
+                    published = response.read()
+                    self.assertEqual(response.headers.get_content_type(), "image/jpeg")
+                    self.assertTrue(published.startswith(b"\xff\xd8\xff"))
+                    with Image.open(BytesIO(published)) as normalized:
+                        self.assertEqual(normalized.size, (1080, 1350))
                     connection.close()
             except PermissionError:
                 self.skipTest("sandbox does not permit local socket connections")
@@ -149,10 +154,33 @@ class UploadMediaTests(unittest.TestCase):
         self.assertFalse(server.authorized("Basic a-long-random-test-token", token))
 
     def test_server_checks_image_signatures_against_content_type(self):
-        self.assertEqual(server.image_extension(b"\x89PNG\r\n\x1a\nrest", "image/png"), ".png")
+        self.assertEqual(server.image_extension(b"\x89PNG\r\n\x1a\nrest", "image/png"), ".jpeg")
         self.assertEqual(server.image_extension(b"\xff\xd8\xffrest", "image/jpeg"), ".jpeg")
         self.assertIsNone(server.image_extension(b"not an image", "image/png"))
         self.assertIsNone(server.image_extension(b"\x89PNG\r\n\x1a\n", "text/html"))
+
+    def test_server_normalizes_transparent_png_to_1080x1350_jpeg(self):
+        source = Image.new("RGBA", (1080, 1350), (255, 0, 0, 0))
+        source.putpixel((0, 0), (255, 0, 0, 255))
+        encoded = BytesIO()
+        source.save(encoded, format="PNG")
+
+        normalized_data = server.normalize_image(encoded.getvalue(), "image/png")
+
+        self.assertTrue(normalized_data.startswith(b"\xff\xd8\xff"))
+        with Image.open(BytesIO(normalized_data)) as normalized:
+            self.assertEqual(normalized.format, "JPEG")
+            self.assertEqual(normalized.size, (1080, 1350))
+            self.assertEqual(normalized.getpixel((100, 100)), (255, 255, 255))
+
+    def test_server_rejects_wrong_dimensions_and_corrupt_images(self):
+        image = Image.new("RGB", (1200, 1500), "white")
+        encoded = BytesIO()
+        image.save(encoded, format="JPEG")
+        with self.assertRaisesRegex(ValueError, "exactly 1080x1350"):
+            server.normalize_image(encoded.getvalue(), "image/jpeg")
+        with self.assertRaisesRegex(ValueError, "invalid or unsafe"):
+            server.normalize_image(b"\x89PNG\r\n\x1a\nnot-a-real-png", "image/png")
 
 
 if __name__ == "__main__":

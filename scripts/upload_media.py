@@ -57,7 +57,7 @@ def upload(path: Path, origin: str, token: str) -> str:
         raise RuntimeError(f"media upload failed with HTTP {exc.code}; response omitted") from None
     except (urllib.error.URLError, TimeoutError):
         raise RuntimeError("media upload failed to connect or timed out") from None
-    if not re.fullmatch(r"/media/[0-9a-f]{32}\.(?:jpg|jpeg|png)", media_path):
+    if not re.fullmatch(r"/media/[0-9a-f]{32}\.jpeg", media_path):
         raise RuntimeError("media host returned an invalid public path")
     return origin + media_path
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Approval-gated single-image publishing for Funzug's Meta accounts."""
+"""Approval-gated image and carousel publishing for Funzug's Meta accounts."""
 
 from __future__ import annotations
 
@@ -23,8 +23,12 @@ QUEUE_PATH = ROOT / "queue.json"
 DRAFT_QUEUE_PATH = ROOT / "drafts" / "queue.json"
 HISTORY_PATH = ROOT / "history.json"
 LOG_PATH = ROOT / "logs" / "events.jsonl"
+REVIEW_CHECKS = ("claims", "sources", "caption", "images", "platforms", "schedule")
 _configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
 GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
+GRAPH_HOST = "graph.facebook.com"
+INSTAGRAM_LOGIN_HOST = "graph.instagram.com"
+INSTAGRAM_API_MODES = {"facebook_login", "instagram_login"}
 CONTAINER_STATUS_ATTEMPTS = 12
 CONTAINER_STATUS_INTERVAL = 5
 
@@ -135,12 +139,16 @@ def validate_item(
             errors.append("approved item is missing approved_by")
         if not isinstance(approval.get("note"), str) or not approval["note"].strip():
             errors.append("approved item is missing its review note")
+        checklist = approval.get("review_checklist")
+        if not isinstance(checklist, dict) or any(checklist.get(key) is not True for key in REVIEW_CHECKS):
+            errors.append("approved item requires all review checklist checks: " + ", ".join(REVIEW_CHECKS))
         try:
             parse_time(approval["approved_at"])
         except (KeyError, TypeError, ValueError):
             errors.append("approved item needs a timezone-aware approved_at")
-    if item.get("format") != "image":
-        errors.append("only single-image posts are currently supported")
+    post_format = item.get("format")
+    if post_format not in {"image", "carousel"}:
+        errors.append("format must be image or carousel")
     platforms = item.get("platforms", [])
     if not isinstance(platforms, list):
         errors.append("platforms must be an array")
@@ -158,14 +166,39 @@ def validate_item(
     for field in ("caption", "headline", "topic_key"):
         if not isinstance(item.get(field), str) or not item[field].strip():
             errors.append(f"missing {field}")
-    media_url = item.get("public_media_url")
-    if require_public_media_url and not https_url(media_url):
-        errors.append("public_media_url must be a valid HTTPS URL without embedded credentials")
-    elif media_url:
-        if not https_url(media_url):
-            errors.append("public_media_url must be a valid HTTPS URL without embedded credentials")
-        elif urllib.parse.urlsplit(media_url).query or urllib.parse.urlsplit(media_url).fragment:
-            errors.append("public_media_url must not contain query strings or fragments")
+    if post_format == "image":
+        media_paths = [item.get("media_path")]
+        media_url = item.get("public_media_url")
+        media_urls = [media_url] if media_url is not None else None
+        paths_field = "media_path"
+        urls_field = "public_media_url"
+    else:
+        media_paths = item.get("media_paths")
+        media_urls = item.get("public_media_urls")
+        paths_field = "media_paths"
+        urls_field = "public_media_urls"
+        if not isinstance(media_paths, list) or not 2 <= len(media_paths) <= 10:
+            errors.append("carousel media_paths must contain 2 to 10 images")
+            media_paths = []
+        if media_urls is not None and (not isinstance(media_urls, list) or not 2 <= len(media_urls) <= 10):
+            errors.append("carousel public_media_urls must contain 2 to 10 URLs")
+            media_urls = []
+        if isinstance(media_urls, list) and isinstance(media_paths, list) and media_urls and len(media_urls) != len(media_paths):
+            errors.append("carousel public_media_urls must match media_paths in length")
+    if require_public_media_url and (
+        not isinstance(media_urls, list)
+        or len(media_urls) != len(media_paths)
+        or not all(https_url(media_url) for media_url in media_urls)
+    ):
+        errors.append(f"{urls_field} must contain valid HTTPS URLs without embedded credentials")
+    elif media_urls:
+        for media_url in media_urls:
+            if not https_url(media_url):
+                errors.append(f"{urls_field} must contain valid HTTPS URLs without embedded credentials")
+                continue
+            parsed_url = urllib.parse.urlsplit(media_url)
+            if parsed_url.query or parsed_url.fragment:
+                errors.append(f"{urls_field} must not contain query strings or fragments")
     claims = item.get("claims", [])
     source_records = item.get("sources", [])
     if not isinstance(claims, list) or not isinstance(source_records, list):
@@ -220,23 +253,24 @@ def validate_item(
                 parse_time(source[field])
             except (KeyError, TypeError, ValueError):
                 errors.append(f"source {source.get('id', '<missing>')} needs a timezone-aware {field}")
-    media_path = item.get("media_path")
-    if not isinstance(media_path, str) or not media_path:
-        errors.append("media_path is required to verify the final image is exactly 1080x1350")
-    else:
+    if not media_paths or any(not isinstance(media_path, str) or not media_path for media_path in media_paths):
+        errors.append(f"{paths_field} is required to verify each image is exactly 1080x1350")
+    for media_path in media_paths:
+        if not isinstance(media_path, str) or not media_path:
+            continue
         path = (ROOT / media_path).resolve()
         try:
             path.relative_to(ROOT)
         except ValueError:
-            errors.append("media_path must stay inside the repository")
+            errors.append(f"{paths_field} must stay inside the repository")
         else:
             if not path.is_file():
-                errors.append(f"media_path does not exist: {media_path}")
+                errors.append(f"image does not exist: {media_path}")
             else:
                 try:
                     dimensions = image_size(path)
                 except OSError as exc:
-                    errors.append(f"could not read media_path: {exc}")
+                    errors.append(f"could not read image: {exc}")
                 else:
                     if dimensions != required_size:
                         errors.append(f"media must be {required_size[0]}x{required_size[1]}, got {dimensions}")
@@ -316,7 +350,7 @@ def stage_draft(
     drafts: dict[str, Any],
     queue: dict[str, Any],
     item_id: str,
-    public_media_url: str,
+    public_media_url: str | list[str],
 ) -> None:
     """Copy a locally reviewed draft to the publish queue, without approving it."""
     draft_errors = validate_draft_queue(drafts)
@@ -327,7 +361,13 @@ def stage_draft(
         raise RuntimeError(f"draft not found: {item_id}")
     staged_item = json.loads(json.dumps(candidate))
     staged_item["status"] = "draft"
-    staged_item["public_media_url"] = public_media_url
+    media_urls = [public_media_url] if isinstance(public_media_url, str) else public_media_url
+    if staged_item.get("format") == "carousel":
+        staged_item["public_media_urls"] = media_urls
+    elif len(media_urls) == 1:
+        staged_item["public_media_url"] = media_urls[0]
+    else:
+        raise RuntimeError("single-image drafts require exactly one public media URL")
     staged_item.pop("approval", None)
     staged_queue = {**queue, "items": [*queue.get("items", []), staged_item]}
     queue_errors = validate_queue(staged_queue)
@@ -338,8 +378,10 @@ def stage_draft(
     print(f"staged {item_id} as an unapproved draft")
 
 
-def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
-    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+def api_post(path: str, form: dict[str, str], token: str, host: str = GRAPH_HOST) -> dict[str, Any]:
+    if host not in {GRAPH_HOST, INSTAGRAM_LOGIN_HOST}:
+        raise RuntimeError("Meta API host is not allowed")
+    url = f"https://{host}/{GRAPH_VERSION}/{path.lstrip('/')}"
     payload = urllib.parse.urlencode({**form, "access_token": token}).encode("utf-8")
     request = urllib.request.Request(url, data=payload, method="POST")
     request.add_header("Content-Type", "application/x-www-form-urlencoded")
@@ -373,10 +415,17 @@ def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
     return result
 
 
-def api_get(path: str, token: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+def api_get(
+    path: str,
+    token: str,
+    params: dict[str, str] | None = None,
+    host: str = GRAPH_HOST,
+) -> dict[str, Any]:
     """Issue an authenticated read-only Graph API request without putting tokens in URLs."""
+    if host not in {GRAPH_HOST, INSTAGRAM_LOGIN_HOST}:
+        raise RuntimeError("Meta API host is not allowed")
     query = urllib.parse.urlencode(params or {})
-    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+    url = f"https://{host}/{GRAPH_VERSION}/{path.lstrip('/')}"
     if query:
         url = f"{url}?{query}"
     request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
@@ -418,24 +467,68 @@ class MetaPublisher:
         self.page_token = os.environ.get("FUNZUG_FACEBOOK_PAGE_TOKEN")
         self.ig_user_id = os.environ.get("FUNZUG_INSTAGRAM_USER_ID")
         self.ig_token = os.environ.get("FUNZUG_INSTAGRAM_ACCESS_TOKEN")
+        self.ig_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
+        if self.ig_api_mode not in INSTAGRAM_API_MODES:
+            raise RuntimeError("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
+        self.ig_api_host = INSTAGRAM_LOGIN_HOST if self.ig_api_mode == "instagram_login" else GRAPH_HOST
 
     def publish_facebook_image(self, item: dict[str, Any]) -> dict[str, Any]:
         if not self.page_id or not self.page_token:
             raise RuntimeError("Facebook API environment is incomplete")
         return api_post(f"{self.page_id}/photos", {"url": item["public_media_url"], "caption": item["caption"]}, self.page_token)
 
+    def publish_facebook_carousel(self, item: dict[str, Any]) -> dict[str, Any]:
+        if not self.page_id or not self.page_token:
+            raise RuntimeError("Facebook API environment is incomplete")
+        media_ids = []
+        for media_url in item["public_media_urls"]:
+            photo = api_post(
+                f"{self.page_id}/photos",
+                {"url": media_url, "published": "false"},
+                self.page_token,
+            )
+            photo_id = photo.get("id")
+            if not photo_id:
+                raise RuntimeError("Facebook photo response did not include an id")
+            media_ids.append(photo_id)
+        form = {"message": item["caption"]}
+        form.update({
+            f"attached_media[{index}]": json.dumps({"media_fbid": media_id}, separators=(",", ":"))
+            for index, media_id in enumerate(media_ids)
+        })
+        return api_post(f"{self.page_id}/feed", form, self.page_token)
+
     def publish_instagram_image(self, item: dict[str, Any]) -> dict[str, Any]:
         if not self.ig_user_id or not self.ig_token:
             raise RuntimeError("Instagram API environment is incomplete")
-        container = api_post(f"{self.ig_user_id}/media", {"image_url": item["public_media_url"], "caption": item["caption"]}, self.ig_token)
+        container = api_post(
+            f"{self.ig_user_id}/media",
+            {"image_url": item["public_media_url"], "caption": item["caption"]},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
         creation_id = container.get("id")
         if not creation_id:
             raise RuntimeError("Instagram container response did not include an id")
+        self.wait_for_instagram_container(str(creation_id))
+        return api_post(
+            f"{self.ig_user_id}/media_publish",
+            {"creation_id": creation_id},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
+
+    def wait_for_instagram_container(self, creation_id: str) -> None:
         for attempt in range(CONTAINER_STATUS_ATTEMPTS):
-            status = api_get(str(creation_id), self.ig_token, {"fields": "status_code"})
+            status = api_get(
+                creation_id,
+                self.ig_token,
+                {"fields": "status_code"},
+                host=self.ig_api_host,
+            )
             status_code = status.get("status_code")
             if status_code == "FINISHED":
-                break
+                return
             if status_code in {"ERROR", "EXPIRED", "PUBLISHED"}:
                 raise RuntimeError(f"Instagram media container is not publishable ({status_code})")
             if status_code != "IN_PROGRESS":
@@ -444,10 +537,45 @@ class MetaPublisher:
                 time.sleep(CONTAINER_STATUS_INTERVAL)
         else:
             raise RuntimeError("Instagram media container did not finish processing before timeout")
-        return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
+
+    def publish_instagram_carousel(self, item: dict[str, Any]) -> dict[str, Any]:
+        if not self.ig_user_id or not self.ig_token:
+            raise RuntimeError("Instagram API environment is incomplete")
+        children = []
+        for media_url in item["public_media_urls"]:
+            child = api_post(
+                f"{self.ig_user_id}/media",
+                {"image_url": media_url, "is_carousel_item": "true"},
+                self.ig_token,
+                host=self.ig_api_host,
+            )
+            child_id = child.get("id")
+            if not child_id:
+                raise RuntimeError("Instagram carousel child response did not include an id")
+            self.wait_for_instagram_container(str(child_id))
+            children.append(str(child_id))
+        container = api_post(
+            f"{self.ig_user_id}/media",
+            {"media_type": "CAROUSEL", "children": ",".join(children), "caption": item["caption"]},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
+        creation_id = container.get("id")
+        if not creation_id:
+            raise RuntimeError("Instagram carousel response did not include an id")
+        self.wait_for_instagram_container(str(creation_id))
+        return api_post(
+            f"{self.ig_user_id}/media_publish",
+            {"creation_id": creation_id},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
 
 
-def approve(queue: dict[str, Any], item_id: str, approved_by: str, note: str) -> None:
+def approve(
+    queue: dict[str, Any], item_id: str, approved_by: str, note: str,
+    review_checklist: dict[str, bool],
+) -> None:
     errors = validate_queue(queue)
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
@@ -461,8 +589,13 @@ def approve(queue: dict[str, Any], item_id: str, approved_by: str, note: str) ->
                 raise RuntimeError("approval requires a reviewer name")
             if not note.strip():
                 raise RuntimeError("approval requires a non-empty review note")
+            if any(review_checklist.get(key) is not True for key in REVIEW_CHECKS):
+                raise RuntimeError("approval requires explicit review checks for: " + ", ".join(REVIEW_CHECKS))
             item["status"] = "approved"
-            item["approval"] = {"status": "approved", "approved_by": approved_by, "approved_at": iso_now(), "note": note}
+            item["approval"] = {
+                "status": "approved", "approved_by": approved_by, "approved_at": iso_now(), "note": note,
+                "review_checklist": {key: True for key in REVIEW_CHECKS},
+            }
             save_json(QUEUE_PATH, queue)
             log_event({"event": "approved", "item_id": item_id, "approved_by": approved_by})
             print(f"approved {item_id}")
@@ -495,7 +628,11 @@ def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None) 
         all_success = True
         for platform in item["platforms"]:
             try:
-                result = publisher.publish_facebook_image(item) if platform == "facebook" else publisher.publish_instagram_image(item)
+                post_format = item.get("format")
+                if platform == "facebook":
+                    result = publisher.publish_facebook_carousel(item) if post_format == "carousel" else publisher.publish_facebook_image(item)
+                else:
+                    result = publisher.publish_instagram_carousel(item) if post_format == "carousel" else publisher.publish_instagram_image(item)
                 published_at = iso_now()
                 result_id = result.get("post_id") or result.get("id")
                 platform_results[platform] = {"status": "published", "published_at": published_at, "post_id": result_id}
@@ -536,11 +673,16 @@ def main() -> int:
     subparsers.add_parser("validate-drafts", help="validate locally reviewable draft content and images")
     stage_parser = subparsers.add_parser("stage-draft", help="copy a draft with a public image URL into the unapproved publish queue")
     stage_parser.add_argument("--id", required=True)
-    stage_parser.add_argument("--public-media-url", required=True)
+    stage_parser.add_argument(
+        "--public-media-url", action="append", required=True,
+        help="repeat once per image in a carousel; provide one URL for a single-image post",
+    )
     approve_parser = subparsers.add_parser("approve")
     approve_parser.add_argument("--id", required=True)
     approve_parser.add_argument("--approved-by", required=True)
     approve_parser.add_argument("--note", default="")
+    for check in REVIEW_CHECKS:
+        approve_parser.add_argument(f"--review-{check}", action="store_true", help=f"attest that {check} were reviewed")
     publish_parser = subparsers.add_parser("publish-due")
     publish_parser.add_argument("--execute", action="store_true")
     publish_parser.add_argument("--confirm-publish")
@@ -572,7 +714,8 @@ def main() -> int:
             print("true" if has_due_approved_items(queue) else "false")
             return 0
         if args.command == "approve":
-            approve(queue, args.id, args.approved_by, args.note)
+            checklist = {key: getattr(args, f"review_{key}") for key in REVIEW_CHECKS}
+            approve(queue, args.id, args.approved_by, args.note, checklist)
             return 0
         return publish_due(queue, args.execute, args.confirm_publish)
     except (OSError, ValueError, RuntimeError, KeyError, json.JSONDecodeError) as exc:

@@ -17,6 +17,10 @@ INSTAGRAM_SCOPES = {
     "pages_show_list",
     "pages_read_engagement",
 }
+INSTAGRAM_LOGIN_SCOPES = {
+    "instagram_business_basic",
+    "instagram_business_content_publish",
+}
 
 
 def expiry_label(value: object) -> str:
@@ -84,7 +88,11 @@ def main() -> int:
     app_secret = os.environ.get("FUNZUG_META_APP_SECRET", "")
     page_token = os.environ.get("FUNZUG_FACEBOOK_PAGE_TOKEN", "")
     instagram_token = os.environ.get("FUNZUG_INSTAGRAM_ACCESS_TOKEN", "")
+    instagram_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
     graph_version = (os.environ.get("FUNZUG_META_GRAPH_VERSION") or "26.0").strip().removeprefix("v")
+    if instagram_api_mode not in {"facebook_login", "instagram_login"}:
+        print("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
+        return 1
     if not app_secret or not page_token or not instagram_token:
         print("Missing required GitHub Actions secrets for read-only token diagnostics")
         return 1
@@ -92,7 +100,11 @@ def main() -> int:
     app_access_token = f"{APP_ID}|{app_secret}"
     checks = (
         ("Facebook Page token", page_token, PAGE_SCOPES),
-        ("Instagram token", instagram_token, INSTAGRAM_SCOPES),
+        (
+            "Instagram token",
+            instagram_token,
+            INSTAGRAM_LOGIN_SCOPES if instagram_api_mode == "instagram_login" else INSTAGRAM_SCOPES,
+        ),
     )
     all_valid = True
     for label, token, required_scopes in checks:
