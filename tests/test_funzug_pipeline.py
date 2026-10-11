@@ -247,6 +247,23 @@ class ValidationTests(unittest.TestCase):
         sleep.assert_called_once_with(pipeline.CONTAINER_STATUS_INTERVAL)
         self.assertEqual(post.call_args_list[1].args[0], "ig-test-user/media_publish")
 
+    def test_instagram_login_mode_uses_its_separate_graph_host(self):
+        with patch.dict(pipeline.os.environ, {"FUNZUG_INSTAGRAM_API_MODE": "instagram_login"}):
+            publisher = pipeline.MetaPublisher()
+        publisher.ig_user_id = "ig-test-user"
+        publisher.ig_token = "test-token"
+        with patch.object(pipeline, "api_post", side_effect=[{"id": "container-1"}, {"id": "media-1"}]) as post:
+            with patch.object(pipeline, "api_get", return_value={"status_code": "FINISHED"}) as get:
+                result = publisher.publish_instagram_image(self.item)
+        self.assertEqual(result, {"id": "media-1"})
+        self.assertTrue(all(call.kwargs["host"] == "graph.instagram.com" for call in post.call_args_list))
+        self.assertEqual(get.call_args.kwargs["host"], "graph.instagram.com")
+
+    def test_instagram_api_mode_rejects_unknown_host_selector(self):
+        with patch.dict(pipeline.os.environ, {"FUNZUG_INSTAGRAM_API_MODE": "https://attacker.example"}):
+            with self.assertRaisesRegex(RuntimeError, "must be facebook_login or instagram_login"):
+                pipeline.MetaPublisher()
+
     def test_instagram_carousel_waits_for_each_container_then_publishes_once(self):
         publisher = pipeline.MetaPublisher()
         publisher.ig_user_id = "ig-test-user"
@@ -305,6 +322,30 @@ class ValidationTests(unittest.TestCase):
         self.assertNotIn("private-test-token", request.full_url)
         self.assertEqual(request.get_header("Authorization"), "Bearer private-test-token")
         self.assertEqual(result["status_code"], "FINISHED")
+
+    def test_instagram_login_post_uses_instagram_host_without_token_in_url(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return b'{"id":"container-1"}'
+
+        with patch.object(pipeline.urllib.request, "urlopen", return_value=Response()) as urlopen:
+            result = pipeline.api_post(
+                "ig-test-user/media",
+                {"image_url": "https://media.example.com/image.jpg"},
+                "private-test-token",
+                host="graph.instagram.com",
+            )
+        request = urlopen.call_args.args[0]
+        self.assertTrue(request.full_url.startswith("https://graph.instagram.com/v26.0/"))
+        self.assertNotIn("private-test-token", request.full_url)
+        self.assertIn(b"private-test-token", request.data)
+        self.assertEqual(result["id"], "container-1")
 
     def test_instagram_does_not_publish_container_that_never_finishes(self):
         publisher = pipeline.MetaPublisher()

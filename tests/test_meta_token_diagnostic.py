@@ -1,6 +1,14 @@
 import unittest
+import os
+from unittest.mock import patch
 
-from scripts.meta_token_diagnostic import INSTAGRAM_SCOPES, PAGE_SCOPES, summarize
+from scripts.meta_token_diagnostic import (
+    INSTAGRAM_LOGIN_SCOPES,
+    INSTAGRAM_SCOPES,
+    PAGE_SCOPES,
+    main,
+    summarize,
+)
 
 
 class DebugMetaTokensTests(unittest.TestCase):
@@ -21,6 +29,43 @@ class DebugMetaTokensTests(unittest.TestCase):
         self.assertEqual(summary["missing_scopes"], [])
         self.assertTrue(summary["explicitly_non_expiring"])
         self.assertNotIn("user_id", summary)
+
+    def test_instagram_login_scope_set_is_distinct_from_facebook_login(self):
+        self.assertEqual(
+            INSTAGRAM_LOGIN_SCOPES,
+            {"instagram_business_basic", "instagram_business_content_publish"},
+        )
+        self.assertNotEqual(INSTAGRAM_LOGIN_SCOPES, INSTAGRAM_SCOPES)
+
+    def test_diagnostic_uses_instagram_login_scopes_when_selected(self):
+        valid_page = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 0,
+                "data_access_expires_at": 0,
+                "scopes": sorted(PAGE_SCOPES),
+            }
+        }
+        valid_instagram = {
+            "data": {
+                "app_id": "2180210799547573",
+                "is_valid": True,
+                "expires_at": 0,
+                "data_access_expires_at": 0,
+                "scopes": sorted(INSTAGRAM_LOGIN_SCOPES),
+            }
+        }
+        with patch.dict(os.environ, {
+            "FUNZUG_META_APP_SECRET": "test-app-secret",
+            "FUNZUG_FACEBOOK_PAGE_TOKEN": "page-token",
+            "FUNZUG_INSTAGRAM_ACCESS_TOKEN": "instagram-token",
+            "FUNZUG_INSTAGRAM_API_MODE": "instagram_login",
+        }):
+            with patch("scripts.meta_token_diagnostic.debug_token", side_effect=[valid_page, valid_instagram]) as debug:
+                with patch("builtins.print"):
+                    self.assertEqual(main(), 0)
+        self.assertEqual(debug.call_args_list[1].args[2], "instagram-token")
 
     def test_finite_lifetime_token_is_not_ready_even_if_far_in_future(self):
         payload = {

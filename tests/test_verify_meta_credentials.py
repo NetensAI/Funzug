@@ -49,6 +49,31 @@ class VerifyMetaCredentialsTests(unittest.TestCase):
             with patch("builtins.print"):
                 self.assertFalse(verify_object("26.0", "expected", "secret-token", "Page"))
 
+    def test_can_verify_instagram_login_object_on_its_graph_host(self):
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return json.dumps({"id": "12345"}).encode()
+
+        with patch("scripts.verify_meta_credentials.urllib.request.urlopen", return_value=Response()) as open_url:
+            with patch("builtins.print"):
+                self.assertTrue(verify_object("26.0", "12345", "secret-token", "Instagram", "graph.instagram.com"))
+
+        request = open_url.call_args.args[0]
+        self.assertTrue(request.full_url.startswith("https://graph.instagram.com/v26.0/"))
+        self.assertEqual(request.get_header("Authorization"), "Bearer secret-token")
+
+    def test_rejects_arbitrary_api_host_before_request(self):
+        with patch("scripts.verify_meta_credentials.urllib.request.urlopen") as open_url:
+            with patch("builtins.print"):
+                self.assertFalse(verify_object("26.0", "12345", "secret-token", "Instagram", "attacker.example"))
+        open_url.assert_not_called()
+
     def test_http_error_reports_only_safe_codes(self):
         response = HTTPError(
             "https://graph.facebook.com/",

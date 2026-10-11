@@ -26,6 +26,9 @@ LOG_PATH = ROOT / "logs" / "events.jsonl"
 REVIEW_CHECKS = ("claims", "sources", "caption", "images", "platforms", "schedule")
 _configured_graph_version = os.getenv("FUNZUG_META_GRAPH_VERSION", "").strip().lower().removeprefix("v")
 GRAPH_VERSION = f"v{_configured_graph_version or '26.0'}"
+GRAPH_HOST = "graph.facebook.com"
+INSTAGRAM_LOGIN_HOST = "graph.instagram.com"
+INSTAGRAM_API_MODES = {"facebook_login", "instagram_login"}
 CONTAINER_STATUS_ATTEMPTS = 12
 CONTAINER_STATUS_INTERVAL = 5
 
@@ -375,8 +378,10 @@ def stage_draft(
     print(f"staged {item_id} as an unapproved draft")
 
 
-def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
-    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+def api_post(path: str, form: dict[str, str], token: str, host: str = GRAPH_HOST) -> dict[str, Any]:
+    if host not in {GRAPH_HOST, INSTAGRAM_LOGIN_HOST}:
+        raise RuntimeError("Meta API host is not allowed")
+    url = f"https://{host}/{GRAPH_VERSION}/{path.lstrip('/')}"
     payload = urllib.parse.urlencode({**form, "access_token": token}).encode("utf-8")
     request = urllib.request.Request(url, data=payload, method="POST")
     request.add_header("Content-Type", "application/x-www-form-urlencoded")
@@ -410,10 +415,17 @@ def api_post(path: str, form: dict[str, str], token: str) -> dict[str, Any]:
     return result
 
 
-def api_get(path: str, token: str, params: dict[str, str] | None = None) -> dict[str, Any]:
+def api_get(
+    path: str,
+    token: str,
+    params: dict[str, str] | None = None,
+    host: str = GRAPH_HOST,
+) -> dict[str, Any]:
     """Issue an authenticated read-only Graph API request without putting tokens in URLs."""
+    if host not in {GRAPH_HOST, INSTAGRAM_LOGIN_HOST}:
+        raise RuntimeError("Meta API host is not allowed")
     query = urllib.parse.urlencode(params or {})
-    url = f"https://graph.facebook.com/{GRAPH_VERSION}/{path.lstrip('/')}"
+    url = f"https://{host}/{GRAPH_VERSION}/{path.lstrip('/')}"
     if query:
         url = f"{url}?{query}"
     request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
@@ -455,6 +467,10 @@ class MetaPublisher:
         self.page_token = os.environ.get("FUNZUG_FACEBOOK_PAGE_TOKEN")
         self.ig_user_id = os.environ.get("FUNZUG_INSTAGRAM_USER_ID")
         self.ig_token = os.environ.get("FUNZUG_INSTAGRAM_ACCESS_TOKEN")
+        self.ig_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
+        if self.ig_api_mode not in INSTAGRAM_API_MODES:
+            raise RuntimeError("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
+        self.ig_api_host = INSTAGRAM_LOGIN_HOST if self.ig_api_mode == "instagram_login" else GRAPH_HOST
 
     def publish_facebook_image(self, item: dict[str, Any]) -> dict[str, Any]:
         if not self.page_id or not self.page_token:
@@ -485,16 +501,31 @@ class MetaPublisher:
     def publish_instagram_image(self, item: dict[str, Any]) -> dict[str, Any]:
         if not self.ig_user_id or not self.ig_token:
             raise RuntimeError("Instagram API environment is incomplete")
-        container = api_post(f"{self.ig_user_id}/media", {"image_url": item["public_media_url"], "caption": item["caption"]}, self.ig_token)
+        container = api_post(
+            f"{self.ig_user_id}/media",
+            {"image_url": item["public_media_url"], "caption": item["caption"]},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
         creation_id = container.get("id")
         if not creation_id:
             raise RuntimeError("Instagram container response did not include an id")
         self.wait_for_instagram_container(str(creation_id))
-        return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
+        return api_post(
+            f"{self.ig_user_id}/media_publish",
+            {"creation_id": creation_id},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
 
     def wait_for_instagram_container(self, creation_id: str) -> None:
         for attempt in range(CONTAINER_STATUS_ATTEMPTS):
-            status = api_get(creation_id, self.ig_token, {"fields": "status_code"})
+            status = api_get(
+                creation_id,
+                self.ig_token,
+                {"fields": "status_code"},
+                host=self.ig_api_host,
+            )
             status_code = status.get("status_code")
             if status_code == "FINISHED":
                 return
@@ -516,6 +547,7 @@ class MetaPublisher:
                 f"{self.ig_user_id}/media",
                 {"image_url": media_url, "is_carousel_item": "true"},
                 self.ig_token,
+                host=self.ig_api_host,
             )
             child_id = child.get("id")
             if not child_id:
@@ -526,12 +558,18 @@ class MetaPublisher:
             f"{self.ig_user_id}/media",
             {"media_type": "CAROUSEL", "children": ",".join(children), "caption": item["caption"]},
             self.ig_token,
+            host=self.ig_api_host,
         )
         creation_id = container.get("id")
         if not creation_id:
             raise RuntimeError("Instagram carousel response did not include an id")
         self.wait_for_instagram_container(str(creation_id))
-        return api_post(f"{self.ig_user_id}/media_publish", {"creation_id": creation_id}, self.ig_token)
+        return api_post(
+            f"{self.ig_user_id}/media_publish",
+            {"creation_id": creation_id},
+            self.ig_token,
+            host=self.ig_api_host,
+        )
 
 
 def approve(

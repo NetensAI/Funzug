@@ -4,6 +4,8 @@
   "facebook_page_token_env": "FUNZUG_FACEBOOK_PAGE_TOKEN",
   "instagram_user_id_env": "FUNZUG_INSTAGRAM_USER_ID",
   "instagram_access_token_env": "FUNZUG_INSTAGRAM_ACCESS_TOKEN",
+  "instagram_api_mode_env": "FUNZUG_INSTAGRAM_API_MODE",
+  "instagram_api_mode_default": "facebook_login",
   "meta_graph_version_env": "FUNZUG_META_GRAPH_VERSION",
   "meta_graph_version_default": "v26.0",
   "queue_file": "queue.json",
