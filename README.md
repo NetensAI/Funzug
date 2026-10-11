@@ -23,12 +23,12 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 
 - `queue.json`: content, approvals, schedule, sources, and media URLs.
 - `drafts/queue.json`: draft-only content and source evidence; public media URLs and approvals are not required.
-- `drafts/assets/`: locally generated 1080x1350 draft images.
+- `drafts/assets/`: locally generated 1080x1350 draft images and carousel slides.
 - `media-host/`: optional self-hosted Docker image origin with authenticated uploads and public read-only media URLs.
 - `history.json`: inspected topics already visible in Meta, used to catch repeats.
 - `meta_assets_snapshot.json`: Meta IDs and visible account details observed during setup.
 - `config.example.json`: credential variable names and other settings.
-- `funzug_pipeline.py`: validation, approvals, dry runs, and image publishing.
+- `funzug_pipeline.py`: validation, approvals, dry runs, and image/carousel publishing.
 
 
 ## Setup
@@ -40,7 +40,7 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 4. The `funzug-publish` GitHub Actions environment is restricted to the `main` branch. This repository's environment settings do not expose a required-reviewer control, so per-post approval in the queue is the human publishing gate.
 5. For each story, follow `CONTENT_REQUIREMENTS.md`. The ChatGPT/Codex built-in image generator can create the image within an interactive task using the ChatGPT plan. It is not callable by this GitHub Actions workflow. Do not put ChatGPT or Meta credentials in a prompt, queue item, image, or log.
 6. Save locally reviewable posts and generated images in `drafts/queue.json` and `drafts/assets/`. Validate them with `python funzug_pipeline.py validate-drafts`. Drafts are not visible to the publishing workflow and do not need a public media URL.
-7. After reviewing a draft, make its image available at a public HTTPS URL and use `stage-draft` to copy it into `queue.json`. The optional Docker media host in `media-host/` is prepared for a home server that is reachable over HTTPS; an authorized upload prints the public URL. Staging does not approve it. Researchers must inspect source content; URL syntax, metadata, or availability alone is not fact-checking.
+7. After reviewing a draft, make its image or every carousel slide available at a public HTTPS URL and use `stage-draft` to copy it into `queue.json`. For a carousel, repeat `--public-media-url` once per slide in the same order as `media_paths`. The optional Docker media host in `media-host/` is prepared for a home server that is reachable over HTTPS; an authorized upload prints each public URL. Staging does not approve it. Researchers must inspect source content; URL syntax, metadata, or availability alone is not fact-checking.
 8. Review the sources, caption, image, destinations, and scheduled time. Approve the item with a named reviewer and a non-empty review note only after it is ready to publish.
 9. GitHub Actions checks approved posts every five minutes. Before any Meta publishing call, it verifies both tokens belong to the configured app, have the required scopes, and Meta explicitly reports both token expiry and data-access expiry as zero (non-expiring). A due item publishes only if its named approval record, review note, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. It does not generate or approve content, and it does not publish drafts.
 
@@ -52,6 +52,7 @@ Publishing uses Meta's Graph API. The queue is approval-gated, every factual cla
 python funzug_pipeline.py validate
 python funzug_pipeline.py validate-drafts
 python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url https://media.example.com/image.png
+python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url https://media.example.com/slide-1.png --public-media-url https://media.example.com/slide-2.png
 python funzug_pipeline.py approve --id ITEM_ID --approved-by "Name" --note "Reviewed sources, caption, image, platforms, and schedule"
 python funzug_pipeline.py publish-due
 python funzug_pipeline.py publish-due --execute --confirm-publish FUNZUG
@@ -59,7 +60,7 @@ python funzug_pipeline.py check-due
 ```
 
 
-Instagram uses a create-container then publish-container sequence. Facebook and Instagram are handled as separate operations. This starter currently publishes single images; carousel and Reel items are rejected pending their own media validation and upload flows.
+Image and carousel posts are supported. Instagram carousel publishing creates and waits for each child container, creates the parent carousel container, waits for readiness, then publishes once. Facebook carousel publishing uploads each image as unpublished media and creates one Page post with all attached photos. Facebook and Instagram are handled as separate operations. Every image and slide is validated as exactly 1080x1350. Reels are not yet supported and remain rejected until their separate 9:16 video validation and upload flow is implemented.
 
 
 ## Human approval and automation boundary

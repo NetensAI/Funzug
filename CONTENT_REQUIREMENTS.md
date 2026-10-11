@@ -13,13 +13,13 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 ## Image
 
-- Produce exactly one final image, portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject, headline, and branding inside safe margins.
+- For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject, headline, and branding inside safe margins.
 - Make a fresh, premium, cinematic, high-contrast, mobile-first editorial design with one dominant cohesive scene. The source is for information and inspiration, not layout, typography, colors, branding, or composition to copy.
 - Use one short, curiosity-driven headline, ideally 5-10 words, and at most one short supporting line. Do not place the whole story on the image.
 - Add a small, tasteful, visible `Funzug` wordmark, normally near the bottom. Do not include source branding, watermarks, fake quotes, fake statistics, fake signage, cluttered collages, or dense explainer panels.
 - Keep people realistic unless a cartoon is requested. Maintain credible anatomy, animals, machinery, architecture, science, geography, and historical detail. Do not make speculative visuals appear to be documentary evidence.
 - If using a real supplied photograph is essential, preserve it where possible and redesign the editable composition around it. Otherwise create a fresh visual.
-- Inspect the final file and verify its actual pixel dimensions before adding it to the queue.
+- Inspect every final image and verify its actual pixel dimensions before adding it to the queue. Carousel `media_paths` and staged `public_media_urls` must use the same slide order.
 
 ## Caption
 
@@ -31,6 +31,6 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 ## Queue and approval
 
 - Save generated images as project assets under `drafts/assets/`, include the verified `media_path`, and store each review-only post in `drafts/queue.json`. Run `python funzug_pipeline.py validate-drafts` before handing over the batch. Drafts may omit `public_media_url` and are not visible to the publisher.
-- Only after a human reviews the content and the image is available at a public HTTPS URL, stage it with `python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url URL`. This copies it into `queue.json` as an unapproved draft. The URL must be public, match the exact image, and contain no query string or embedded credentials.
+- Only after a human reviews the content and every image is available at a public HTTPS URL, stage it with `python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url URL`. Repeat the flag once per carousel slide, in slide order. This copies it into `queue.json` as an unapproved draft. Every URL must be public, match the exact image, and contain no query string or embedded credentials.
 - Create queue items as drafts. Never add an approval record on behalf of the user. A named human reviewer must check sources, caption, image, platform targets, and schedule, then approve the specific item with a review note.
 - No workflow may publish without the item's explicit human approval, a non-empty review note, and a due schedule. The GitHub `funzug-publish` environment is restricted to `main`, but it does not add a separate reviewer gate.
