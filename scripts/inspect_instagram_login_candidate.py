@@ -8,7 +8,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from scripts.meta_token_diagnostic import INSTAGRAM_LOGIN_SCOPES, summarize
+from meta_token_diagnostic import INSTAGRAM_LOGIN_SCOPES, summarize
 
 INSTAGRAM_APP_ID = "2556429418159496"
 
