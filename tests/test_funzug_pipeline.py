@@ -27,7 +27,7 @@ class ValidationTests(unittest.TestCase):
             "caption": "A verified caption.",
             "topic_key": "example-story",
             "platforms": ["facebook", "instagram"],
-            "scheduled_at": "2026-10-11T12:00:00-04:00",
+            "scheduled_at": "2026-10-11T12:00:00+05:30",
             "media_path": "assets/post.png",
             "public_media_url": "https://cdn.example.com/post.png",
             "claims": [{"text": "The supported fact.", "source_ids": ["source-1"], "support_note": "The cited source directly reports this fact."}],
@@ -55,6 +55,11 @@ class ValidationTests(unittest.TestCase):
 
     def test_valid_item_meets_image_and_source_requirements(self):
         self.assertEqual(pipeline.validate_item(self.item, (1080, 1350)), [])
+
+    def test_rejects_non_ist_publishing_schedule(self):
+        item = dict(self.item, scheduled_at="2026-10-11T12:00:00-04:00")
+        errors = pipeline.validate_item(item, (1080, 1350))
+        self.assertTrue(any("must use IST (UTC+05:30)" in error for error in errors))
 
     def carousel_item(self):
         item = json.loads(json.dumps(self.item))
@@ -163,7 +168,7 @@ class ValidationTests(unittest.TestCase):
         self.assertIn("[REDACTED]", pipeline.safe_error_message(message))
 
 
-    def approved_item(self, scheduled_at="2000-01-01T00:00:00Z"):
+    def approved_item(self, scheduled_at="2000-01-01T05:30:00+05:30"):
         item = json.loads(json.dumps(self.item))
         item["status"] = "approved"
         item["scheduled_at"] = scheduled_at
@@ -177,9 +182,17 @@ class ValidationTests(unittest.TestCase):
         return item
 
     def test_future_approved_post_is_not_published(self):
-        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.approved_item("2999-01-01T00:00:00Z")]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.approved_item("2999-01-01T05:30:00+05:30")]}
         with patch.object(pipeline, "MetaPublisher") as publisher:
             self.assertEqual(pipeline.publish_due(queue, execute=True, confirmation="FUNZUG"), 0)
+            publisher.assert_not_called()
+
+    def test_publish_rejects_non_ist_timestamp_before_meta_call(self):
+        item = self.approved_item("2999-01-01T00:00:00Z")
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [item]}
+        with patch.object(pipeline, "MetaPublisher") as publisher:
+            with self.assertRaisesRegex(RuntimeError, "must use IST"):
+                pipeline.publish_due(queue, execute=True, confirmation="FUNZUG")
             publisher.assert_not_called()
 
     def test_due_post_requires_explicit_publish_confirmation(self):
@@ -192,10 +205,11 @@ class ValidationTests(unittest.TestCase):
     def test_approval_is_saved_with_reviewer_and_audit_event(self):
         queue_path = self.root / "queue.json"
         log_path = self.root / "logs" / "events.jsonl"
-        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
+        item = dict(self.item, scheduled_at="2999-01-01T17:30:00+05:30")
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [item]}
         with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
             checklist = {key: True for key in pipeline.REVIEW_CHECKS}
-            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed sources, caption, image, platforms, and schedule", checklist)
+            pipeline.approve(queue, item["id"], "Vatsal", "Reviewed sources, caption, image, platforms, and schedule", checklist)
         saved = json.loads(queue_path.read_text(encoding="utf-8"))
         self.assertEqual(saved["items"][0]["approval"]["approved_by"], "Vatsal")
         self.assertEqual(saved["items"][0]["approval"]["review_checklist"], {key: True for key in pipeline.REVIEW_CHECKS})
@@ -204,11 +218,12 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(event["item_id"], self.item["id"])
 
     def test_approval_refuses_missing_review_checks(self):
-        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [self.item]}
+        item = dict(self.item, scheduled_at="2999-01-01T17:30:00+05:30")
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": [item]}
         checklist = {key: True for key in pipeline.REVIEW_CHECKS}
         checklist["sources"] = False
         with self.assertRaisesRegex(RuntimeError, "explicit review checks"):
-            pipeline.approve(queue, self.item["id"], "Vatsal", "Reviewed", checklist)
+            pipeline.approve(queue, item["id"], "Vatsal", "Reviewed", checklist)
         self.assertEqual(queue["items"][0]["status"], "draft")
 
     def test_mocked_publish_updates_status_history_and_audit_log(self):
@@ -397,7 +412,7 @@ class ValidationTests(unittest.TestCase):
 
         draft = json.loads(json.dumps(self.item))
         draft.pop("public_media_url")
-        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        draft["scheduled_at"] = "2999-01-01T17:30:00+05:30"
         drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
         with patch.object(upload_media, "upload") as upload:
@@ -422,12 +437,29 @@ class ValidationTests(unittest.TestCase):
                 )
             upload.assert_not_called()
 
+    def test_hosting_draft_rejects_non_ist_schedule_before_public_upload(self):
+        from scripts import upload_media
+
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        draft["scheduled_at"] = "2999-01-01T12:00:00-04:00"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        with patch.object(upload_media, "upload") as upload:
+            with self.assertRaisesRegex(RuntimeError, "must use IST"):
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed",
+                    {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com",
+                    "not-a-real-token", "FUNZUG", "Yes, upload publicly and publish at scheduled time",
+                )
+            upload.assert_not_called()
+
     def test_hosting_and_approving_draft_uploads_only_after_explicit_authorization(self):
         from scripts import upload_media
 
         draft = json.loads(json.dumps(self.item))
         draft.pop("public_media_url")
-        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        draft["scheduled_at"] = "2999-01-01T17:30:00+05:30"
         drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
         queue_path = self.root / "queue.json"
@@ -453,7 +485,7 @@ class ValidationTests(unittest.TestCase):
 
         draft = self.carousel_item()
         draft.pop("public_media_urls")
-        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        draft["scheduled_at"] = "2999-01-01T17:30:00+05:30"
         drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
         queue_path = self.root / "queue.json"
@@ -475,7 +507,7 @@ class ValidationTests(unittest.TestCase):
 
         draft = self.carousel_item()
         draft.pop("public_media_urls")
-        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        draft["scheduled_at"] = "2999-01-01T17:30:00+05:30"
         drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
         queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
         queue_path = self.root / "queue.json"
