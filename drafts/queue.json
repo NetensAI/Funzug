@@ -17,7 +17,7 @@
         "instagram"
       ],
       "scheduled_at": "2026-11-06T12:00:00-05:00",
-      "media_path": "drafts/assets/2026-10-10-icecube-neutrino-nobel.png",
+      "media_path": "drafts/assets/2026-10-10-icecube-neutrino-nobel-v2.png",
       "claims": [
         {
           "text": "Francis Halzen received the 2026 Nobel Prize in Physics for contributions to IceCube and the discovery of high-energy neutrinos of astrophysical origin.",
@@ -55,7 +55,7 @@
           "publisher": "IceCube Neutrino Observatory, University of Wisconsin–Madison",
           "url": "https://icecube.wisc.edu/news/awards/2026/10/francis-halzen-icecube-principal-investigator-wins-2026-physics-nobel-prize/",
           "published_at": "2026-10-06T00:00:00Z",
-          "checked_at": "2026-10-10T16:28:39Z"
+          "checked_at": "2026-10-11T05:39:32Z"
         },
         {
           "id": "nasa-icecube-nobel-2026",
@@ -63,7 +63,7 @@
           "publisher": "NASA Science",
           "url": "https://science.nasa.gov/astrophysics/programs/physics-of-the-cosmos/community/nobel-prize-for-astrophysical-neutrino-observations-with-icecube/",
           "published_at": "2026-10-09T00:00:00Z",
-          "checked_at": "2026-10-10T16:28:39Z"
+          "checked_at": "2026-10-11T05:39:32Z"
         }
       ]
     }
