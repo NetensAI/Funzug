@@ -14,7 +14,6 @@
       "format": "image",
       "headline": "The Universe Left Its Footprints in Ice",
       "caption": "A detector beneath Antarctic ice is helping scientists study some of the universe's most energetic messengers.\n\nThe IceCube Neutrino Observatory instruments about a cubic kilometer of glacial ice at the South Pole. It reported the discovery of high-energy astrophysical neutrinos in 2013, though their sources were not known at the time.\n\nResearchers have since reported evidence for neutrino emission from two galaxies, and IceCube announced the observation of neutrinos from the Milky Way in 2023.\n\nOn October 6, 2026, IceCube principal investigator Francis Halzen received the Nobel Prize in Physics for decisive contributions to the observatory and the discovery of high-energy neutrinos of astrophysical origin.\n\nWhat do you think scientists will learn next from these cosmic messengers?\n\n#IceCube #Neutrinos #NobelPrize #SpaceScience #Astrophysics",
-      "topic_key": "icecube-2026-nobel-neutrinos",
       "platforms": [
         "facebook"
       ],
@@ -80,11 +79,12 @@
         "retry_authorizations": [
           {
             "authorized_by": "owner",
-            "authorized_at": "2026-10-11T17:34:45Z",
+            "authorized_at": "2026-10-11T17:40:05Z",
             "platforms": [
               "facebook"
             ],
-            "note": "Owner requested immediate Facebook-only publication; Instagram already published."
+            "note": "Owner requested immediate Facebook-only publication; Instagram already published. Existing topic_key retained in retry audit and global history.",
+            "topic_key": "icecube-2026-nobel-neutrinos"
           }
         ]
       },
