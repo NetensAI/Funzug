@@ -334,6 +334,18 @@ def validate_draft_queue(queue: dict[str, Any]) -> list[str]:
         return errors + ["draft items must be an array"]
     topic_history = load_json(HISTORY_PATH).get("topic_keys", []) if HISTORY_PATH.exists() else []
     history = {topic for topic in topic_history if isinstance(topic, str)} if isinstance(topic_history, list) else set()
+    published_queue_items = load_json(QUEUE_PATH).get("items", []) if QUEUE_PATH.exists() else []
+    previously_published_ids = {
+        queue_item.get("id")
+        for queue_item in published_queue_items
+        if isinstance(queue_item, dict)
+        and isinstance(queue_item.get("id"), str)
+        and isinstance(queue_item.get("platform_results"), dict)
+        and any(
+            isinstance(result, dict) and result.get("status") == "published"
+            for result in queue_item["platform_results"].values()
+        )
+    }
     seen_ids: set[str] = set()
     seen_topics: set[str] = set()
     for item in items:
@@ -354,7 +366,7 @@ def validate_draft_queue(queue: dict[str, Any]) -> list[str]:
             f"{item_id}: {error}"
             for error in validate_item(item, required_size, require_public_media_url=False)
         )
-        if isinstance(topic_key, str) and topic_key and topic_key in history:
+        if isinstance(topic_key, str) and topic_key and topic_key in history and item_id not in previously_published_ids:
             errors.append(f"{item_id}: topic already appears in Meta history: {topic_key}")
         if isinstance(topic_key, str) and topic_key and topic_key in seen_topics:
             errors.append(f"{item_id}: topic_key duplicates another draft")

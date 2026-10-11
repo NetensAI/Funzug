@@ -51,7 +51,7 @@ def summarize(
 ) -> tuple[dict, bool]:
     if not isinstance(payload, dict) or not isinstance(payload.get("data"), dict):
         return {
-            "valid": False,
+            "type": "unknown", "valid": False,
             "app_match": False,
             "scopes": [],
             "missing_scopes": sorted(required_scopes),
@@ -73,7 +73,7 @@ def summarize(
         data_access_expires_at, current_time
     )
     result = {
-        "valid": valid,
+        "type": data.get("type", "unknown"), "valid": valid,
         "app_match": app_match,
         "scopes": scopes,
         "missing_scopes": missing,
@@ -131,7 +131,7 @@ def main() -> int:
             all_valid = False
             continue
         summary, passed = summarize(payload, APP_ID, required_scopes)
-        print(f"{label}: valid={summary['valid']}; app_match={summary['app_match']}")
+        print(f"{label}: type={summary['type']}; valid={summary['valid']}; app_match={summary['app_match']}")
         print(f"  scopes={', '.join(summary['scopes']) or '(none)'}")
         print(f"  missing_required_scopes={', '.join(summary['missing_scopes']) or '(none)'}")
         print(f"  expires_at_utc={summary['expires_at']}; data_access_expires_at_utc={summary['data_access_expires_at']}")
