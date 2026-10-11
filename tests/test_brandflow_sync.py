@@ -89,11 +89,12 @@ class BrandFlowPayloadTests(unittest.TestCase):
         self.assertEqual(passed_drafts["items"][0]["scheduled_at"], "2026-11-12T19:15:00+05:30")
         self.assertEqual(process.call_args.args[5], {"approvalConfirmed": True})
 
-    def test_approval_rejects_past_schedule_before_upload_or_queueing(self):
-        item = {"id": "funzug-example-past", "status": "draft", "scheduled_at": "2026-11-06T22:30:00+05:30"}
-        drafts = {"items": [item]}
+    def test_expired_approval_is_skipped_without_blocking_future_approval(self):
+        expired = {"id": "funzug-example-past", "status": "draft", "scheduled_at": "2026-11-06T22:30:00+05:30"}
+        future = {"id": "funzug-example-future", "status": "draft", "scheduled_at": "2026-11-06T22:30:00+05:30"}
+        drafts = {"items": [expired, future]}
         queue = {"items": []}
-        status = {
+        expired_status = {
             "status": "approved",
             "publicationAuthorized": True,
             "reviewChecks": {"approvalConfirmed": True},
@@ -103,16 +104,24 @@ class BrandFlowPayloadTests(unittest.TestCase):
             "reviewNote": "Approved for scheduled publishing",
             "reviewedAt": "2000-01-01T12:00:00Z",
         }
+        future_status = {
+            **expired_status,
+            "proposedSchedule": "2999-01-01T19:15:00+05:30",
+            "reviewedAt": "2998-12-31T12:00:00Z",
+        }
         with (
             patch.object(sync, "secret", return_value="s" * 64),
             patch.object(sync, "api_url", return_value="https://example.test/api"),
-            patch.object(sync, "api_status", return_value={item["id"]: status}),
-            patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue]),
+            patch.object(sync, "api_status", return_value={
+                expired["id"]: expired_status,
+                future["id"]: future_status,
+            }),
+            patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
-            self.assertRaisesRegex(RuntimeError, "schedule is not in the future"),
         ):
-            sync.process_approvals()
-        process.assert_not_called()
+            self.assertEqual(sync.process_approvals(), 0)
+        self.assertEqual(process.call_count, 1)
+        self.assertEqual(process.call_args.args[2], future["id"])
 
 
 if __name__ == "__main__":
