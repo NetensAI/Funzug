@@ -16,10 +16,13 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 import funzug_pipeline as pipeline
 
 
-ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
 BATCH_ID = "funzug-draft-inbox-v1"
 BRANDFLOW_CHECKS = (

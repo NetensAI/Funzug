@@ -1,6 +1,8 @@
 import base64
 import json
+import subprocess
 import struct
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +11,17 @@ import scripts.brandflow_sync as sync
 
 
 class BrandFlowPayloadTests(unittest.TestCase):
+    def test_cli_entrypoint_imports_pipeline_from_scripts_directory(self):
+        result = subprocess.run(
+            [sys.executable, str(sync.ROOT / "scripts" / "brandflow_sync.py"), "--help"],
+            cwd=sync.ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("{sync,process-approvals}", result.stdout)
+
     def test_payload_preserves_claim_support_and_source_metadata(self):
         with tempfile.TemporaryDirectory(dir=sync.ROOT) as directory:
             root = Path(directory)
