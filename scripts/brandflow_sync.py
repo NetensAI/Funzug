@@ -148,13 +148,15 @@ def sync_results() -> int:
     token, base = secret(), api_url()
     endpoint = base.rsplit("/", 1)[0] + "/publications"
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
-    known_ids = {item["id"] for item in drafts.get("items", [])}
+    original = {item["id"]: item for item in drafts.get("items", [])}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     sent = 0
     for item in queue.get("items", []):
-        if item.get("status") != "published" or item.get("id") not in known_ids:
+        if item.get("status") != "published" or item.get("id") not in original:
             continue
-        expected = set(item.get("platforms", []))
+        # Retry records can target one platform even when the approved draft
+        # authorized both. The draft is the original platform authority.
+        expected = set(original[item["id"]].get("platforms", []))
         results = item.get("platform_results", {})
         if not expected or set(results) != expected:
             raise RuntimeError(f"{item['id']}: published platform results are incomplete")

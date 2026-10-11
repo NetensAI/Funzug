@@ -145,7 +145,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
     def test_sync_results_sends_only_fully_published_posts(self):
         completed = {
             "id": "published-example", "status": "published",
-            "platforms": ["facebook", "instagram"],
+            "platforms": ["facebook"],
             "platform_results": {
                 "facebook": {"status": "published", "post_id": "page_post", "published_at": "2026-10-11T17:00:00Z"},
                 "instagram": {"status": "published", "post_id": "ig_post", "published_at": "2026-10-11T16:00:00Z"},
@@ -154,7 +154,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
         with (
             patch.object(sync, "secret", return_value="s" * 64),
             patch.object(sync, "api_url", return_value="https://example.test/api/integrations/funzug/drafts"),
-            patch.object(sync.pipeline, "load_json", side_effect=[{"items": [{"id": completed["id"]}]}, {"items": [completed, {"id": "other", "status": "approved"}]}]),
+            patch.object(sync.pipeline, "load_json", side_effect=[{"items": [{"id": completed["id"], "platforms": ["facebook", "instagram"]}]}, {"items": [completed, {"id": "other", "status": "approved"}]}]),
             patch.object(sync, "api_request", return_value={}) as request,
         ):
             self.assertEqual(sync.sync_results(), 0)
