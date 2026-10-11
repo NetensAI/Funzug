@@ -314,7 +314,7 @@ def validate_queue(queue: dict[str, Any]) -> list[str]:
                 errors.append(f"duplicate item id: {item_id}")
             seen_ids.add(item_id)
         errors.extend(f"{item_id}: {error}" for error in validate_item(item, required_size))
-        if isinstance(topic_key, str) and topic_key and topic_key in history and item.get("status", "draft") in {"draft", "approved"}:
+        if isinstance(topic_key, str) and topic_key and topic_key in history and not any(isinstance(result, dict) and result.get("status") == "published" for result in (item.get("platform_results") or {}).values()) and item.get("status", "draft") in {"draft", "approved"}:
             errors.append(f"{item_id}: topic already appears in Meta history: {topic_key}")
         if isinstance(topic_key, str) and topic_key and topic_key in seen_topics:
             errors.append(f"{item_id}: topic_key duplicates another queue item: {topic_key}")
