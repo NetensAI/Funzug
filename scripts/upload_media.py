@@ -44,7 +44,7 @@ def upload(path: Path, origin: str, token: str) -> str:
     request = urllib.request.Request(
         origin + "/upload",
         data=data,
-        headers={"Authorization": "Bearer " + token, "Content-Type": content_type},
+        headers={"Authorization": "Bearer " + token.strip(), "Content-Type": content_type},
         method="POST",
     )
     try:
