@@ -31,7 +31,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("{sync,process-approvals}", result.stdout)
+        self.assertIn("{sync,process-approvals,sync-results}", result.stdout)
 
     def test_payload_preserves_claim_support_and_source_metadata(self):
         with tempfile.TemporaryDirectory(dir=sync.ROOT) as directory:
@@ -141,6 +141,28 @@ class BrandFlowPayloadTests(unittest.TestCase):
         ):
             self.assertEqual(sync.process_approvals(), 0)
         upload.assert_not_called()
+
+    def test_sync_results_sends_only_fully_published_posts(self):
+        completed = {
+            "id": "published-example", "status": "published",
+            "platforms": ["facebook", "instagram"],
+            "platform_results": {
+                "facebook": {"status": "published", "post_id": "page_post", "published_at": "2026-10-11T17:00:00Z"},
+                "instagram": {"status": "published", "post_id": "ig_post", "published_at": "2026-10-11T16:00:00Z"},
+            },
+        }
+        with (
+            patch.object(sync, "secret", return_value="s" * 64),
+            patch.object(sync, "api_url", return_value="https://example.test/api/integrations/funzug/drafts"),
+            patch.object(sync.pipeline, "load_json", side_effect=[{"items": [{"id": completed["id"]}]}, {"items": [completed, {"id": "other", "status": "approved"}]}]),
+            patch.object(sync, "api_request", return_value={}) as request,
+        ):
+            self.assertEqual(sync.sync_results(), 0)
+        request.assert_called_once()
+        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/publications")
+        payload = request.call_args.args[3]
+        self.assertEqual(payload["externalId"], completed["id"])
+        self.assertEqual(set(payload["platformResults"]), {"facebook", "instagram"})
 
 
 if __name__ == "__main__":

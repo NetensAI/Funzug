@@ -40,6 +40,7 @@ jobs:
           FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
         run: |
           python scripts/brandflow_sync.py sync
+          python scripts/brandflow_sync.py sync-results
           python scripts/brandflow_sync.py process-approvals
           python funzug_pipeline.py validate
 
