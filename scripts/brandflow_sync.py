@@ -174,6 +174,10 @@ def process_approvals() -> int:
         if not isinstance(selected_schedule, str):
             raise RuntimeError(f"{item_id}: approved schedule is missing")
         local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
+        if local_schedule <= dt.datetime.now(SCHEDULE_TIMEZONE):
+            raise RuntimeError(
+                f"{item_id}: approved schedule is not in the future; update the schedule in BrandFlow before processing"
+            )
         item["scheduled_at"] = local_schedule.isoformat()
         checklist = {"approvalConfirmed": True}
         dashboard_time = status.get("reviewedAt")
