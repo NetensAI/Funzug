@@ -197,6 +197,10 @@ def process_approvals() -> int:
         local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
         dashboard_time = status.get("reviewedAt")
         existing = next((item for item in queue.get("items", []) if item.get("id") == item_id), None)
+        # BrandFlow can lag behind publishing. Completed posts must not block
+        # later approvals or be rescheduled from a stale dashboard status.
+        if existing is not None and existing.get("status") == "published":
+            continue
         if existing is not None:
             if existing.get("status") != "approved":
                 raise RuntimeError(f"{item_id}: only an approved, unpublished post can be rescheduled")

@@ -123,6 +123,25 @@ class BrandFlowPayloadTests(unittest.TestCase):
         self.assertEqual(process.call_count, 1)
         self.assertEqual(process.call_args.args[2], future["id"])
 
+    def test_published_item_does_not_block_later_approvals(self):
+        published = {"id": "already-posted", "status": "published"}
+        queue = {"items": [published]}
+        status = {
+            "status": "approved", "publicationAuthorized": True,
+            "scheduleTimezone": "Asia/Kolkata",
+            "proposedSchedule": "2999-01-01T19:15:00+05:30",
+            "reviewedBy": "vatsal", "reviewNote": "Original approval",
+        }
+        with (
+            patch.object(sync, "secret", return_value="s" * 64),
+            patch.object(sync, "api_url", return_value="https://example.test/api"),
+            patch.object(sync, "api_status", return_value={published["id"]: status}),
+            patch.object(sync.pipeline, "load_json", side_effect=[{"items": []}, queue]),
+            patch.object(sync.pipeline, "host_and_approve_draft") as upload,
+        ):
+            self.assertEqual(sync.process_approvals(), 0)
+        upload.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
