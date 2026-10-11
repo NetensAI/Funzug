@@ -13,9 +13,10 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 ## Image
 
-- For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject inside safe margins.
+- For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject, headline, and Funzug branding inside safe margins.
 - Make a fresh, premium, cinematic, high-contrast, mobile-first editorial design with one dominant cohesive scene. The source is for information and inspiration, not layout, typography, colors, branding, or composition to copy.
-- Keep image artwork text-free. Do not add headlines, supporting copy, logos, wordmarks, watermarks, source branding, fake quotes, fake statistics, or fake signage. Do not use cluttered collages or dense explainer panels.
+- Keep on-image text minimal: use one strong, curiosity-driven headline of about 5-10 words and at most one short supporting line. Do not place the whole story on the image.
+- Every image must visibly include a small, tasteful `Funzug` wordmark, normally near the bottom. Do not include source-page logos or watermarks, fake quotes, fake statistics, or fake signage. Do not use cluttered collages or dense explainer panels.
 - Keep people realistic unless a cartoon is requested. Maintain credible anatomy, animals, machinery, architecture, science, geography, and historical detail. Do not make speculative visuals appear to be documentary evidence.
 - If using a real supplied photograph is essential, preserve it where possible and redesign the editable composition around it. Otherwise create a fresh visual.
 - Inspect every final image and verify its actual pixel dimensions before adding it to the queue. Carousel `media_paths` and staged `public_media_urls` must use the same slide order.
