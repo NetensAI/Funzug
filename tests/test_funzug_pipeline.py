@@ -392,6 +392,107 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(staged["status"], "draft")
         self.assertNotIn("approval", staged)
 
+    def test_hosting_draft_requires_explicit_public_and_publication_approval_before_upload(self):
+        from scripts import upload_media
+
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        with patch.object(upload_media, "upload") as upload:
+            with self.assertRaisesRegex(RuntimeError, "public-upload confirmation"):
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed",
+                    {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com",
+                    "not-a-real-token", "", "Yes, upload publicly and publish at scheduled time",
+                )
+            upload.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "review checks"):
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed", {}, "https://media.example.com",
+                    "not-a-real-token", "FUNZUG", "Yes, upload publicly and publish at scheduled time",
+                )
+            upload.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "publication authorization"):
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed",
+                    {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com",
+                    "not-a-real-token", "FUNZUG", "No, keep it as a draft",
+                )
+            upload.assert_not_called()
+
+    def test_hosting_and_approving_draft_uploads_only_after_explicit_authorization(self):
+        from scripts import upload_media
+
+        draft = json.loads(json.dumps(self.item))
+        draft.pop("public_media_url")
+        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        queue_path = self.root / "queue.json"
+        log_path = self.root / "logs" / "events.jsonl"
+        with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
+            with patch.object(upload_media, "upload", return_value="https://media.example.com/post.jpeg") as upload:
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed every claim, image, destination, and schedule.",
+                    {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com", "not-a-real-token",
+                    "FUNZUG", "Yes, upload publicly and publish at scheduled time",
+                )
+        upload.assert_called_once_with(self.root / "assets" / "post.png", "https://media.example.com", "not-a-real-token")
+        staged = json.loads(queue_path.read_text(encoding="utf-8"))["items"][0]
+        self.assertEqual(staged["status"], "approved")
+        self.assertEqual(staged["public_media_url"], "https://media.example.com/post.jpeg")
+        self.assertEqual(staged["approval"]["approved_by"], "Vatsal")
+        self.assertTrue(all(staged["approval"]["review_checklist"].values()))
+        self.assertIn('"event": "draft_staged"', log_path.read_text(encoding="utf-8"))
+        self.assertIn('"event": "approved"', log_path.read_text(encoding="utf-8"))
+
+    def test_hosting_carousel_uploads_each_slide_in_order(self):
+        from scripts import upload_media
+
+        draft = self.carousel_item()
+        draft.pop("public_media_urls")
+        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        queue_path = self.root / "queue.json"
+        urls = ["https://media.example.com/slide-1.jpeg", "https://media.example.com/slide-2.jpeg"]
+        with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", self.root / "events.jsonl"):
+            with patch.object(upload_media, "upload", side_effect=urls) as upload:
+                pipeline.host_and_approve_draft(
+                    drafts, queue, draft["id"], "Vatsal", "Reviewed all slides and schedule.",
+                    {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com", "not-a-real-token",
+                    "FUNZUG", "Yes, upload publicly and publish at scheduled time",
+                )
+        self.assertEqual(upload.call_count, 2)
+        staged = json.loads(queue_path.read_text(encoding="utf-8"))["items"][0]
+        self.assertEqual(staged["public_media_urls"], urls)
+        self.assertEqual(staged["status"], "approved")
+
+    def test_partial_public_upload_records_uploaded_urls_without_approval(self):
+        from scripts import upload_media
+
+        draft = self.carousel_item()
+        draft.pop("public_media_urls")
+        draft["scheduled_at"] = "2999-01-01T12:00:00Z"
+        drafts = {"brand": {"required_image_size": [1080, 1350]}, "items": [draft]}
+        queue = {"brand": {"required_image_size": [1080, 1350]}, "items": []}
+        queue_path = self.root / "queue.json"
+        log_path = self.root / "logs" / "events.jsonl"
+        with patch.object(pipeline, "QUEUE_PATH", queue_path), patch.object(pipeline, "LOG_PATH", log_path):
+            with patch.object(upload_media, "upload", side_effect=["https://media.example.com/slide-1.jpeg", RuntimeError("upload failed")]):
+                with self.assertRaisesRegex(RuntimeError, "upload failed"):
+                    pipeline.host_and_approve_draft(
+                        drafts, queue, draft["id"], "Vatsal", "Reviewed all slides.",
+                        {key: True for key in pipeline.REVIEW_CHECKS}, "https://media.example.com", "not-a-real-token",
+                        "FUNZUG", "Yes, upload publicly and publish at scheduled time",
+                    )
+        self.assertFalse(queue_path.exists())
+        event = json.loads(log_path.read_text(encoding="utf-8").strip())
+        self.assertEqual(event["event"], "public_media_upload_incomplete")
+        self.assertEqual(event["uploaded_media_urls"], ["https://media.example.com/slide-1.jpeg"])
+
 
 if __name__ == "__main__":
     unittest.main()
