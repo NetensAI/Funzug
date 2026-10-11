@@ -23,7 +23,7 @@ class BrandFlowRescheduleTests(unittest.TestCase):
         status = {
             "status": "approved",
             "publicationAuthorized": True,
-            "reviewChecks": {"approvalConfirmed": True},
+            "reviewChecks": {},
             "scheduleTimezone": "Asia/Kolkata",
             "proposedSchedule": "2999-11-13T19:45:00+05:30",
             "reviewedBy": "vatsal",
@@ -76,7 +76,7 @@ class BrandFlowRescheduleTests(unittest.TestCase):
         status = {
             "status": "approved",
             "publicationAuthorized": True,
-            "reviewChecks": {"approvalConfirmed": True},
+            "reviewChecks": {},
             "scheduleTimezone": "Asia/Kolkata",
             "proposedSchedule": "2999-11-13T19:45:00+05:30",
             "reviewedBy": "vatsal",
