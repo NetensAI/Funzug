@@ -100,6 +100,12 @@ Meta Business Suite already contains scheduled content through November 5, 2026.
 
 ## Codex-only workflow transition
 
+### BrandFlow review inbox
+
+Funzug draft images and evidence are sent privately to the BrandFlow dashboard by the `Sync Funzug drafts with BrandFlow approvals` workflow. Configure `FUNZUG_DRAFT_INGEST_SECRET` as a secret in the `funzug-publish` GitHub Actions environment. Configure `FUNZUG_BRANDFLOW_DRAFTS_URL` as an environment variable, normally `https://funzug.netens.top/api/integrations/funzug/drafts`. The same random 32-byte secret must be set in BrandFlow's server-side `.env`. The workflow checks for explicit review authorization before it uploads an image to the public media host or places a post in the approved publishing queue.
+
+The workflow runs every five minutes and can also be dispatched manually. Before enabling it, deploy the BrandFlow migration and API changes documented in its project. It does not call Meta itself. The existing publisher sends only approved queue items after their scheduled time. Never put the ingest secret in the repository, draft queue, or workflow logs.
+
 
 The requested direction is to prepare content inside Codex using the ChatGPT image tool and a Codex scheduled task, not an external image-generation API. The Codex app has an active daily draft-preparation automation, named `Funzug daily draft preparation`, targeting 7 to 10 drafts per run. Its exact execution time and a successful unattended draft run have not been verified. The GitHub Actions file defines a five-minute publishing schedule, but scheduled polling has not been verified. The publishing queue has no approved items; the draft inbox contains one pilot item. Do not treat the system as Codex-only until the Codex run is tested, the Meta publishing path is verified, and the GitHub trigger is explicitly cut over.
 

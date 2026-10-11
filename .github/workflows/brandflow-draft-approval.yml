@@ -1,0 +1,58 @@
+name: Sync Funzug drafts with BrandFlow approvals
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: funzug-queue-writes
+  cancel-in-progress: false
+
+jobs:
+  sync-and-process:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: funzug-publish
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Validate drafts and publishing queue
+        run: |
+          python funzug_pipeline.py validate-drafts
+          python funzug_pipeline.py validate
+
+      - name: Send review-only drafts and process explicitly authorized approvals
+        env:
+          FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
+          FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+          FUNZUG_MEDIA_BASE_URL: ${{ vars.FUNZUG_MEDIA_BASE_URL }}
+          FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
+        run: |
+          python scripts/brandflow_sync.py sync
+          python scripts/brandflow_sync.py process-approvals
+          python funzug_pipeline.py validate
+
+      - name: Save approval and upload audit log
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add queue.json
+          if [ -f logs/events.jsonl ]; then
+            git add logs/events.jsonl
+          fi
+          if ! git diff --cached --quiet; then
+            git commit -m "Record BrandFlow-approved Funzug posts"
+            git push
+          fi
