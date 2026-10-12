@@ -35,8 +35,8 @@ test('reschedule rejects inactive or demoted users before draft lookup',async()=
 test('draft image verifier accepts native 4:5 and rejects metadata mismatch',()=>{
  const {decodeAndVerifyImage}=load('../lib/funzug-drafts.ts',{});
  const png=(width,height)=>{const bytes=Buffer.alloc(24);Buffer.from([137,80,78,71,13,10,26,10]).copy(bytes);bytes.writeUInt32BE(width,16);bytes.writeUInt32BE(height,20);return bytes.toString('base64');};
- for(const [width,height] of [[1080,1350],[1024,1280],[1200,1500]])assert.ok(decodeAndVerifyImage(png(width,height),'image/png',width,height));
- assert.throws(()=>decodeAndVerifyImage(png(1122,1402),'image/png'),/4:5/);
+ for(const [width,height] of [[1080,1350],[1024,1280],[1200,1500],[1122,1402]])assert.ok(decodeAndVerifyImage(png(width,height),'image/png',width,height));
+ assert.throws(()=>decodeAndVerifyImage(png(1123,1402),'image/png'),/4:5/);
  assert.throws(()=>decodeAndVerifyImage(png(1200,1500),'image/png',1080,1350),/metadata/);
 });
 function load(file, overrides){

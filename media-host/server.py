@@ -59,7 +59,7 @@ def normalize_image(data: bytes, content_type: str) -> bytes:
                     raise ValueError("image signature does not match its content type")
                 image = ImageOps.exif_transpose(source)
                 width, height = image.size
-                if width <= 0 or height <= 0 or width * 5 != height * 4:
+                if not (0 < width < height and abs(width * 5 - height * 4) <= 2):
                     raise ValueError("image must be portrait 4:5 (for example 1080x1350)")
                 image.load()
                 if "A" in image.getbands():

@@ -1,5 +1,7 @@
 # Additive BrandFlow outcome reporting
 
+Nearest-pixel policy: apply migration 011 after 010 and deploy the updated draft validator and media receiver. Positive portrait dimensions must satisfy abs(width * 5 - height * 4) <= 2. This admits 1122x1402 but rejects 1123x1402, and never changes image pixels. Existing pending rows are not rewritten.
+
 Native 4:5 policy: deploy migration 010 with the updated draft ingestion library and route. It replaces fixed width/height constraints with a positive-dimension 4:5 check, without rewriting any draft rows. The route checks embedded image dimensions against declared metadata and stores actual width/height. Deploy the media receiver change as well. No resizing or cropping is performed. Existing 1080x1350 rows remain valid.
 
 This directory versions the dashboard changes required by `scripts/brandflow_sync.py sync-results`. Deploy the server endpoint and migration before merging the client change. The old completed-only publications endpoint remains untouched.

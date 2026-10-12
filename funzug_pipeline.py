@@ -295,9 +295,9 @@ def validate_item(
 
 
 def is_portrait_4_5(dimensions: tuple[int, int]) -> bool:
-    """Accept native 4:5 canvases without resizing or rounding the ratio."""
+    """Accept 4:5 with width rounded to the nearest whole pixel, without editing."""
     width, height = dimensions
-    return width > 0 and height > 0 and width * 5 == height * 4
+    return 0 < width < height and abs(width * 5 - height * 4) <= 2
 
 
 def validate_queue(queue: dict[str, Any]) -> list[str]:
