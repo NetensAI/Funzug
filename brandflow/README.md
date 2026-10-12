@@ -1,5 +1,7 @@
 # Additive BrandFlow outcome reporting
 
+Native 4:5 policy: deploy migration 010 with the updated draft ingestion library and route. It replaces fixed width/height constraints with a positive-dimension 4:5 check, without rewriting any draft rows. The route checks embedded image dimensions against declared metadata and stores actual width/height. Deploy the media receiver change as well. No resizing or cropping is performed. Existing 1080x1350 rows remain valid.
+
 This directory versions the dashboard changes required by `scripts/brandflow_sync.py sync-results`. Deploy the server endpoint and migration before merging the client change. The old completed-only publications endpoint remains untouched.
 
 Approval/content binding: the authenticated drafts GET response now includes a SHA-256 fingerprint of headline, caption, claims, evidence sources, platform targets, image MIME type and exact image bytes. Schedule is excluded because the owner's selected IST slot is checked separately and may be explicitly rescheduled. The approval consumer must compare this fingerprint with local content before any public media upload. Missing fingerprints, mismatched captions, or changed images fail closed. Reviewed dashboard content is immutable through draft ingestion. Secure-URL-only legacy images have no fingerprint and cannot pass this gate until their reviewed bytes are available; do not silently substitute downloads.

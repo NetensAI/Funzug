@@ -5,9 +5,9 @@ const httpsUrl=z.string().url().refine(v=>new URL(v).protocol==='https:',{messag
 const source=z.object({id:z.string().trim().min(1).max(200),title:z.string().trim().min(1).max(1000),publisher:z.string().trim().min(1).max(500),url:httpsUrl,published_at:z.string().datetime({offset:true}).nullable(),checked_at:z.string().datetime({offset:true})}).strict();
 const claim=z.object({text:z.string().trim().min(1).max(2000),source_ids:z.array(z.string().trim().min(1).max(200)).min(1).max(20),support_note:z.string().trim().min(1).max(4000)}).strict();
 const image=z.discriminatedUnion('kind',[
- z.object({kind:z.literal('base64'),mimeType:z.enum(['image/png','image/jpeg']),width:z.literal(1080),height:z.literal(1350),data:z.string().min(16)}).strict(),
- z.object({kind:z.literal('secure_url'),mimeType:z.enum(['image/png','image/jpeg']),width:z.literal(1080),height:z.literal(1350),url:httpsUrl}).strict()
-]);
+ z.object({kind:z.literal('base64'),mimeType:z.enum(['image/png','image/jpeg']),width:z.number().int().positive(),height:z.number().int().positive(),data:z.string().min(16)}).strict(),
+ z.object({kind:z.literal('secure_url'),mimeType:z.enum(['image/png','image/jpeg']),width:z.number().int().positive(),height:z.number().int().positive(),url:httpsUrl}).strict()
+]).refine(v=>v.width*5===v.height*4,{message:'Image must be portrait 4:5'});
 const draft=z.object({externalId:z.string().trim().min(1).max(200),headline:z.string().trim().min(1).max(500),caption:z.string().trim().min(1).max(10000),claims:z.array(claim).min(1).max(100),sources:z.array(source).min(1).max(100),platforms:z.array(z.enum(['instagram','facebook'])).min(1).max(2),proposedSchedule:z.string().datetime({offset:true}),scheduleTimezone:z.literal('Asia/Kolkata'),image}).strict().superRefine((value,ctx)=>{
  if(new Set(value.platforms).size!==value.platforms.length)ctx.addIssue({code:z.ZodIssueCode.custom,path:['platforms'],message:'Platforms must be unique'});
  const ids=value.sources.map(x=>x.id);if(new Set(ids).size!==ids.length)ctx.addIssue({code:z.ZodIssueCode.custom,path:['sources'],message:'Source IDs must be unique'});
@@ -29,12 +29,13 @@ export function validBearer(header:string|null){
  return a.length===b.length&&timingSafeEqual(a,b);
 }
 
-export function decodeAndVerifyImage(data:string,mimeType:string){
+export function decodeAndVerifyImage(data:string,mimeType:string,expectedWidth?:number,expectedHeight?:number){
  let bytes:Buffer;try{bytes=Buffer.from(data,'base64')}catch{throw new Error('Invalid base64 image')}
  if(!bytes.length||bytes.length>12*1024*1024)throw new Error('Image must be between 1 byte and 12 MB');
  let width=0,height=0;
  if(mimeType==='image/png'&&bytes.length>=24&&bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))){width=bytes.readUInt32BE(16);height=bytes.readUInt32BE(20)}
  if(mimeType==='image/jpeg'&&bytes[0]===0xff&&bytes[1]===0xd8){let p=2;while(p+9<bytes.length){if(bytes[p]!==0xff){p++;continue}const marker=bytes[p+1];const size=bytes.readUInt16BE(p+2);if([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf].includes(marker)){height=bytes.readUInt16BE(p+5);width=bytes.readUInt16BE(p+7);break}if(size<2)break;p+=2+size}}
- if(width!==1080||height!==1350)throw new Error('Image bytes must be exactly 1080x1350');
+ if(width<=0||height<=0||width*5!==height*4)throw new Error('Image bytes must be portrait 4:5');
+ if((expectedWidth!==undefined&&width!==expectedWidth)||(expectedHeight!==undefined&&height!==expectedHeight))throw new Error('Image dimensions do not match metadata');
  return bytes;
 }

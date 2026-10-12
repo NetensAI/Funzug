@@ -10,7 +10,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from funzug_pipeline import image_size
+from funzug_pipeline import image_size, is_portrait_4_5
 
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 CONTENT_TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
@@ -36,8 +36,8 @@ def upload(path: Path, origin: str, token: str) -> str:
     content_type = CONTENT_TYPES.get(path.suffix.lower())
     if not content_type:
         raise ValueError("image must be PNG or JPEG")
-    if image_size(path) != (1080, 1350):
-        raise ValueError("image must be exactly 1080x1350")
+    if not is_portrait_4_5(image_size(path)):
+        raise ValueError("image must be portrait 4:5 (for example 1080x1350)")
     data = path.read_bytes()
     if not data or len(data) > MAX_UPLOAD_BYTES:
         raise ValueError("image is empty or exceeds the 12 MiB upload limit")

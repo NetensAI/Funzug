@@ -271,7 +271,7 @@ def validate_item(
             except (KeyError, TypeError, ValueError):
                 errors.append(f"source {source.get('id', '<missing>')} needs a timezone-aware {field}")
     if not media_paths or any(not isinstance(media_path, str) or not media_path for media_path in media_paths):
-        errors.append(f"{paths_field} is required to verify each image is exactly 1080x1350")
+        errors.append(f"{paths_field} is required to verify each image is portrait 4:5")
     for media_path in media_paths:
         if not isinstance(media_path, str) or not media_path:
             continue
@@ -289,9 +289,15 @@ def validate_item(
                 except OSError as exc:
                     errors.append(f"could not read image: {exc}")
                 else:
-                    if dimensions != required_size:
-                        errors.append(f"media must be {required_size[0]}x{required_size[1]}, got {dimensions}")
+                    if not is_portrait_4_5(dimensions):
+                        errors.append(f"media must be portrait 4:5 (for example 1080x1350), got {dimensions}")
     return errors
+
+
+def is_portrait_4_5(dimensions: tuple[int, int]) -> bool:
+    """Accept native 4:5 canvases without resizing or rounding the ratio."""
+    width, height = dimensions
+    return width > 0 and height > 0 and width * 5 == height * 4
 
 
 def validate_queue(queue: dict[str, Any]) -> list[str]:

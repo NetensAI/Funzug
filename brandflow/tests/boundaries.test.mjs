@@ -8,6 +8,13 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 const require=createRequire(import.meta.url);
+test('draft image verifier accepts native 4:5 and rejects metadata mismatch',()=>{
+ const {decodeAndVerifyImage}=load('../lib/funzug-drafts.ts',{});
+ const png=(width,height)=>{const bytes=Buffer.alloc(24);Buffer.from([137,80,78,71,13,10,26,10]).copy(bytes);bytes.writeUInt32BE(width,16);bytes.writeUInt32BE(height,20);return bytes.toString('base64');};
+ for(const [width,height] of [[1080,1350],[1024,1280],[1200,1500]])assert.ok(decodeAndVerifyImage(png(width,height),'image/png',width,height));
+ assert.throws(()=>decodeAndVerifyImage(png(1122,1402),'image/png'),/4:5/);
+ assert.throws(()=>decodeAndVerifyImage(png(1200,1500),'image/png',1080,1350),/metadata/);
+});
 function load(file, overrides){
  const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
