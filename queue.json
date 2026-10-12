@@ -292,6 +292,63 @@
           "approvalConfirmed": true
         }
       }
+    },
+    {
+      "id": "funzug-2026-10-11-curiosity-martian-dawn",
+      "status": "approved",
+      "format": "image",
+      "headline": "Mars Wakes In Blue Light",
+      "caption": "A new Curiosity panorama shows sunlight reaching wind-carved cliffs on Mars. The rover captured six Mastcam images at 8:30 a.m. local Mars time on its 4,982nd Martian day.\n\nThe team processed this panorama without its usual white balancing, preserving the scene’s early-morning appearance. The blue foreground is part of that processed view, not a claim that Mars looks exactly like this to human eyes.\n\nThe distant yardang layer stretches about 16 kilometers across the northwestern side of Mount Sharp. Scientists are still working out how it formed, with ancient volcanic ash among the possibilities.\n\nWould you explore this landscape at sunrise?\n\nThe accompanying image is an AI-generated illustration, not Curiosity’s panorama.\n\n#Mars #CuriosityRover #NASA #SpaceExploration #PlanetaryScience",
+      "topic_key": "curiosity-mars-dawn-yardangs-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-13T18:26:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-curiosity-martian-dawn.png",
+      "claims": [
+        {
+          "text": "Curiosity captured the six-frame Mastcam panorama at 8:30 a.m. local Mars time on its 4,982nd sol.",
+          "source_ids": [
+            "curiosity-martian-dawn-jpl-2026"
+          ],
+          "support_note": "NASA JPL gives the local Mars time, instrument, capture date, six-image construction, and mission sol."
+        },
+        {
+          "text": "The panorama was processed without the usual white balancing to preserve its early-morning appearance.",
+          "source_ids": [
+            "curiosity-martian-dawn-jpl-2026"
+          ],
+          "support_note": "NASA JPL explicitly describes the processing choice and its purpose."
+        },
+        {
+          "text": "The yardang layer extends roughly 16 kilometers across the northwestern reaches of Mount Sharp, and its origin is uncertain.",
+          "source_ids": [
+            "curiosity-martian-dawn-jpl-2026"
+          ],
+          "support_note": "NASA JPL gives the layer's extent and says scientists are still investigating its formation; ancient volcanic ash is one idea."
+        }
+      ],
+      "sources": [
+        {
+          "id": "curiosity-martian-dawn-jpl-2026",
+          "title": "NASA’s Curiosity Rover Catches Stunning Martian Dawn",
+          "publisher": "NASA Jet Propulsion Laboratory",
+          "url": "https://www.jpl.nasa.gov/news/nasas-curiosity-rover-catches-stunning-martian-dawn/",
+          "published_at": "2026-10-06T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/1ab2dd4a988fa39491a019d3d55c614a.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-12T07:42:41.765Z",
+        "note": "Approved for scheduled publishing at 13 Oct 2026, 6:26 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
