@@ -15,3 +15,5 @@
 {"logged_at": "2026-10-12T07:43:39+00:00", "event": "approved", "item_id": "funzug-2026-10-11-curiosity-martian-dawn", "approved_by": "vatsal"}
 {"logged_at": "2026-10-12T07:44:50+00:00", "event": "draft_staged", "item_id": "funzug-2026-10-11-hubble-white-dwarf-candidate"}
 {"logged_at": "2026-10-12T07:44:50+00:00", "event": "approved", "item_id": "funzug-2026-10-11-hubble-white-dwarf-candidate", "approved_by": "vatsal"}
+{"logged_at": "2026-10-12T07:52:33+00:00", "event": "published", "item_id": "funzug-2026-10-11-orionid-meteor-shower", "platform": "facebook", "post_id": "124454514239741_1519437233554634"}
+{"logged_at": "2026-10-12T07:52:49+00:00", "event": "published", "item_id": "funzug-2026-10-11-orionid-meteor-shower", "platform": "instagram", "post_id": "18116304065105811"}

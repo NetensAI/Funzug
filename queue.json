@@ -105,7 +105,7 @@
     },
     {
       "id": "funzug-2026-10-11-orionid-meteor-shower",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Debris From Halley Lights October Skies",
       "caption": "The Orionids are made from debris left behind by Halley’s Comet. Each year, Earth crosses that stream, and some particles burn through our atmosphere as meteors.\n\nNASA lists the 2026 shower as active from October 2 through November 7, with its peak night on October 21–22. Under dark skies, observers may see around 10 to 20 meteors per hour.\n\nMoonlight may hide some of the fainter streaks this year. NASA recommends looking before dawn after the Moon sets, from a dark location with time for your eyes to adjust.\n\nAre you planning to watch the sky this month?\n\nAI-generated illustration, not a photograph of the 2026 shower.\n\n#Orionids #HalleysComet #MeteorShower #Stargazing #NASA",
@@ -167,7 +167,20 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-12T07:52:33+00:00",
+          "post_id": "124454514239741_1519437233554634"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-12T07:52:49+00:00",
+          "post_id": "18116304065105811"
+        }
+      },
+      "last_attempt_at": "2026-10-12T07:52:49+00:00"
     },
     {
       "id": "funzug-2026-10-11-frb-cosmic-dawn",
