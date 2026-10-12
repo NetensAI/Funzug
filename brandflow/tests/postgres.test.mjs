@@ -6,7 +6,8 @@ import {createRequire} from 'node:module';
 import {randomUUID} from 'node:crypto';
 import pg from 'pg';
 import ts from 'typescript';
-import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
+import {mergeOutcomes,canRescheduleOutcomes} from '../lib/funzug-outcomes.mjs';
+import * as rescheduleHelpers from '../lib/social-reschedule.mjs';
 
 const require=createRequire(import.meta.url);
 const url=process.env.FUNZUG_TEST_DATABASE_URL;
@@ -30,7 +31,8 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    CREATE TABLE users(id text PRIMARY KEY,username text,active boolean,role text);
    INSERT INTO users VALUES('owner','owner',true,'admin'),('other','other',true,'admin');
    ALTER TABLE social_post_drafts ADD COLUMN proposed_schedule timestamptz, ADD COLUMN schedule_timezone text,
-    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz;`);
+    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz;
+   CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const adapters={
@@ -72,6 +74,26 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    await reset('pending_review',false);await pool.query("ALTER TABLE audit_logs ADD CONSTRAINT reject_review CHECK(action <> 'social_draft.approved')");
    try{assert.equal((await reviewHandler()(approve)).status,409);const saved=await reviewRow();assert.equal(saved.status,'pending_review');assert.equal(saved.publication_authorized,false);assert.equal(saved.reviewed_by,null);assert.equal(saved.proposed_schedule,null);}
    finally{await pool.query('ALTER TABLE audit_logs DROP CONSTRAINT reject_review');}
+  });
+  const rescheduleCompiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/social-drafts/[id]/reschedule/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  const rescheduleModule={exports:{}};
+  const rescheduleAdapters={...adapters,'@/lib/auth':{getSession:async()=>({sub:'owner',role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''},'@/lib/social-reschedule.mjs':rescheduleHelpers,'@/lib/funzug-outcomes.mjs':{canRescheduleOutcomes}};
+  vm.runInNewContext(rescheduleCompiled,{module:rescheduleModule,exports:rescheduleModule.exports,Date,JSON,require(name){if(name in rescheduleAdapters)return rescheduleAdapters[name];throw Error('Unexpected reschedule dependency');}});
+  const reschedule=()=>rescheduleModule.exports.POST({json:async()=>({action:'reschedule',confirmation:'CONFIRM RESCHEDULE',scheduleTimezone:'Asia/Kolkata',proposedSchedule:'2099-10-14T20:30:00+05:30',note:'Owner changes the approved slot'})},{params:{id:'draft'}});
+  const prepareReschedule=async()=>{await reset('pending_review',false);await pool.query('TRUNCATE social_post_reschedules');await reviewHandler()(approve);};
+  await t.test('reschedule preserves approval and records old and new IST slots',async()=>{
+   await prepareReschedule();assert.equal((await reschedule()).status,200);const saved=await reviewRow();assert.equal(saved.status,'approved');assert.equal(saved.publication_authorized,true);assert.equal(saved.proposed_schedule.toISOString(),'2099-10-14T15:00:00.000Z');
+   const history=(await pool.query('SELECT * FROM social_post_reschedules')).rows[0];assert.equal(history.old_proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.equal(history.new_schedule_timezone,'Asia/Kolkata');assert.equal(history.rescheduled_by,'owner');
+  });
+  await t.test('any recorded platform outcome prevents rescheduling and history writes',async()=>{
+   for(const outcomes of [{instagram:success('already-posted')},{facebook:{status:'failed',failedAt:'2026-10-12T12:30:00+05:30'}}]){
+    await prepareReschedule();await pool.query('UPDATE social_post_drafts SET platform_outcomes=$1',[JSON.stringify(outcomes)]);assert.equal((await reschedule()).status,409);assert.equal((await reviewRow()).proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.equal((await pool.query('SELECT count(*)::int AS n FROM social_post_reschedules')).rows[0].n,0);
+   }
+  });
+  await t.test('reschedule audit failure rolls back both slot and history insertion',async()=>{
+   await prepareReschedule();await pool.query("ALTER TABLE audit_logs ADD CONSTRAINT reject_reschedule CHECK(action <> 'social_draft.rescheduled')");
+   try{assert.equal((await reschedule()).status,409);assert.equal((await reviewRow()).proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.equal((await pool.query('SELECT count(*)::int AS n FROM social_post_reschedules')).rows[0].n,0);}
+   finally{await pool.query('ALTER TABLE audit_logs DROP CONSTRAINT reject_reschedule');}
   });
   await t.test('concurrent independent platforms retain both results and complete once',async()=>{
    await reset();
