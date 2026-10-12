@@ -63,13 +63,25 @@ test('draft image verifier accepts native 4:5 and rejects metadata mismatch',()=
  assert.throws(()=>decodeAndVerifyImage(png(1123,1402),'image/png'),/4:5/);
  assert.throws(()=>decodeAndVerifyImage(png(1200,1500),'image/png',1080,1350),/metadata/);
 });
-function load(file, overrides){
+function load(file, overrides, globals={}){
  const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
  const module={exports:{}};
- vm.runInNewContext(compiled,{module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
+ vm.runInNewContext(compiled,{...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
  return module.exports;
 }
+test('actual reschedule component releases busy state after network and non-JSON errors',async()=>{
+ for(const fetch of [async()=>{throw Error('offline')},async()=>({ok:false,json:async()=>{throw Error('HTML response')}})]){
+  const states=[true,'2099-10-14T20:30','Owner chooses new slot',true,false,''];let index=0;const changes=[];let refreshed=false;
+  const Component=load('../components/SocialDraftReschedule.tsx',{
+   react:{...React,useState:()=>{const i=index++;return [states[i],value=>changes.push({i,value})];}},
+   'next/navigation':{useRouter:()=>({refresh(){refreshed=true;}})},
+  },{fetch}).default;
+  const tree=Component({id:'fixture',currentSchedule:'2099-10-13T19:30:00+05:30'});
+  function find(node){if(!node||typeof node!=='object')return null;if(node.type==='button'&&node.props.children==='Confirm reschedule')return node;for(const child of [node.props?.children].flat(Infinity)){const found=find(child);if(found)return found;}return null;}
+  await find(tree).props.onClick();assert.ok(changes.some(x=>x.i===4&&x.value===false));assert.ok(changes.some(x=>x.i===5&&/check the saved time before retrying/.test(x.value)));assert.equal(refreshed,false);
+ }
+});
 const published={status:'published',postId:'fixture-ig',publishedAt:'2026-10-12T11:30:00+05:30'};
 const failed={status:'failed',failedAt:'2026-10-12T11:31:00+05:30'};
 function fixture(overrides={}){return {id:'fixture-only',status:'approved',publication_authorized:true,platforms:['facebook','instagram'],platform_outcomes:{},published_at:null,...overrides};}
