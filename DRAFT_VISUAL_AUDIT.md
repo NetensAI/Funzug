@@ -17,6 +17,10 @@ All eight have visible Funzug wordmarks, legible headlines, one cohesive composi
 
 ## Remaining gates
 
+Local draft correction: all seven unpublished captions now identify their artwork as AI-generated illustrations. The Orionids proposal is now 20 October 2026 at 7:30 PM IST, before the peak. This is a review proposal, not a publishing schedule. These edits have not yet been transferred to BrandFlow. The Mars image still warrants revision despite caption disclosure because its on-image wording can imply documentary provenance.
+
+Use `python scripts/brandflow_sync.py sync --update-pending` for explicitly requested draft corrections. This opt-in operation updates only rows reported as pending_review, unauthorized, and unpublished. The server rechecks pending status during its upsert, so a concurrent owner approval prevents an overwrite. The ordinary sync continues to skip existing rows. Never use a new ID to bypass an approved-content conflict.
+
 - Do not mark any held draft approved through this audit.
 - Correct pending-draft artwork/captions as needed, then revalidate and sync through the review-only path. Any changed approved content must require renewed owner approval.
 - Compare current source material against every caption and on-image factual statement. This inspection does not independently verify all science claims.

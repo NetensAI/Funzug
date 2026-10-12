@@ -127,7 +127,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def sync_pending() -> int:
+def sync_pending(update_pending: bool = False) -> int:
     token, base = secret(), api_url()
     errors = pipeline.validate_draft_queue(pipeline.load_json(pipeline.DRAFT_QUEUE_PATH))
     if errors:
@@ -137,7 +137,12 @@ def sync_pending() -> int:
     sent = 0
     for item in inbox["items"]:
         item_id = item["id"]
-        if item_id in known:
+        row = known.get(item_id)
+        if row is not None and not (
+            update_pending and row.get("status") == "pending_review"
+            and row.get("publicationAuthorized") is False
+            and not row.get("publishedAt")
+        ):
             continue
         api_request("POST", base, token, payload_for(item))
         sent += 1
@@ -293,10 +298,13 @@ def process_approvals() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("sync", "process-approvals", "sync-results"))
+    parser.add_argument("--update-pending", action="store_true", help="Update unreviewed existing drafts only; never approved or published content")
     args = parser.parse_args()
+    if args.update_pending and args.command != "sync":
+        parser.error("--update-pending is valid only with sync")
     try:
         if args.command == "sync":
-            return sync_pending()
+            return sync_pending(update_pending=args.update_pending)
         if args.command == "sync-results":
             return sync_results()
         return process_approvals()
