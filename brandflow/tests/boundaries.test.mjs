@@ -82,6 +82,17 @@ test('actual reschedule component releases busy state after network and non-JSON
   await find(tree).props.onClick();assert.ok(changes.some(x=>x.i===4&&x.value===false));assert.ok(changes.some(x=>x.i===5&&/check the saved time before retrying/.test(x.value)));assert.equal(refreshed,false);
  }
 });
+test('actual reschedule success submits the selected IST slot once and refreshes',async()=>{
+ const states=[true,'2099-10-14T20:30','Owner changes slot',true,false,''];let index=0,refreshes=0;const changes=[],requests=[];
+ const Component=load('../components/SocialDraftReschedule.tsx',{
+  react:{...React,useState:()=>{const i=index++;return [states[i],value=>changes.push({i,value})];}},
+  'next/navigation':{useRouter:()=>({refresh(){refreshes++;}})},
+ },{fetch:async(url,options)=>{requests.push({url,options});return {ok:true};}}).default;
+ const tree=Component({id:'fixture',currentSchedule:'2099-10-13T19:30:00+05:30'});
+ const buttons=tree.props.children.flat(Infinity).find(x=>x?.props?.className==='row').props.children;
+ await buttons[0].props.onClick();assert.equal(requests.length,1);assert.equal(requests[0].url,'/api/social-drafts/fixture/reschedule');
+ const body=JSON.parse(requests[0].options.body);assert.equal(body.proposedSchedule,'2099-10-14T20:30:00+05:30');assert.equal(body.scheduleTimezone,'Asia/Kolkata');assert.equal(body.confirmation,'CONFIRM RESCHEDULE');assert.equal(refreshes,1);assert.ok(changes.some(x=>x.i===0&&x.value===false));assert.ok(changes.some(x=>x.i===4&&x.value===false));
+});
 const published={status:'published',postId:'fixture-ig',publishedAt:'2026-10-12T11:30:00+05:30'};
 const failed={status:'failed',failedAt:'2026-10-12T11:31:00+05:30'};
 function fixture(overrides={}){return {id:'fixture-only',status:'approved',publication_authorized:true,platforms:['facebook','instagram'],platform_outcomes:{},published_at:null,...overrides};}
