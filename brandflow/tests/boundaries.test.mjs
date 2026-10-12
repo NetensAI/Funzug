@@ -9,6 +9,13 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 const require=createRequire(import.meta.url);
+test('middleware routes only the exact native integration path to its bearer-protected handler',async()=>{
+ const middleware=load('../middleware.ts',{'next/server':{NextResponse:{next:()=>({allowed:true}),redirect:()=>({allowed:false})}},jose:{jwtVerify:async()=>{throw Error('No session expected');}}},{process:{env:{}}}).middleware;
+ for(const [path,allowed] of [['/api/integrations/funzug/native-handoff',true],['/api/integrations/funzug/native-handoff-extra',false],['/social-drafts',false]]){
+  const response=await middleware({nextUrl:{pathname:path},url:'https://funzug.netens.top'+path,headers:new Headers(),cookies:{get:()=>undefined}});
+  assert.equal(response.allowed,allowed);
+ }
+});
 function nativeRouteFixture({authorized=true,auditFailure=false,draftOverrides={}}={}){
  const calls=[];
  const handoff={state:'reserved',reserved_at:'2000-10-12T14:00:00+05:30',scheduled_at:futureIst,content_hash:'a'.repeat(64),platforms:['facebook','instagram'],receipts:{}};
