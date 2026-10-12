@@ -168,6 +168,130 @@
           "approvalConfirmed": true
         }
       }
+    },
+    {
+      "id": "funzug-2026-10-11-frb-cosmic-dawn",
+      "status": "approved",
+      "format": "image",
+      "headline": "This Flash Came From The Early Universe",
+      "caption": "A radio flash lasting milliseconds has been traced to a galaxy from when the universe was about 3 billion years old.\n\nUsing the James Webb Space Telescope, astronomers identified the host of FRB 20240304B as a small dwarf galaxy actively forming stars.\n\nFast radio bursts are brief flashes whose origins remain uncertain. This distant host adds a clue for researchers, but it does not settle what causes every burst.\n\nWhat would you most like astronomers to uncover about these cosmic signals?\n\nAI-generated illustration, not a photograph of the radio burst.\n\n#FastRadioBursts #JamesWebb #SpaceScience #Astronomy #Universe",
+      "topic_key": "frb-20240304b-distant-host-galaxy",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-12T22:12:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-frb-cosmic-dawn.png",
+      "claims": [
+        {
+          "text": "Webb identified the host galaxy of FRB 20240304B as a small dwarf galaxy actively forming stars.",
+          "source_ids": [
+            "frb-nasa-webb-2026",
+            "frb-keck-2026"
+          ],
+          "support_note": "NASA describes the host as a small, actively star-forming dwarf galaxy; Keck Observatory independently summarizes the host identification."
+        },
+        {
+          "text": "The burst occurred about 3 billion years after the Big Bang.",
+          "source_ids": [
+            "frb-nasa-webb-2026",
+            "frb-keck-2026"
+          ],
+          "support_note": "NASA reports a measured redshift of 2.148 and dates the event to about 3 billion years after the Big Bang; Keck reports the same redshift and epoch."
+        },
+        {
+          "text": "Fast radio bursts are millisecond-long flashes and their origin remains uncertain.",
+          "source_ids": [
+            "frb-nasa-webb-2026"
+          ],
+          "support_note": "NASA describes FRBs as millisecond-long radio flashes and says their origin remains uncertain."
+        }
+      ],
+      "sources": [
+        {
+          "id": "frb-nasa-webb-2026",
+          "title": "Webb Measures Distance to Farthest Fast Radio Burst, Suggesting Origin",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/missions/webb/webb-measures-distance-to-farthest-fast-radio-burst-suggesting-origin/",
+          "published_at": "2026-10-08T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        },
+        {
+          "id": "frb-keck-2026",
+          "title": "Astronomers Pinpoint Host Galaxy of the Most Distant Fast Radio Burst to Date",
+          "publisher": "W. M. Keck Observatory",
+          "url": "https://keckobservatory.org/frb20240304b/",
+          "published_at": "2026-10-08T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/f043cdb5fc4cb546526acb5a880d7a27.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-12T07:41:22.545Z",
+        "note": "Approved for scheduled publishing at 12 Oct 2026, 10:12 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-11-spherex-brown-dwarfs",
+      "status": "approved",
+      "format": "image",
+      "headline": "A World Between Star And Planet",
+      "caption": "Brown dwarfs occupy a curious middle ground: they form like stars but do not have enough mass to sustain hydrogen fusion in their cores.\n\nNASA’s SPHEREx telescope studied 37 nearby brown dwarfs across a wide temperature range. Its spectra revealed atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.\n\nThese objects can resemble giant planets while still sharing a star-like origin. The new observations give researchers a broader view of how their cloudy atmospheres vary.\n\nWhat would you call a world that is neither quite a star nor quite a planet?\n\nAI-generated illustration, not a resolved photograph of a brown dwarf.\n\n#SPHEREx #BrownDwarfs #NASA #SpaceScience #Astronomy",
+      "topic_key": "spherex-brown-dwarf-atmospheres-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-13T10:16:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-brown-dwarf-spherex.png",
+      "claims": [
+        {
+          "text": "Brown dwarfs form from collapsing gas clouds but lack enough mass to sustain hydrogen fusion in their cores.",
+          "source_ids": [
+            "spherex-brown-dwarf-jpl-2026"
+          ],
+          "support_note": "NASA JPL states that brown dwarfs form from collapsing clouds like stars but are not massive enough for sustained hydrogen fusion."
+        },
+        {
+          "text": "The SPHEREx study analyzed 37 nearby brown dwarfs and found atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.",
+          "source_ids": [
+            "spherex-brown-dwarf-jpl-2026"
+          ],
+          "support_note": "The NASA JPL article reports 37 observed brown dwarfs and lists these molecules in the measured spectra."
+        },
+        {
+          "text": "SPHEREx records their brightness in 102 different colors spanning visible red into infrared wavelengths.",
+          "source_ids": [
+            "spherex-brown-dwarf-jpl-2026"
+          ],
+          "support_note": "NASA JPL explains the instrument's 102-color spectral measurements and their range into infrared light."
+        }
+      ],
+      "sources": [
+        {
+          "id": "spherex-brown-dwarf-jpl-2026",
+          "title": "NASA’s SPHEREx Telescope Sees Menagerie of Brown Dwarfs",
+          "publisher": "NASA Jet Propulsion Laboratory",
+          "url": "https://www.jpl.nasa.gov/news/nasas-spherex-telescope-sees-menagerie-of-brown-dwarfs/",
+          "published_at": "2026-10-08T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/aece6991e0175f0174f10684ba3576bc.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-12T07:41:53.836Z",
+        "note": "Approved for scheduled publishing at 13 Oct 2026, 10:16 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
