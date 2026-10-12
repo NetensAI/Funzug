@@ -146,23 +146,31 @@ def sync_pending() -> int:
 
 def sync_results() -> int:
     token, base = secret(), api_url()
-    endpoint = base
+    endpoint = base.rsplit('/', 1)[0] + '/outcomes'
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
     original = {item["id"]: item for item in drafts.get("items", [])}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     sent = 0
     for item in queue.get("items", []):
-        if item.get("status") != "published" or item.get("id") not in original:
+        if item.get("status") not in {"published", "failed"} or item.get("id") not in original:
             continue
         # Retry records can target one platform even when the approved draft
         # authorized both. The draft is the original platform authority.
         expected = set(original[item["id"]].get("platforms", []))
         results = item.get("platform_results", {})
-        if not expected or set(results) != expected:
+        if not expected or not results or not set(results).issubset(expected):
+            raise RuntimeError(f"{item['id']}: platform results do not match the approved draft")
+        if item.get("status") == "published" and set(results) != expected:
             raise RuntimeError(f"{item['id']}: published platform results are incomplete")
         summary = {}
-        for platform in sorted(expected):
+        for platform in sorted(results):
             result = results[platform]
+            if result.get("status") == "failed":
+                if item.get("status") == "published":
+                    raise RuntimeError(f"{item['id']}: published item contains a failed platform")
+                pipeline.parse_time(result.get("failed_at"))
+                summary[platform] = {"status": "failed", "failedAt": result["failed_at"]}
+                continue
             if result.get("status") != "published" or not result.get("post_id") or not result.get("published_at"):
                 raise RuntimeError(f"{item['id']}: published platform result is invalid")
             summary[platform] = {
@@ -170,7 +178,7 @@ def sync_results() -> int:
                 "postId": result["post_id"],
                 "publishedAt": result["published_at"],
             }
-        api_request("PUT", endpoint, token, {
+        api_request("POST", endpoint, token, {
             "batchId": BATCH_ID,
             "externalId": item["id"],
             "platformResults": summary,

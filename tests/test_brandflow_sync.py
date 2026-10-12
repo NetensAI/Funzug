@@ -159,11 +159,19 @@ class BrandFlowPayloadTests(unittest.TestCase):
         ):
             self.assertEqual(sync.sync_results(), 0)
         request.assert_called_once()
-        self.assertEqual(request.call_args.args[0], "PUT")
-        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/drafts")
+        self.assertEqual(request.call_args.args[0], "POST")
+        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/outcomes")
         payload = request.call_args.args[3]
         self.assertEqual(payload["externalId"], completed["id"])
         self.assertEqual(set(payload["platformResults"]), {"facebook", "instagram"})
+
+    def test_failed_result_sync_omits_error_details(self):
+        failed={"id":"partial","status":"failed","platform_results":{"facebook":{"status":"failed","failed_at":"2026-10-11T17:00:00Z","error":"private-details"},"instagram":{"status":"published","post_id":"ig-post","published_at":"2026-10-11T16:00:00Z"}}}
+        with patch.object(sync,"secret",return_value="s"*64),patch.object(sync,"api_url",return_value="https://example.test/api/integrations/funzug/drafts"),patch.object(sync.pipeline,"load_json",side_effect=[{"items":[{"id":"partial","platforms":["facebook","instagram"]}]},{"items":[failed]}]),patch.object(sync,"api_request",return_value={}) as request:
+            self.assertEqual(sync.sync_results(),0)
+        results=request.call_args.args[3]["platformResults"]
+        self.assertEqual(results["facebook"],{"status":"failed","failedAt":"2026-10-11T17:00:00Z"})
+        self.assertEqual(results["instagram"]["postId"],"ig-post")
 
 
 if __name__ == "__main__":
