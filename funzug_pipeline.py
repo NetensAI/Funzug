@@ -68,6 +68,8 @@ def log_event(event: dict[str, Any]) -> None:
 
 
 def parse_time(value: str) -> dt.datetime:
+    if not isinstance(value, str):
+        raise ValueError("timestamp must be a timezone-aware string")
     parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         raise ValueError("scheduled_at must include a timezone offset")
@@ -266,6 +268,9 @@ def validate_item(
         if not https_url(source.get("url")):
             errors.append(f"source {source.get('id', '<missing>')} must be HTTPS")
         for field in ("published_at", "checked_at"):
+            # Publication instants may be unknown; access instants must be recorded.
+            if field == "published_at" and field in source and source[field] is None:
+                continue
             try:
                 parse_time(source[field])
             except (KeyError, TypeError, ValueError):

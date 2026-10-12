@@ -60,6 +60,19 @@ class ValidationTests(unittest.TestCase):
     def test_valid_item_meets_image_and_source_requirements(self):
         self.assertEqual(pipeline.validate_item(self.item, (1080, 1350)), [])
 
+    def test_unknown_publication_instant_does_not_require_invented_timestamp(self):
+        self.item["sources"][0]["published_at"] = None
+        self.assertEqual(pipeline.validate_item(self.item, (1080, 1350)), [])
+        self.item["sources"][0]["checked_at"] = None
+        self.assertTrue(any("checked_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
+
+    def test_missing_publication_field_and_naive_timestamp_are_rejected(self):
+        source = self.item["sources"][0]
+        del source["published_at"]
+        self.assertTrue(any("published_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
+        source["published_at"] = "2026-10-07T12:12:00"
+        self.assertTrue(any("published_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
+
     def test_rejects_non_ist_publishing_schedule(self):
         item = dict(self.item, scheduled_at="2026-10-11T12:00:00-04:00")
         errors = pipeline.validate_item(item, (1080, 1350))
