@@ -12,6 +12,20 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: funzug_test
+          POSTGRES_PASSWORD: disposable-ci-only
+          POSTGRES_DB: funzug_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U funzug_test -d funzug_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,6 +42,9 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Test BrandFlow platform outcome contract
+        env:
+          FUNZUG_TEST_DATABASE_URL: postgres://funzug_test:disposable-ci-only@127.0.0.1:5432/funzug_test
+          FUNZUG_REQUIRE_DATABASE_TESTS: "1"
         run: |
           npm ci --prefix brandflow/tests --ignore-scripts --no-audit --no-fund
           npm test --prefix brandflow/tests
