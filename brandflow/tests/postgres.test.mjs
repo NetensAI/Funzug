@@ -26,7 +26,11 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    CREATE TABLE social_post_drafts(id text PRIMARY KEY,brand_id text REFERENCES brands(id),batch_id text,external_id text,status text,publication_authorized boolean,platforms jsonb,platform_outcomes jsonb NOT NULL DEFAULT '{}',published_at timestamptz,updated_at timestamptz,
     image_width integer NOT NULL DEFAULT 1080 CONSTRAINT social_post_drafts_image_width_check CHECK(image_width=1080),
     image_height integer NOT NULL DEFAULT 1350 CONSTRAINT social_post_drafts_image_height_check CHECK(image_height=1350));
-   CREATE TABLE audit_logs(action text,target_type text,target_id text,details jsonb);`);
+   CREATE TABLE audit_logs(action text,target_type text,target_id text,details jsonb,actor_user_id text,actor_username text,ip_address text);
+   CREATE TABLE users(id text PRIMARY KEY,username text,active boolean,role text);
+   INSERT INTO users VALUES('owner','owner',true,'admin'),('other','other',true,'admin');
+   ALTER TABLE social_post_drafts ADD COLUMN proposed_schedule timestamptz, ADD COLUMN schedule_timezone text,
+    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz;`);
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const adapters={
@@ -41,6 +45,34 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   };
   const row=async()=>(await pool.query('SELECT platform_outcomes,published_at FROM social_post_drafts')).rows[0];
   const success=id=>({status:'published',postId:id,publishedAt:'2026-10-12T12:30:00+05:30'});
+  const reviewCompiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/social-drafts/[id]/review/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  function reviewHandler(userId='owner'){
+   const target={exports:{}};
+   const reviewAdapters={...adapters,'@/lib/auth':{getSession:async()=>({sub:userId,role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''}};
+   vm.runInNewContext(reviewCompiled,{module:target,exports:target.exports,Date,Intl,JSON,require(name){if(name in reviewAdapters)return reviewAdapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected review dependency');return require(name);}});
+   return body=>target.exports.POST({json:async()=>body},{params:{id:'draft'}});
+  }
+  const approve={action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T19:30:00+05:30'};
+  const reviewRow=async()=>(await pool.query('SELECT status,publication_authorized,proposed_schedule,schedule_timezone,review_checks,reviewed_by FROM social_post_drafts')).rows[0];
+  await t.test('single-confirmation approval persists IST slot and authorization with audit',async()=>{
+   await reset('pending_review',false);assert.equal((await reviewHandler()(approve)).status,200);
+   const saved=await reviewRow();assert.equal(saved.status,'approved');assert.equal(saved.publication_authorized,true);assert.equal(saved.schedule_timezone,'Asia/Kolkata');assert.equal(saved.proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.deepEqual(saved.review_checks,{approvalConfirmed:true});assert.equal(saved.reviewed_by,'owner');
+   assert.equal((await pool.query('SELECT action FROM audit_logs')).rows[0].action,'social_draft.approved');
+  });
+  await t.test('rejection persists without granting publication authorization',async()=>{
+   await reset('pending_review',false);assert.equal((await reviewHandler()({action:'reject'})).status,200);
+   const saved=await reviewRow();assert.equal(saved.status,'rejected');assert.equal(saved.publication_authorized,false);assert.deepEqual(saved.review_checks,{});assert.equal(saved.proposed_schedule,null);
+  });
+  await t.test('competing administrators can review a pending draft only once',async()=>{
+   await reset('pending_review',false);
+   const results=await Promise.all([reviewHandler('owner')(approve),reviewHandler('other')({action:'reject'})]);assert.deepEqual(results.map(x=>x.status).sort(),[200,409]);
+   const saved=await reviewRow();assert.equal(saved.publication_authorized,saved.status==='approved');assert.equal((await pool.query('SELECT count(*)::int AS n FROM audit_logs')).rows[0].n,1);
+  });
+  await t.test('approval audit failure leaves draft pending and unauthorized',async()=>{
+   await reset('pending_review',false);await pool.query("ALTER TABLE audit_logs ADD CONSTRAINT reject_review CHECK(action <> 'social_draft.approved')");
+   try{assert.equal((await reviewHandler()(approve)).status,409);const saved=await reviewRow();assert.equal(saved.status,'pending_review');assert.equal(saved.publication_authorized,false);assert.equal(saved.reviewed_by,null);assert.equal(saved.proposed_schedule,null);}
+   finally{await pool.query('ALTER TABLE audit_logs DROP CONSTRAINT reject_review');}
+  });
   await t.test('concurrent independent platforms retain both results and complete once',async()=>{
    await reset();
    const results=await Promise.all([send({facebook:success('fb')}),send({instagram:success('ig')})]);
