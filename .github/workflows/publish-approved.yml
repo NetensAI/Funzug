@@ -97,6 +97,7 @@ jobs:
           fi
 
       - name: Sync completed publication status to BrandFlow
+        if: always()
         env:
           FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
           FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
