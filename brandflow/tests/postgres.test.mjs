@@ -31,7 +31,7 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    CREATE TABLE users(id text PRIMARY KEY,username text,active boolean,role text);
    INSERT INTO users VALUES('owner','owner',true,'admin'),('other','other',true,'admin');
    ALTER TABLE social_post_drafts ADD COLUMN proposed_schedule timestamptz, ADD COLUMN schedule_timezone text,
-    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz;
+    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz, ADD COLUMN native_handoff jsonb;
    CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
@@ -81,6 +81,12 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   vm.runInNewContext(rescheduleCompiled,{module:rescheduleModule,exports:rescheduleModule.exports,Date,JSON,require(name){if(name in rescheduleAdapters)return rescheduleAdapters[name];throw Error('Unexpected reschedule dependency');}});
   const reschedule=()=>rescheduleModule.exports.POST({json:async()=>({action:'reschedule',confirmation:'CONFIRM RESCHEDULE',scheduleTimezone:'Asia/Kolkata',proposedSchedule:'2099-10-14T20:30:00+05:30',note:'Owner changes the approved slot'})},{params:{id:'draft'}});
   const prepareReschedule=async()=>{await reset('pending_review',false);await pool.query('TRUNCATE social_post_reschedules');await reviewHandler()(approve);};
+  await t.test('native handoff prevents workflow rescheduling and history writes',async()=>{
+   await prepareReschedule();await pool.query("UPDATE social_post_drafts SET native_handoff='{}'::jsonb");
+   assert.equal((await reschedule()).status,409);
+   assert.equal((await reviewRow()).proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');
+   assert.equal((await pool.query('SELECT count(*)::int AS n FROM social_post_reschedules')).rows[0].n,0);
+  });
   await t.test('reschedule preserves approval and records old and new IST slots',async()=>{
    await prepareReschedule();assert.equal((await reschedule()).status,200);const saved=await reviewRow();assert.equal(saved.status,'approved');assert.equal(saved.publication_authorized,true);assert.equal(saved.proposed_schedule.toISOString(),'2099-10-14T15:00:00.000Z');
    const history=(await pool.query('SELECT * FROM social_post_reschedules')).rows[0];assert.equal(history.old_proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.equal(history.new_schedule_timezone,'Asia/Kolkata');assert.equal(history.rescheduled_by,'owner');

@@ -105,7 +105,7 @@ def record_receipt(item: dict[str, Any], receipt: dict[str, Any], now: dt.dateti
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--id", required=True)
-    parser.add_argument("--action", choices=("reserve", "begin", "receipt"), default="reserve")
+    parser.add_argument("--action", choices=("reserve", "begin", "receipt", "dashboard"), default="reserve")
     args = parser.parse_args()
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     errors = pipeline.validate_queue(queue)
@@ -116,6 +116,17 @@ def main() -> int:
         raise RuntimeError("approved item is absent")
     reviewed = sync.api_status(sync.api_url(), sync.secret()).get(args.id, {})
     now = dt.datetime.now(sync.SCHEDULE_TIMEZONE)
+    if args.action == "dashboard":
+        sync.require_matching_approved_content(item, reviewed)
+        handoff = item.get("native_handoff")
+        if not isinstance(handoff, dict):
+            raise RuntimeError("persisted native handoff is missing")
+        endpoint = sync.api_url().rsplit("/", 1)[0] + "/native-handoff"
+        result = sync.api_request("POST", endpoint, sync.secret(), {"batchId":sync.BATCH_ID,"externalId":args.id,"handoff":handoff})
+        if result.get("externalId") != args.id or result.get("state") != handoff.get("state"):
+            raise RuntimeError("dashboard did not confirm native handoff checkpoint")
+        print("BrandFlow native checkpoint confirmed; planner verification remains required")
+        return 0
     if args.action == "reserve":
         changed = reserve(item, reviewed, now)
     else:

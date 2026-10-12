@@ -14,8 +14,9 @@ export async function POST(req:Request,{params}:{params:{id:string}}){
   await client.query('BEGIN');
   const {rows:[user]}=await client.query('SELECT username,active,role FROM users WHERE id=$1 FOR UPDATE',[session.sub]);
   if(!user?.active||user.role!=='admin'){await client.query('ROLLBACK');return NextResponse.json({error:'Administrator access required'},{status:403})}
-  const {rows:[draft]}=await client.query('SELECT id,brand_id,status,publication_authorized,published_at,platform_outcomes,proposed_schedule,schedule_timezone,reviewed_by,reviewed_at,review_note FROM social_post_drafts WHERE id=$1 FOR UPDATE',[params.id]);
+  const {rows:[draft]}=await client.query('SELECT id,brand_id,status,publication_authorized,published_at,platform_outcomes,native_handoff,proposed_schedule,schedule_timezone,reviewed_by,reviewed_at,review_note FROM social_post_drafts WHERE id=$1 FOR UPDATE',[params.id]);
   if(!draft){await client.query('ROLLBACK');return NextResponse.json({error:'Draft not found'},{status:404})}
+  if(draft.native_handoff!=null){await client.query('ROLLBACK');return NextResponse.json({error:'Meta owns this schedule. Native schedule reconciliation is required before changing its time.'},{status:409})}
   if(!canRescheduleOutcomes(draft.platform_outcomes)){await client.query('ROLLBACK');return NextResponse.json({error:'Draft has publication results and requires platform-specific recovery'},{status:409})}
   const eligibility=rescheduleEligibility({authenticated:!!session.sub&&!!user.active,role:user.role,status:draft.status,publicationAuthorized:draft.publication_authorized,publishedAt:draft.published_at});
   if(!eligibility.ok){await client.query('ROLLBACK');return NextResponse.json({error:eligibility.error},{status:eligibility.status})}

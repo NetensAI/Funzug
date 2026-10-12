@@ -16,6 +16,7 @@ on:
           - reserve
           - begin
           - receipt
+          - dashboard
       receipt_json:
         description: Observed planner receipt, only for receipt action, never credentials
         required: false
@@ -58,3 +59,9 @@ jobs:
             git commit -m "Reserve owner-approved native Meta handoff"
             git push
           fi
+      - name: Confirm dashboard guard after authoritative queue commit
+        env:
+          ITEM_ID: ${{ inputs.item_id }}
+          FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
+          FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+        run: python -m scripts.native_meta_handoff --id "$ITEM_ID" --action dashboard
