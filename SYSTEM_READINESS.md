@@ -17,7 +17,7 @@ Existing single-image drafts are available for owner review. The full goal remai
 
 PR 46 contains reschedule network recovery, explicit unknown publication timestamps and fail-closed native-handoff guards. Fifteen local boundary tests pass, including successful submission exactly once with the selected IST time. Merge and dashboard deployment remain pending. Edge access is restored. The linked Funzug Facebook and Instagram native composer exposes separate schedule controls, but no native schedule has been submitted.
 
-The owner requested upcoming posts in Meta Business Suite. Native handoff is not implemented or activated. Existing upcoming approvals remain workflow-managed. Before any native submission, persist a handoff under queue-write concurrency, exclude that item from all workflow publishing paths, preserve its reviewed content and approved IST slot, and reconcile platform schedule receipts. An uncertain submission must remain blocked pending inspection, never be retried blindly.
+The owner requested upcoming posts in Meta Business Suite. Native scheduling is not activated. Existing upcoming approvals remain workflow-managed. A manual reservation workflow now validates the existing BrandFlow approval, content fingerprint and unchanged future IST slot, then persists a blocking reservation under queue-write concurrency. This is not a native scheduling runner. Do not dispatch it until planner receipt reconciliation and the remaining dashboard integration are ready. An uncertain submission must remain blocked pending inspection, never be retried blindly. No automatic release or fallback is implemented.
 
 ## Remaining completion gates
 
