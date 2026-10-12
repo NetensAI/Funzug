@@ -49,6 +49,18 @@ class InstagramCredentialTests(unittest.TestCase):
         refresh.assert_not_called()
         self.assertNotIn("sensitive-secret", str(output.call_args_list))
 
+    def test_activation_requires_full_credential_check(self):
+        with patch("scripts.meta_token_diagnostic.main", return_value=1), patch("urllib.request.build_opener") as request:
+            with self.assertRaises(RuntimeError):
+                renewal.activate_instagram_login(self.bundle, "fake-auth")
+        request.assert_not_called()
+
+    def test_bootstrap_cannot_activate_publisher(self):
+        with patch.dict("os.environ", {"BOOTSTRAP_INSTAGRAM_LOGIN": "true", "ACTIVATE_AFTER_REFRESH": "true"}), patch.object(renewal, "installation_token", return_value="fake-auth"), patch.object(renewal, "save_bundle") as save, patch.object(renewal, "activate_instagram_login") as activate, patch("builtins.print"):
+            self.assertEqual(renewal.main(), 1)
+        save.assert_not_called()
+        activate.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

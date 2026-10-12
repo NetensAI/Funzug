@@ -16,3 +16,9 @@ services:
       - ./state:/state
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,time;from pathlib import Path;p=Path('/state/scheduler.json');assert p.exists() and time.time()-json.loads(p.read_text()).get('last_checked_at',0)<180"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
