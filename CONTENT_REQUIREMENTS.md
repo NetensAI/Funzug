@@ -13,6 +13,9 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 ## Image
 
+- Owner clarification on 12 October 2026: retain the Funzug headline and wordmark on Funzug social images. This specific requirement overrides the generic project instruction for text-free posters.
+- Clearly identify AI-generated or conceptual science artwork as illustration. Never imply it is a telescope, rover, or detector photograph. When on-image wording could imply documentary provenance, include a readable illustration label and revise misleading wording, not merely the caption.
+
 - For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject, headline, and Funzug branding inside safe margins.
 - Make a fresh, premium, cinematic, high-contrast, mobile-first editorial design with one dominant cohesive scene. The source is for information and inspiration, not layout, typography, colors, branding, or composition to copy.
 - Keep on-image text minimal: use one strong, curiosity-driven headline of about 5-10 words and at most one short supporting line. Do not place the whole story on the image.
@@ -32,5 +35,5 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 - Save generated images as project assets under `drafts/assets/`, include the verified `media_path`, and store each review-only post in `drafts/queue.json`. Run `python funzug_pipeline.py validate-drafts` before handing over the batch. Drafts may omit `public_media_url` and are not visible to the publisher.
 - Only after a human reviews the content and every image is available at a public HTTPS URL, stage it with `python funzug_pipeline.py stage-draft --id ITEM_ID --public-media-url URL`. Repeat the flag once per carousel slide, in slide order. This copies it into `queue.json` as an unapproved draft. Every URL must be public, match the exact image, and contain no query string or embedded credentials.
-- Create queue items as drafts. Never add an approval record on behalf of the user. A named human reviewer must verify every claim against its cited sources, inspect the source pages, caption, all images, platform targets, and schedule, then approve the specific item with a review note and all six explicit checklist flags (`claims`, `sources`, `caption`, `images`, `platforms`, `schedule`).
+- Create queue items as drafts. Never add an approval record on behalf of the user. A named human reviewer must verify every claim against its cited sources, inspect the source pages, caption, all images, platform targets, and selected IST date/time. In BrandFlow, the owner uses one confirmation tick and clicks Approve or Reject. Clicking Approve authorizes that specific content and selected schedule; no separate authorization phrase or six-checkbox interface is required. The workflow records the reviewer and approval metadata.
 - No workflow may publish without the item's explicit human approval, a non-empty review note, and a due schedule. The GitHub `funzug-publish` environment is restricted to `main`, but it does not add a separate reviewer gate.
