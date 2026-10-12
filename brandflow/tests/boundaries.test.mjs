@@ -8,6 +8,30 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 const require=createRequire(import.meta.url);
+function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true}={}){
+ const calls=[];
+ const handler=load('../app/api/social-drafts/[id]/review/route.ts',{
+  'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
+  '@/lib/auth':{getSession:async()=>session},'@/lib/security':{sameOrigin:()=>origin,clientIp:()=>''},
+  '@/lib/db':{db:{connect:async()=>({release(){},query:async(sql,args)=>{calls.push({sql,args});if(sql.startsWith('SELECT'))return {rows:user?[user]:[]};if(sql.startsWith('UPDATE'))return {rows:found?[{id:'fixture',brand_id:'brand',status:args[1],proposed_schedule:args[6],schedule_timezone:'Asia/Kolkata'}]:[]};if(sql.startsWith('INSERT')&&auditFailure)throw Error('fixture audit failure');return {rows:[]};}})}},
+ }).POST;
+ return {calls,send:body=>handler({json:async()=>body},{params:{id:'fixture'}})};
+}
+const futureIst='2099-10-13T19:30:00+05:30';
+test('review rejects invalid origin and missing admin session before database access',async()=>{
+ for(const options of [{origin:false},{session:null},{session:{sub:'owner',role:'viewer'}}]){const r=reviewFixture(options);assert.equal((await r.send({action:'reject'})).status,403);assert.equal(r.calls.length,0);}
+});
+test('review requires one confirmation and a future IST slot without authorization text',async()=>{
+ for(const body of [{action:'approve',proposedSchedule:futureIst},{action:'approve',approvalConfirmed:false,proposedSchedule:futureIst},{action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T14:00:00Z'},{action:'approve',approvalConfirmed:true,proposedSchedule:'2000-01-01T19:30:00+05:30'}]){const r=reviewFixture();assert.equal((await r.send(body)).status,400);assert.equal(r.calls.length,0);}
+ const r=reviewFixture();assert.equal((await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst})).status,200);
+ const update=r.calls.find(x=>x.sql.startsWith('UPDATE'));assert.equal(update.args[1],'approved');assert.equal(update.args[5],true);assert.equal(JSON.parse(update.args[2]).approvalConfirmed,true);assert.match(update.sql,/status='pending_review'/);assert.equal(r.calls.at(-1).sql,'COMMIT');
+});
+test('reject does not require a checkbox or schedule and removes publication authorization',async()=>{
+ const r=reviewFixture();assert.equal((await r.send({action:'reject'})).status,200);const update=r.calls.find(x=>x.sql.startsWith('UPDATE'));assert.equal(update.args[1],'rejected');assert.equal(update.args[5],false);assert.equal(update.args[6],null);assert.equal(update.args[2],'{}');assert.equal(r.calls.at(-1).sql,'COMMIT');
+});
+test('review rolls back when admin revoked, already reviewed, or audit insertion fails',async()=>{
+ for(const options of [{user:{active:false,role:'admin'}},{found:false},{auditFailure:true}]){const r=reviewFixture(options);assert.ok((await r.send({action:'reject'})).status>=400);assert.equal(r.calls.at(-1).sql,'ROLLBACK');assert.ok(!r.calls.some(x=>x.sql==='COMMIT'));}
+});
 test('reschedule rejects missing or non-admin sessions before database access',async()=>{
  for(const session of [null,{sub:'fixture',role:'viewer'}]){
   const route=load('../app/api/social-drafts/[id]/reschedule/route.ts',{
