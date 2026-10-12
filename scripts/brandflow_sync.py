@@ -33,6 +33,7 @@ def api_request(method: str, url: str, secret: str, payload: dict[str, Any] | No
     request = urllib.request.Request(url, data=body, method=method)
     request.add_header("Authorization", "Bearer " + secret)
     request.add_header("Accept", "application/json")
+    request.add_header("User-Agent", "FunzugWorkflow/1.0")
     if body is not None:
         request.add_header("Content-Type", "application/json")
     try:
@@ -146,7 +147,7 @@ def sync_pending() -> int:
 
 def sync_results() -> int:
     token, base = secret(), api_url()
-    endpoint = base.rsplit('/', 1)[0] + '/outcomes'
+    endpoint = base
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
     original = {item["id"]: item for item in drafts.get("items", [])}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
@@ -178,7 +179,7 @@ def sync_results() -> int:
                 "postId": result["post_id"],
                 "publishedAt": result["published_at"],
             }
-        api_request("POST", endpoint, token, {
+        api_request("PUT", endpoint, token, {
             "batchId": BATCH_ID,
             "externalId": item["id"],
             "platformResults": summary,

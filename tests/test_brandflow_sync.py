@@ -159,8 +159,8 @@ class BrandFlowPayloadTests(unittest.TestCase):
         ):
             self.assertEqual(sync.sync_results(), 0)
         request.assert_called_once()
-        self.assertEqual(request.call_args.args[0], "POST")
-        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/outcomes")
+        self.assertEqual(request.call_args.args[0], "PUT")
+        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/drafts")
         payload = request.call_args.args[3]
         self.assertEqual(payload["externalId"], completed["id"])
         self.assertEqual(set(payload["platformResults"]), {"facebook", "instagram"})
@@ -172,6 +172,12 @@ class BrandFlowPayloadTests(unittest.TestCase):
         results=request.call_args.args[3]["platformResults"]
         self.assertEqual(results["facebook"],{"status":"failed","failedAt":"2026-10-11T17:00:00Z"})
         self.assertEqual(results["instagram"]["postId"],"ig-post")
+
+    def test_api_request_identifies_funzug_workflow(self):
+        with patch.object(sync.urllib.request,"urlopen") as network:
+            network.return_value.__enter__.return_value.read.return_value=b'{}'
+            sync.api_request("PUT","https://example.test/api/integrations/funzug/drafts","s"*64,{})
+        self.assertEqual(network.call_args.args[0].get_header("User-agent"),"FunzugWorkflow/1.0")
 
 
 if __name__ == "__main__":
