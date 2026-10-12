@@ -8,6 +8,30 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 const require=createRequire(import.meta.url);
+test('reschedule rejects missing or non-admin sessions before database access',async()=>{
+ for(const session of [null,{sub:'fixture',role:'viewer'}]){
+  const route=load('../app/api/social-drafts/[id]/reschedule/route.ts',{
+   'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
+   '@/lib/db':{db:{connect(){throw Error('Unauthorized request reached database');}}},
+   '@/lib/auth':{getSession:async()=>session},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''},
+   '@/lib/social-reschedule.mjs':{},'@/lib/funzug-outcomes.mjs':{},
+  }).POST;
+  assert.equal((await route({},{params:{id:'fixture'}})).status,403);
+ }
+});
+test('reschedule rejects inactive or demoted users before draft lookup',async()=>{
+ for(const user of [null,{active:false,role:'admin'},{active:true,role:'viewer'}]){
+  const calls=[];
+  const route=load('../app/api/social-drafts/[id]/reschedule/route.ts',{
+   'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
+   '@/lib/db':{db:{connect:async()=>({query:async sql=>{calls.push(sql);if(sql.includes('social_post_drafts'))throw Error('Unauthorized draft lookup');return {rows:user?[user]:[]};},release(){}})}},
+   '@/lib/auth':{getSession:async()=>({sub:'fixture',role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''},
+   '@/lib/social-reschedule.mjs':{validateRescheduleInput:()=>({ok:true})},'@/lib/funzug-outcomes.mjs':{},
+  }).POST;
+  assert.equal((await route({json:async()=>({})},{params:{id:'fixture'}})).status,403);
+  assert.ok(!calls.some(sql=>sql.includes('social_post_drafts')));assert.equal(calls.at(-1),'ROLLBACK');
+ }
+});
 test('draft image verifier accepts native 4:5 and rejects metadata mismatch',()=>{
  const {decodeAndVerifyImage}=load('../lib/funzug-drafts.ts',{});
  const png=(width,height)=>{const bytes=Buffer.alloc(24);Buffer.from([137,80,78,71,13,10,26,10]).copy(bytes);bytes.writeUInt32BE(width,16);bytes.writeUInt32BE(height,20);return bytes.toString('base64');};
