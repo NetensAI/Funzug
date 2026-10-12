@@ -7,7 +7,32 @@ import ts from 'typescript';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
+import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 const require=createRequire(import.meta.url);
+function nativeRouteFixture({authorized=true,auditFailure=false,draftOverrides={}}={}){
+ const calls=[];
+ const handoff={state:'reserved',reserved_at:'2000-10-12T14:00:00+05:30',scheduled_at:futureIst,content_hash:'a'.repeat(64),platforms:['facebook','instagram'],receipts:{}};
+ const draft={id:'fixture',status:'approved',publication_authorized:true,published_at:null,platform_outcomes:{},schedule_timezone:'Asia/Kolkata',proposed_schedule:futureIst,platforms:handoff.platforms,native_handoff:null,...draftOverrides};
+ const handler=load('../app/api/integrations/funzug/native-handoff/route.ts',{
+  'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
+  '@/lib/funzug-drafts':{validBearer:()=>authorized},'@/lib/funzug-content-hash.mjs':{draftContentHash:()=>handoff.content_hash},'@/lib/funzug-native-handoff.mjs':nativeHelpers,
+  '@/lib/db':{db:{connect:async()=>({release(){},query:async(sql,args)=>{calls.push({sql,args});if(sql.startsWith('SELECT'))return {rows:[draft]};if(sql.startsWith('INSERT')&&auditFailure)throw Error('fixture audit failure');return {rows:[]};}})}},
+ }).POST;
+ return {calls,handoff,send:()=>handler({headers:new Headers(),text:async()=>JSON.stringify({batchId:'fixture',externalId:'fixture',handoff})})};
+}
+test('native checkpoint authenticates before database access and records state with audit',async()=>{
+ const unauthorized=nativeRouteFixture({authorized:false});assert.equal((await unauthorized.send()).status,401);assert.equal(unauthorized.calls.length,0);
+ const accepted=nativeRouteFixture();assert.equal((await accepted.send()).status,200);assert.ok(accepted.calls.some(x=>x.sql.startsWith('UPDATE')));assert.ok(accepted.calls.some(x=>x.sql.startsWith('INSERT')));assert.equal(accepted.calls.at(-1).sql,'COMMIT');
+});
+test('native checkpoint rejects changed slots, revoked approval and outcomes without writes',async()=>{
+ for(const draftOverrides of [{publication_authorized:false},{status:'pending_review'},{proposed_schedule:'2099-10-14T19:30:00+05:30'},{platform_outcomes:{instagram:{status:'published'}}}]){
+  const fixture=nativeRouteFixture({draftOverrides});assert.equal((await fixture.send()).status,409);assert.ok(!fixture.calls.some(x=>x.sql.startsWith('UPDATE')));assert.equal(fixture.calls.at(-1).sql,'ROLLBACK');
+ }
+});
+test('native checkpoint audit failure rolls back, and replay does not write',async()=>{
+ const failed=nativeRouteFixture({auditFailure:true});assert.equal((await failed.send()).status,409);assert.equal(failed.calls.at(-1).sql,'ROLLBACK');assert.ok(!failed.calls.some(x=>x.sql==='COMMIT'));
+ const original=nativeRouteFixture();const replay=nativeRouteFixture({draftOverrides:{native_handoff:original.handoff}});assert.equal((await replay.send()).status,200);assert.ok(!replay.calls.some(x=>x.sql.startsWith('UPDATE')||x.sql.startsWith('INSERT')));
+});
 function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true}={}){
  const calls=[];
  const handler=load('../app/api/social-drafts/[id]/review/route.ts',{

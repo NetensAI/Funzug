@@ -8,6 +8,8 @@ import pg from 'pg';
 import ts from 'typescript';
 import {mergeOutcomes,canRescheduleOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as rescheduleHelpers from '../lib/social-reschedule.mjs';
+import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
+import {draftContentHash} from '../lib/funzug-content-hash.mjs';
 
 const require=createRequire(import.meta.url);
 const url=process.env.FUNZUG_TEST_DATABASE_URL;
@@ -31,8 +33,10 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    CREATE TABLE users(id text PRIMARY KEY,username text,active boolean,role text);
    INSERT INTO users VALUES('owner','owner',true,'admin'),('other','other',true,'admin');
    ALTER TABLE social_post_drafts ADD COLUMN proposed_schedule timestamptz, ADD COLUMN schedule_timezone text,
-    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz;
+    ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz,
+    ADD COLUMN headline text, ADD COLUMN caption text, ADD COLUMN claims jsonb, ADD COLUMN evidence_sources jsonb, ADD COLUMN image_bytes bytea, ADD COLUMN image_mime_type text;
    CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);
+  await pool.query(fs.readFileSync(new URL('../db/migrations/012_funzug_native_handoff.sql',import.meta.url),'utf8'));
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const adapters={
@@ -81,6 +85,40 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   vm.runInNewContext(rescheduleCompiled,{module:rescheduleModule,exports:rescheduleModule.exports,Date,JSON,require(name){if(name in rescheduleAdapters)return rescheduleAdapters[name];throw Error('Unexpected reschedule dependency');}});
   const reschedule=()=>rescheduleModule.exports.POST({json:async()=>({action:'reschedule',confirmation:'CONFIRM RESCHEDULE',scheduleTimezone:'Asia/Kolkata',proposedSchedule:'2099-10-14T20:30:00+05:30',note:'Owner changes the approved slot'})},{params:{id:'draft'}});
   const prepareReschedule=async()=>{await reset('pending_review',false);await pool.query('TRUNCATE social_post_reschedules');await reviewHandler()(approve);};
+  const nativeCompiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/native-handoff/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  const nativeModule={exports:{}};
+  const nativeAdapters={...adapters,'@/lib/funzug-content-hash.mjs':{draftContentHash},'@/lib/funzug-native-handoff.mjs':nativeHelpers};
+  vm.runInNewContext(nativeCompiled,{module:nativeModule,exports:nativeModule.exports,Buffer,JSON,Date,require(name){if(name in nativeAdapters)return nativeAdapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected native dependency');return require(name);}});
+  const nativeSend=handoff=>nativeModule.exports.POST({headers:new Headers(),text:async()=>JSON.stringify({batchId:'fixture',externalId:'fixture',handoff})});
+  const prepareNative=async()=>{
+   await prepareReschedule();
+   await pool.query("UPDATE social_post_drafts SET headline='Fixture',caption='Fixture caption',claims='[]',evidence_sources='[]',image_bytes=$1,image_mime_type='image/png'",[Buffer.from('fixture-image')]);
+   const draft=(await pool.query('SELECT * FROM social_post_drafts')).rows[0];
+   return {state:'reserved',reserved_at:'2000-10-12T14:00:00+05:30',scheduled_at:approve.proposedSchedule,content_hash:draftContentHash(draft),platforms:['facebook','instagram'],receipts:{}};
+  };
+  await t.test('native checkpoint persists with audit and JSONB replay is idempotent',async()=>{
+   const handoff=await prepareNative();assert.equal((await nativeSend(handoff)).status,200);
+   const saved=(await pool.query('SELECT native_handoff FROM social_post_drafts')).rows[0].native_handoff;assert.deepEqual(saved,handoff);
+   const before=(await pool.query('SELECT count(*)::int AS n FROM audit_logs')).rows[0].n;
+   assert.equal((await nativeSend(handoff)).status,200);assert.equal((await pool.query('SELECT count(*)::int AS n FROM audit_logs')).rows[0].n,before);
+  });
+  await t.test('native audit failure rolls back checkpoint',async()=>{
+   const handoff=await prepareNative();await pool.query("ALTER TABLE audit_logs ADD CONSTRAINT reject_native CHECK(action <> 'social_draft.native_handoff')");
+   try{assert.equal((await nativeSend(handoff)).status,409);assert.equal((await pool.query('SELECT native_handoff FROM social_post_drafts')).rows[0].native_handoff,null);}
+   finally{await pool.query('ALTER TABLE audit_logs DROP CONSTRAINT reject_native');}
+  });
+  await t.test('competing native reservation and owner reschedule cannot both succeed',async()=>{
+   const handoff=await prepareNative();const results=await Promise.all([nativeSend(handoff),reschedule()]);assert.deepEqual(results.map(x=>x.status).sort(),[200,409]);
+   const draft=(await pool.query('SELECT native_handoff,proposed_schedule FROM social_post_drafts')).rows[0];
+   if(draft.native_handoff)assert.equal(draft.proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');
+   else assert.equal(draft.proposed_schedule.toISOString(),'2099-10-14T15:00:00.000Z');
+  });
+  await t.test('native handoff prevents workflow rescheduling and history writes',async()=>{
+   await prepareReschedule();await pool.query("UPDATE social_post_drafts SET native_handoff='{}'::jsonb");
+   assert.equal((await reschedule()).status,409);
+   assert.equal((await reviewRow()).proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');
+   assert.equal((await pool.query('SELECT count(*)::int AS n FROM social_post_reschedules')).rows[0].n,0);
+  });
   await t.test('reschedule preserves approval and records old and new IST slots',async()=>{
    await prepareReschedule();assert.equal((await reschedule()).status,200);const saved=await reviewRow();assert.equal(saved.status,'approved');assert.equal(saved.publication_authorized,true);assert.equal(saved.proposed_schedule.toISOString(),'2099-10-14T15:00:00.000Z');
    const history=(await pool.query('SELECT * FROM social_post_reschedules')).rows[0];assert.equal(history.old_proposed_schedule.toISOString(),'2099-10-13T14:00:00.000Z');assert.equal(history.new_schedule_timezone,'Asia/Kolkata');assert.equal(history.rescheduled_by,'owner');
