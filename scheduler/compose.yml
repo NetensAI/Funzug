@@ -1,0 +1,18 @@
+services:
+  scheduler:
+    build:
+      context: ..
+      dockerfile: scheduler/Dockerfile
+    restart: unless-stopped
+    network_mode: host
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      TZ: Asia/Kolkata
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./secrets:/run/secrets:ro
+      - ./state:/state
+    tmpfs:
+      - /tmp
