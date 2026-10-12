@@ -5,6 +5,23 @@ import scripts.brandflow_sync as sync
 
 
 class BrandFlowRescheduleTests(unittest.TestCase):
+    def test_reschedule_refuses_any_recorded_platform_result_without_mutation(self):
+        import copy
+        for result in [{"status": "published", "post_id": "existing"}, {"status": "failed"}]:
+            item = {
+                "id": "attempted-post", "status": "approved",
+                "scheduled_at": "2999-11-12T19:15:00+05:30",
+                "approval": {"status": "approved"},
+                "platform_results": {"instagram": result},
+            }
+            before = copy.deepcopy(item)
+            with self.assertRaisesRegex(RuntimeError, "platform-specific recovery"):
+                sync.reschedule_approved_item(
+                    {"items": [item]}, item["id"], "2999-11-13T19:45:00+05:30",
+                    "owner", "Requested new time", "2026-10-12T11:00:00+05:30",
+                )
+            self.assertEqual(item, before)
+
     def test_explicit_new_brandflow_review_updates_existing_approved_schedule(self):
         item_id = "funzug-example-1"
         item = {
