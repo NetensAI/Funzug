@@ -1,0 +1,5 @@
+.git
+**/*.pem
+**/.env
+scheduler/secrets/
+scheduler/state/

@@ -38,7 +38,7 @@ def github(method: str, path: str, token: str, payload: dict | None = None) -> d
     return request_json(request)
 
 
-def installation_token() -> str:
+def installation_token(permissions: dict | None = None) -> str:
     import jwt
     now = int(time.time())
     try:
@@ -49,8 +49,11 @@ def installation_token() -> str:
     installation = github("GET", f"/repos/{OWNER}/{REPO}/installation", signed)
     if type(installation.get("id")) is not int:
         raise RuntimeError("GitHub App is not installed on Funzug")
+    permissions = permissions or {"environments": "write"}
+    if permissions not in ({"environments": "write"}, {"actions": "write"}):
+        raise RuntimeError("Installation permission scope is invalid")
     response = github("POST", f"/app/installations/{installation['id']}/access_tokens", signed,
-                      {"repositories": [REPO], "permissions": {"environments": "write"}})
+                      {"repositories": [REPO], "permissions": permissions})
     if not isinstance(response.get("token"), str) or not response["token"]:
         raise RuntimeError("GitHub installation authentication failed")
     return response["token"]
