@@ -226,6 +226,8 @@ def reschedule_approved_item(queue: dict[str, Any], item_id: str, scheduled_at: 
         approval = item.get("approval")
         if item.get("status") != "approved" or not isinstance(approval, dict) or approval.get("status") != "approved":
             raise RuntimeError(f"{item_id}: only an approved, unpublished post can be rescheduled")
+        if not pipeline.workflow_delivery_allowed(item):
+            raise RuntimeError(f"{item_id}: native Meta handoff requires schedule reconciliation")
         if item.get("platform_results"):
             raise RuntimeError(f"{item_id}: recorded platform results require platform-specific recovery")
         previous = pipeline.parse_time(item["scheduled_at"])

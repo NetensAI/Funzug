@@ -5,6 +5,14 @@ import scripts.brandflow_sync as sync
 
 
 class BrandFlowRescheduleTests(unittest.TestCase):
+    def test_native_handoff_cannot_be_rescheduled_without_reconciliation(self):
+        import copy
+        item={"id":"native-fixture","status":"approved","scheduled_at":"2999-11-12T19:15:00+05:30","approval":{"status":"approved"},"native_handoff":{"state":"uncertain"}}
+        before=copy.deepcopy(item)
+        with self.assertRaisesRegex(RuntimeError,"native Meta handoff"):
+            sync.reschedule_approved_item({"items":[item]},item["id"],"2999-11-13T19:45:00+05:30","owner","New time","2026-10-12T13:30:00+05:30")
+        self.assertEqual(item,before)
+
     def test_reschedule_refuses_any_recorded_platform_result_without_mutation(self):
         import copy
         for result in [{"status": "published", "post_id": "existing"}, {"status": "failed"}]:
