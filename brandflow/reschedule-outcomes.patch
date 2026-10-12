@@ -1,0 +1,10 @@
+--- a/app/api/social-drafts/[id]/reschedule/route.ts
++++ b/app/api/social-drafts/[id]/reschedule/route.ts
+@@ -5,1 +5,2 @@
+ import {nextReviewedAt,rescheduleEligibility,validateRescheduleInput} from '@/lib/social-reschedule.mjs';
++import {canRescheduleOutcomes} from '@/lib/funzug-outcomes.mjs';
+@@ -14,2 +15,3 @@
+-  const {rows:[draft]}=await client.query('SELECT id,brand_id,status,publication_authorized,published_at,proposed_schedule,schedule_timezone,reviewed_by,reviewed_at,review_note FROM social_post_drafts WHERE id=$1 FOR UPDATE',[params.id]);
++  const {rows:[draft]}=await client.query('SELECT id,brand_id,status,publication_authorized,published_at,platform_outcomes,proposed_schedule,schedule_timezone,reviewed_by,reviewed_at,review_note FROM social_post_drafts WHERE id=$1 FOR UPDATE',[params.id]);
+   if(!draft){await client.query('ROLLBACK');return NextResponse.json({error:'Draft not found'},{status:404})}
++  if(!canRescheduleOutcomes(draft.platform_outcomes)){await client.query('ROLLBACK');return NextResponse.json({error:'Draft has publication results and requires platform-specific recovery'},{status:409})}

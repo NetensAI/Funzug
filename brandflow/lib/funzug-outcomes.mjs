@@ -1,3 +1,7 @@
+export function canRescheduleOutcomes(outcomes) {
+  return outcomes != null && typeof outcomes === 'object' && !Array.isArray(outcomes) && Object.keys(outcomes).length === 0;
+}
+
 export function mergeOutcomes(platforms, previous, incoming) {
   if (!Array.isArray(platforms) || !platforms.length || platforms.some(p=>!['facebook','instagram'].includes(p))) throw new Error('Invalid platforms');
   const actual=Object.keys(incoming||{});
