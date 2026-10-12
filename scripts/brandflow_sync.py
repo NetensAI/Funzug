@@ -146,7 +146,7 @@ def sync_pending(update_pending: bool = False) -> int:
             continue
         api_request("POST", base, token, payload_for(item))
         sent += 1
-    print(f"BrandFlow sync complete: {sent} new draft(s) sent")
+    print(f"BrandFlow sync complete: {sent} draft(s) transferred")
     return 0
 
 

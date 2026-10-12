@@ -17,7 +17,9 @@ All eight have visible Funzug wordmarks, legible headlines, one cohesive composi
 
 ## Remaining gates
 
-Local draft correction: all seven unpublished captions now identify their artwork as AI-generated illustrations. The Orionids proposal is now 20 October 2026 at 7:30 PM IST, before the peak. This is a review proposal, not a publishing schedule. These edits have not yet been transferred to BrandFlow. The Mars image still warrants revision despite caption disclosure because its on-image wording can imply documentary provenance.
+Draft correction: all seven unpublished captions now identify their artwork as AI-generated illustrations. The Orionids proposal is now 20 October 2026 at 7:30 PM IST, before the peak. This is a review proposal, not a publishing schedule. These edits were transferred through the private HTTPS pending-only sync on 12 October 2026. A read-only database check confirmed seven pending drafts, all unauthorized, all with illustration disclosures and Asia/Kolkata timezone; the Orionids proposal matches. The reviewed record remained unchanged across the transfer. The Mars image still warrants revision despite caption disclosure because its on-image wording can imply documentary provenance.
+
+The first transfer was rejected because the deployed ingestion schema retained a legacy Eastern-time literal. `brandflow/lib/funzug-drafts.ts` versions the minimal correction to Asia/Kolkata. The production build/type check passed and the dashboard is healthy after restart. `brandflow/sync_pending_revisions.py` is an operator-only Mini PC transfer wrapper; `brandflow/verify_pending_revisions.cjs` performs the read-only database checks. Neither invokes Meta publishing or approves a draft.
 
 Use `python scripts/brandflow_sync.py sync --update-pending` for explicitly requested draft corrections. This opt-in operation updates only rows reported as pending_review, unauthorized, and unpublished. The server rechecks pending status during its upsert, so a concurrent owner approval prevents an overwrite. The ordinary sync continues to skip existing rows. Never use a new ID to bypass an approved-content conflict.
 
