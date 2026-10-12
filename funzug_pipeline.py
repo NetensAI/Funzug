@@ -795,6 +795,8 @@ def retry_failed_facebook(queue: dict[str, Any], item_id: str) -> int:
     item = next((row for row in queue.get("items", []) if row.get("id") == item_id), None)
     if item is None or item.get("status") != "failed" or item.get("platforms") != ["facebook"]:
         raise RuntimeError("retry requires one failed Facebook-only queue item")
+    if not workflow_delivery_allowed(item):
+        raise RuntimeError("native Meta handoff requires reconciliation before Facebook retry")
     results = item.get("platform_results", {})
     if results.get("facebook", {}).get("status") != "failed":
         raise RuntimeError("Facebook retry requires a recorded failed attempt")

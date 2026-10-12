@@ -9,6 +9,14 @@ import funzug_pipeline as pipeline
 
 
 class ValidationTests(unittest.TestCase):
+    def test_native_handoff_blocks_explicit_facebook_retry_before_mutation(self):
+        self.item.update(status="failed", platforms=["facebook"], native_handoff={"state":"uncertain"})
+        queue={"items":[self.item]}
+        with patch.object(pipeline,"validate_queue",return_value=[]), patch.object(pipeline,"MetaPublisher",side_effect=AssertionError("No credential access")):
+            with self.assertRaisesRegex(RuntimeError,"native Meta handoff"):
+                pipeline.retry_failed_facebook(queue,self.item["id"])
+        self.assertEqual(self.item["status"],"failed")
+
     def test_native_handoff_and_unknown_delivery_modes_block_workflow_publication(self):
         self.assertTrue(pipeline.workflow_delivery_allowed({}))
         self.assertTrue(pipeline.workflow_delivery_allowed({"delivery_mode": "workflow"}))
