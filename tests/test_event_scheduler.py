@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
-from scheduler.runner import approved_rows, dispatch, tick, SYNC
+from scheduler.runner import approved_rows, dispatch, tick, SYNC, PUBLISH
 
 
 class SchedulerTests(unittest.TestCase):
@@ -49,6 +49,20 @@ class SchedulerTests(unittest.TestCase):
                 tick({"draft_secret": "fake-secret", "key_file": str(key)}, state)
             self.assertEqual(send.call_count, 1)
             self.assertEqual(send.call_args.args[0], SYNC)
+
+    def test_failed_publisher_requests_result_sync_not_post_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            key = root / "key.pem"
+            key.write_text("test-key-placeholder")
+            state = root / "state.json"
+            state.write_text(json.dumps({"jobs": {PUBLISH: {"baseline": 10, "requested_at": 1900000000, "signature": "old", "run_id": 11}}, "synced_signature": "old"}))
+            run = {"id": 11, "status": "completed", "conclusion": "failure", "actor": {"login": "funzug-automation-netensai[bot]"}}
+            with patch("scheduler.runner.time.time", return_value=1900000100), patch("scheduler.runner.request_json", return_value={"drafts": []}), patch("scheduler.runner.installation_token", return_value="fake-auth"), patch("scheduler.runner.workflow_runs", side_effect=lambda workflow, auth: [run] if workflow == PUBLISH else []), patch("scheduler.runner.dispatch") as send:
+                tick({"draft_secret": "fake-secret", "key_file": str(key)}, state)
+            self.assertEqual(send.call_count, 1)
+            self.assertEqual(send.call_args.args[0], SYNC)
+            self.assertIn("failed", json.loads(state.read_text())["error"])
 
 
 if __name__ == "__main__":

@@ -104,11 +104,13 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
             blocked.add(workflow)
             continue
         state.setdefault("last_completed", {})[workflow] = now
+        # Preserve completed platform results even if another platform or the
+        # publisher's final dashboard sync failed. This does not retry posts.
+        if workflow == PUBLISH:
+            state["sync_results_needed"] = True
         if run.get("conclusion") == "success":
             if workflow == SYNC:
                 state["synced_signature"] = job["signature"]
-            elif workflow == PUBLISH:
-                state["sync_results_needed"] = True
             elif workflow == RENEW:
                 state["renew_after"] = now + 7 * 86400
         else:
