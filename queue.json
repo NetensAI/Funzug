@@ -102,6 +102,72 @@
       },
       "last_attempt_at": "2026-10-11T18:20:55+00:00",
       "topic_key": "icecube-2026-nobel-neutrinos"
+    },
+    {
+      "id": "funzug-2026-10-11-orionid-meteor-shower",
+      "status": "approved",
+      "format": "image",
+      "headline": "Debris From Halley Lights October Skies",
+      "caption": "The Orionids are made from debris left behind by Halley’s Comet. Each year, Earth crosses that stream, and some particles burn through our atmosphere as meteors.\n\nNASA lists the 2026 shower as active from October 2 through November 7, with its peak night on October 21–22. Under dark skies, observers may see around 10 to 20 meteors per hour.\n\nMoonlight may hide some of the fainter streaks this year. NASA recommends looking before dawn after the Moon sets, from a dark location with time for your eyes to adjust.\n\nAre you planning to watch the sky this month?\n\nAI-generated illustration, not a photograph of the 2026 shower.\n\n#Orionids #HalleysComet #MeteorShower #Stargazing #NASA",
+      "topic_key": "orionids-2026-halley-meteor-shower",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-12T13:20:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-orionid-meteor-shower.png",
+      "claims": [
+        {
+          "text": "The Orionids are produced by debris from Halley's Comet, and the 2026 peak night is October 21–22.",
+          "source_ids": [
+            "orionids-nasa-2026",
+            "nasa-october-skywatching-2026"
+          ],
+          "support_note": "NASA's Orionids page identifies Halley's Comet as the source and lists the 2026 peak; NASA JPL's October guide confirms the peak window."
+        },
+        {
+          "text": "NASA estimates about 10 to 20 Orionid meteors per hour under dark skies.",
+          "source_ids": [
+            "orionids-nasa-2026"
+          ],
+          "support_note": "NASA's shower facts list the expected rate under dark skies."
+        },
+        {
+          "text": "Moonlight may reduce visibility of fainter meteors, and viewing before dawn after moonset can help.",
+          "source_ids": [
+            "nasa-october-skywatching-2026"
+          ],
+          "support_note": "NASA JPL says moonlight may interfere and recommends the hours before dawn after moonset."
+        }
+      ],
+      "sources": [
+        {
+          "id": "orionids-nasa-2026",
+          "title": "Orionids Meteor Shower",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/solar-system/meteors-meteorites/orionids/",
+          "published_at": "2026-10-07T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        },
+        {
+          "id": "nasa-october-skywatching-2026",
+          "title": "What’s Up: October 2026 Skywatching Tips from NASA",
+          "publisher": "NASA Jet Propulsion Laboratory",
+          "url": "https://www.jpl.nasa.gov/videos/whats-up-october-2026-skywatching-tips-from-nasa/",
+          "published_at": "2026-10-01T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/2aeb389eff7dc93b4dee66ca00a4e00b.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-12T07:40:56.335Z",
+        "note": "Approved for scheduled publishing at 12 Oct 2026, 1:20 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
