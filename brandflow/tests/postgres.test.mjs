@@ -70,6 +70,10 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    await pool.query('UPDATE social_post_drafts SET image_width=1200,image_height=1500');
    await assert.rejects(pool.query('UPDATE social_post_drafts SET image_width=1122,image_height=1402'),e=>e.code==='23514');
    assert.equal((await pool.query('SELECT image_width FROM social_post_drafts')).rows[0].image_width,1200);
+   await pool.query(fs.readFileSync(new URL('../db/migrations/011_funzug_nearest_pixel_ratio.sql',import.meta.url),'utf8'));
+   await pool.query('UPDATE social_post_drafts SET image_width=1122,image_height=1402');
+   await assert.rejects(pool.query('UPDATE social_post_drafts SET image_width=1123,image_height=1402'),e=>e.code==='23514');
+   assert.equal((await pool.query('SELECT image_width FROM social_post_drafts')).rows[0].image_width,1122);
   });
  }finally{
   await pool.end();
