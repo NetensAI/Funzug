@@ -14,6 +14,7 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 ## Image
 
 - Owner clarification on 12 October 2026: retain the Funzug headline and wordmark on Funzug social images. This specific requirement overrides the generic project instruction for text-free posters.
+- Owner clarification on 12 October 2026: use image generation only for image changes. Do not locally resize or crop generated artwork to meet dimensions. Verify the native generated raster is exactly 1080x1350; reject mismatched output rather than silently normalizing it.
 - Clearly identify AI-generated or conceptual science artwork as illustration. Never imply it is a telescope, rover, or detector photograph. When on-image wording could imply documentary provenance, include a readable illustration label and revise misleading wording, not merely the caption.
 
 - For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be portrait 4:5 at exactly 1080x1350 pixels. Keep the main subject, headline, and Funzug branding inside safe margins.
