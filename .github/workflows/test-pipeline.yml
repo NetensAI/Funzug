@@ -27,6 +27,9 @@ jobs:
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
+      - name: Test BrandFlow platform outcome contract
+        run: node --test brandflow/tests/funzug-outcomes.test.mjs
+
       - name: Check media-host Python syntax
         run: python -m py_compile media-host/server.py scripts/upload_media.py scripts/meta_token_diagnostic.py scripts/verify_meta_credentials.py scripts/brandflow_sync.py
 

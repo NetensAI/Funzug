@@ -17,8 +17,8 @@ export async function POST(req:Request){
  const data=parsed.data;const client=await db.connect();
  try{
   await client.query('BEGIN');
-  const {rows:[draft]}=await client.query(`SELECT d.id,d.status,d.platforms,d.platform_outcomes,d.published_at FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2 FOR UPDATE OF d`,[data.batchId,data.externalId]);
-  if(!draft||draft.status!=='approved'){await client.query('ROLLBACK');return NextResponse.json({error:'Approved draft not found'},{status:409})}
+  const {rows:[draft]}=await client.query(`SELECT d.id,d.status,d.publication_authorized,d.platforms,d.platform_outcomes,d.published_at FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2 FOR UPDATE OF d`,[data.batchId,data.externalId]);
+  if(!draft||draft.status!=='approved'||!draft.publication_authorized){await client.query('ROLLBACK');return NextResponse.json({error:'Authorized approved draft not found'},{status:409})}
   let outcome;try{outcome=mergeOutcomes(draft.platforms,draft.platform_outcomes,data.platformResults)}catch{await client.query('ROLLBACK');return NextResponse.json({error:'Outcome conflicts with approved draft'},{status:409})}
   const unchanged=JSON.stringify(draft.platform_outcomes)===JSON.stringify(outcome.results);
   if(!unchanged){
