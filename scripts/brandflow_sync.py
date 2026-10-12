@@ -7,6 +7,7 @@ import argparse
 import base64
 import datetime as dt
 import json
+import hashlib
 import mimetypes
 import os
 import sys
@@ -33,6 +34,7 @@ def api_request(method: str, url: str, secret: str, payload: dict[str, Any] | No
     request = urllib.request.Request(url, data=body, method=method)
     request.add_header("Authorization", "Bearer " + secret)
     request.add_header("Accept", "application/json")
+    request.add_header("User-Agent", "FunzugWorkflow/1.0")
     if body is not None:
         request.add_header("Content-Type", "application/json")
     try:
@@ -126,7 +128,22 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def sync_pending() -> int:
+def approval_content_hash(item: dict[str, Any]) -> str:
+    draft = payload_for(item)["drafts"][0]
+    content = {key: draft[key] for key in ("headline", "caption", "claims", "sources", "platforms")}
+    content["imageMimeType"] = draft["image"]["mimeType"]
+    content["imageSha256"] = hashlib.sha256(base64.b64decode(draft["image"]["data"])).hexdigest()
+    encoded = json.dumps(content, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def require_matching_approved_content(item: dict[str, Any], status: dict[str, Any]) -> None:
+    expected = status.get("contentHash")
+    if not isinstance(expected, str) or len(expected) != 64 or expected != approval_content_hash(item):
+        raise RuntimeError(f"{item['id']}: repository content does not match BrandFlow reviewed content; sync pending revisions before owner approval")
+
+
+def sync_pending(update_pending: bool = False) -> int:
     token, base = secret(), api_url()
     errors = pipeline.validate_draft_queue(pipeline.load_json(pipeline.DRAFT_QUEUE_PATH))
     if errors:
@@ -136,17 +153,22 @@ def sync_pending() -> int:
     sent = 0
     for item in inbox["items"]:
         item_id = item["id"]
-        if item_id in known:
+        row = known.get(item_id)
+        if row is not None and not (
+            update_pending and row.get("status") == "pending_review"
+            and row.get("publicationAuthorized") is False
+            and not row.get("publishedAt")
+        ):
             continue
         api_request("POST", base, token, payload_for(item))
         sent += 1
-    print(f"BrandFlow sync complete: {sent} new draft(s) sent")
+    print(f"BrandFlow sync complete: {sent} draft(s) transferred")
     return 0
 
 
 def sync_results() -> int:
     token, base = secret(), api_url()
-    endpoint = base.rsplit('/', 1)[0] + '/outcomes'
+    endpoint = base
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
     original = {item["id"]: item for item in drafts.get("items", [])}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
@@ -178,7 +200,7 @@ def sync_results() -> int:
                 "postId": result["post_id"],
                 "publishedAt": result["published_at"],
             }
-        api_request("POST", endpoint, token, {
+        api_request("PUT", endpoint, token, {
             "batchId": BATCH_ID,
             "externalId": item["id"],
             "platformResults": summary,
@@ -275,6 +297,7 @@ def process_approvals() -> int:
         if local_schedule <= dt.datetime.now(SCHEDULE_TIMEZONE):
             print(f"{item_id}: skipped expired BrandFlow approval; no media upload or queue change")
             continue
+        require_matching_approved_content(item, status)
         item["scheduled_at"] = local_schedule.isoformat()
         checklist = {"approvalConfirmed": True}
         pipeline.host_and_approve_draft(
@@ -292,10 +315,13 @@ def process_approvals() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("sync", "process-approvals", "sync-results"))
+    parser.add_argument("--update-pending", action="store_true", help="Update unreviewed existing drafts only; never approved or published content")
     args = parser.parse_args()
+    if args.update_pending and args.command != "sync":
+        parser.error("--update-pending is valid only with sync")
     try:
         if args.command == "sync":
-            return sync_pending()
+            return sync_pending(update_pending=args.update_pending)
         if args.command == "sync-results":
             return sync_results()
         return process_approvals()

@@ -82,12 +82,14 @@ class BrandFlowPayloadTests(unittest.TestCase):
             patch.object(sync, "api_url", return_value="https://example.test/api"),
             patch.object(sync, "api_status", return_value={item["id"]: status}),
             patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
+            patch.object(sync, "require_matching_approved_content") as match,
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
         ):
             sync.process_approvals()
         passed_drafts = process.call_args.args[0]
         self.assertEqual(passed_drafts["items"][0]["scheduled_at"], "2026-11-12T19:15:00+05:30")
         self.assertEqual(process.call_args.args[5], {"approvalConfirmed": True})
+        match.assert_called_once_with(item, status)
 
     def test_expired_approval_is_skipped_without_blocking_future_approval(self):
         expired = {"id": "funzug-example-past", "status": "draft", "scheduled_at": "2026-11-06T22:30:00+05:30"}
@@ -117,11 +119,13 @@ class BrandFlowPayloadTests(unittest.TestCase):
                 future["id"]: future_status,
             }),
             patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
+            patch.object(sync, "require_matching_approved_content") as match,
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
         ):
             self.assertEqual(sync.process_approvals(), 0)
         self.assertEqual(process.call_count, 1)
         self.assertEqual(process.call_args.args[2], future["id"])
+        match.assert_called_once_with(future, future_status)
 
     def test_published_item_does_not_block_later_approvals(self):
         published = {"id": "already-posted", "status": "published"}
@@ -159,8 +163,8 @@ class BrandFlowPayloadTests(unittest.TestCase):
         ):
             self.assertEqual(sync.sync_results(), 0)
         request.assert_called_once()
-        self.assertEqual(request.call_args.args[0], "POST")
-        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/outcomes")
+        self.assertEqual(request.call_args.args[0], "PUT")
+        self.assertEqual(request.call_args.args[1], "https://example.test/api/integrations/funzug/drafts")
         payload = request.call_args.args[3]
         self.assertEqual(payload["externalId"], completed["id"])
         self.assertEqual(set(payload["platformResults"]), {"facebook", "instagram"})
@@ -172,6 +176,12 @@ class BrandFlowPayloadTests(unittest.TestCase):
         results=request.call_args.args[3]["platformResults"]
         self.assertEqual(results["facebook"],{"status":"failed","failedAt":"2026-10-11T17:00:00Z"})
         self.assertEqual(results["instagram"]["postId"],"ig-post")
+
+    def test_api_request_identifies_funzug_workflow(self):
+        with patch.object(sync.urllib.request,"urlopen") as network:
+            network.return_value.__enter__.return_value.read.return_value=b'{}'
+            sync.api_request("PUT","https://example.test/api/integrations/funzug/drafts","s"*64,{})
+        self.assertEqual(network.call_args.args[0].get_header("User-agent"),"FunzugWorkflow/1.0")
 
 
 if __name__ == "__main__":
