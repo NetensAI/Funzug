@@ -70,11 +70,12 @@ jobs:
           FUNZUG_FACEBOOK_PAGE_TOKEN: ${{ secrets.FUNZUG_FACEBOOK_PAGE_TOKEN }}
           FUNZUG_INSTAGRAM_USER_ID: ${{ secrets.FUNZUG_INSTAGRAM_USER_ID }}
           FUNZUG_INSTAGRAM_ACCESS_TOKEN: ${{ secrets.FUNZUG_INSTAGRAM_ACCESS_TOKEN }}
+          FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL: ${{ secrets.FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL }}
           FUNZUG_META_GRAPH_VERSION: ${{ vars.FUNZUG_META_GRAPH_VERSION }}
           FUNZUG_INSTAGRAM_API_MODE: ${{ vars.FUNZUG_INSTAGRAM_API_MODE }}
           RETRY_ITEM_ID: ${{ inputs.retry_failed_facebook_item_id }}
         run: |
-          python scripts/meta_token_diagnostic.py
+          python -m scripts.meta_token_diagnostic
           if [ -n "$RETRY_ITEM_ID" ]; then
             python funzug_pipeline.py retry-failed-facebook --id "$RETRY_ITEM_ID"
           else

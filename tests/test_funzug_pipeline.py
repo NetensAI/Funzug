@@ -267,7 +267,10 @@ class ValidationTests(unittest.TestCase):
         self.assertEqual(post.call_args_list[1].args[0], "ig-test-user/media_publish")
 
     def test_instagram_login_mode_uses_its_separate_graph_host(self):
-        with patch.dict(pipeline.os.environ, {"FUNZUG_INSTAGRAM_API_MODE": "instagram_login"}):
+        from instagram_credentials import make_bundle
+        import time
+        credential = make_bundle("test-token", "123", int(time.time()), int(time.time()) + 86400)
+        with patch.dict(pipeline.os.environ, {"FUNZUG_INSTAGRAM_API_MODE": "instagram_login", "FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL": json.dumps(credential)}):
             publisher = pipeline.MetaPublisher()
         publisher.ig_user_id = "ig-test-user"
         publisher.ig_token = "test-token"

@@ -109,20 +109,24 @@ def main() -> int:
     if instagram_api_mode not in {"facebook_login", "instagram_login"}:
         print("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
         return 1
-    if not app_secret or not page_token or not instagram_token:
+    if not app_secret or not page_token or (instagram_api_mode == "facebook_login" and not instagram_token):
         print("Missing required GitHub Actions secrets for read-only token diagnostics")
         return 1
 
     app_access_token = f"{APP_ID}|{app_secret}"
-    checks = (
-        ("Facebook Page token", page_token, PAGE_SCOPES),
-        (
-            "Instagram token",
-            instagram_token,
-            INSTAGRAM_LOGIN_SCOPES if instagram_api_mode == "instagram_login" else INSTAGRAM_SCOPES,
-        ),
-    )
+    checks = [("Facebook Page token", page_token, PAGE_SCOPES)]
+    if instagram_api_mode == "facebook_login":
+        checks.append(("Instagram token", instagram_token, INSTAGRAM_SCOPES))
     all_valid = True
+    if instagram_api_mode == "instagram_login":
+        try:
+            from instagram_credentials import decode_bundle, verify_account
+            credential = decode_bundle(os.environ.get("FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL", ""))
+            verify_account(credential["access_token"], credential["account_id"])
+            print("Instagram Login: account and publishing permissions verified; expires_at=" + expiry_label(credential["expires_at"]))
+        except Exception:
+            print("Instagram Login credential check failed; details omitted")
+            all_valid = False
     for label, token, required_scopes in checks:
         try:
             payload = debug_token(graph_version, app_access_token, token)

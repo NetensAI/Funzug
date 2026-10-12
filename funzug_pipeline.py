@@ -562,6 +562,11 @@ class MetaPublisher:
         self.ig_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
         if self.ig_api_mode not in INSTAGRAM_API_MODES:
             raise RuntimeError("FUNZUG_INSTAGRAM_API_MODE must be facebook_login or instagram_login")
+        if self.ig_api_mode == "instagram_login":
+            from instagram_credentials import decode_bundle
+            credential = decode_bundle(os.environ.get("FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL", ""))
+            self.ig_user_id = credential["account_id"]
+            self.ig_token = credential["access_token"]
         self.ig_api_host = INSTAGRAM_LOGIN_HOST if self.ig_api_mode == "instagram_login" else GRAPH_HOST
 
     def facebook_page_token(self) -> str:
