@@ -9,6 +9,29 @@ import funzug_pipeline as pipeline
 
 
 class ValidationTests(unittest.TestCase):
+    def test_native_handoff_blocks_explicit_facebook_retry_before_mutation(self):
+        self.item.update(status="failed", platforms=["facebook"], native_handoff={"state":"uncertain"})
+        queue={"items":[self.item]}
+        with patch.object(pipeline,"validate_queue",return_value=[]), patch.object(pipeline,"MetaPublisher",side_effect=AssertionError("No credential access")):
+            with self.assertRaisesRegex(RuntimeError,"native Meta handoff"):
+                pipeline.retry_failed_facebook(queue,self.item["id"])
+        self.assertEqual(self.item["status"],"failed")
+
+    def test_native_handoff_and_unknown_delivery_modes_block_workflow_publication(self):
+        self.assertTrue(pipeline.workflow_delivery_allowed({}))
+        self.assertTrue(pipeline.workflow_delivery_allowed({"delivery_mode": "workflow"}))
+        for item in [{"delivery_mode": "meta_native"}, {"delivery_mode": "unexpected"}, {"native_handoff": {}}, {"native_handoff": None}]:
+            self.assertFalse(pipeline.workflow_delivery_allowed(item))
+
+    def test_native_handoff_never_calls_publisher_or_reports_due(self):
+        self.item["status"] = "approved"
+        self.item["approval"] = {"status":"approved", "approved_by":"fixture", "approved_at":"2026-10-10T10:00:00Z", "note":"Fixture approval", "review_checklist":{"approvalConfirmed":True}}
+        self.item["native_handoff"] = {"state":"uncertain"}
+        queue={"brand":{"name":"Funzug","timezone":"Asia/Kolkata","required_image_size":[1080,1350]},"items":[self.item]}
+        with patch.object(pipeline, "MetaPublisher", side_effect=AssertionError("Native handoff must not be published")):
+            self.assertEqual(pipeline.publish_due(queue,True,"FUNZUG"),0)
+            self.assertFalse(pipeline.has_due_approved_items(queue))
+
     def test_single_brandflow_approval_confirmation_is_valid(self):
         self.assertTrue(pipeline.valid_review_checklist({"approvalConfirmed": True}))
         self.assertFalse(pipeline.valid_review_checklist({"approvalConfirmed": False}))
@@ -59,6 +82,19 @@ class ValidationTests(unittest.TestCase):
 
     def test_valid_item_meets_image_and_source_requirements(self):
         self.assertEqual(pipeline.validate_item(self.item, (1080, 1350)), [])
+
+    def test_unknown_publication_instant_does_not_require_invented_timestamp(self):
+        self.item["sources"][0]["published_at"] = None
+        self.assertEqual(pipeline.validate_item(self.item, (1080, 1350)), [])
+        self.item["sources"][0]["checked_at"] = None
+        self.assertTrue(any("checked_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
+
+    def test_missing_publication_field_and_naive_timestamp_are_rejected(self):
+        source = self.item["sources"][0]
+        del source["published_at"]
+        self.assertTrue(any("published_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
+        source["published_at"] = "2026-10-07T12:12:00"
+        self.assertTrue(any("published_at" in e for e in pipeline.validate_item(self.item, (1080, 1350))))
 
     def test_rejects_non_ist_publishing_schedule(self):
         item = dict(self.item, scheduled_at="2026-10-11T12:00:00-04:00")

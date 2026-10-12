@@ -1,0 +1,68 @@
+import copy
+import datetime as dt
+import unittest
+from unittest.mock import patch
+
+from scripts.native_meta_handoff import reserve, begin_submission, record_receipt
+import funzug_pipeline as pipeline
+
+
+class NativeHandoffTests(unittest.TestCase):
+    def setUp(self):
+        self.now = dt.datetime.fromisoformat("2026-10-12T14:00:00+05:30")
+        self.item = {"id":"fixture", "status":"approved", "format":"image", "platforms":["facebook","instagram"], "scheduled_at":"2026-10-13T18:00:00+05:30", "approval":{"status":"approved", "review_checklist":{"approvalConfirmed":True}}}
+        self.row = {"status":"approved", "publicationAuthorized":True, "scheduleTimezone":"Asia/Kolkata", "proposedSchedule":self.item["scheduled_at"], "contentHash":"a"*64}
+        self.hash_check = patch("scripts.native_meta_handoff.sync.require_matching_approved_content")
+        self.hash_check.start()
+        self.addCleanup(self.hash_check.stop)
+
+    def test_reservation_preserves_review_and_slot_and_blocks_publisher(self):
+        approval = copy.deepcopy(self.item["approval"])
+        self.assertTrue(reserve(self.item,self.row,self.now))
+        self.assertFalse(pipeline.workflow_delivery_allowed(self.item))
+        self.assertEqual(self.item["approval"],approval)
+        self.assertEqual(self.item["native_handoff"]["scheduled_at"],self.row["proposedSchedule"])
+        self.assertFalse(reserve(self.item,self.row,self.now))
+
+    def test_rejections_do_not_mutate_post(self):
+        for field,value in [("status","draft"),("publicationAuthorized",False),("scheduleTimezone","UTC"),("proposedSchedule","2026-10-14T18:00:00+05:30")]:
+            row = dict(self.row,**{field:value})
+            before = copy.deepcopy(self.item)
+            with self.assertRaises((RuntimeError,ValueError)):
+                reserve(self.item,row,self.now)
+            self.assertEqual(self.item,before)
+
+    def test_due_posts_outcomes_and_uncertain_handoffs_cannot_be_reserved(self):
+        for changes in [{"scheduled_at":self.now.isoformat()},{"platform_results":{"instagram":{"status":"published"}}},{"native_handoff":{"state":"uncertain"}},{"delivery_mode":"unexpected"},{"format":"carousel"}]:
+            item = dict(self.item,**changes)
+            before = copy.deepcopy(item)
+            with self.assertRaises(RuntimeError):
+                reserve(item,self.row,self.now)
+            self.assertEqual(item,before)
+
+    def test_content_mismatch_cannot_disable_existing_delivery(self):
+        with patch("scripts.native_meta_handoff.sync.require_matching_approved_content",side_effect=RuntimeError("content mismatch")):
+            with self.assertRaisesRegex(RuntimeError,"content mismatch"):
+                reserve(self.item,self.row,self.now)
+        self.assertTrue(pipeline.workflow_delivery_allowed(self.item))
+
+    def test_submission_cannot_be_repeated_and_receipts_keep_workflow_blocked(self):
+        reserve(self.item,self.row,self.now)
+        begin_submission(self.item,self.now)
+        with self.assertRaises(RuntimeError):
+            begin_submission(self.item,self.now)
+        for platform in self.item["platforms"]:
+            record_receipt(self.item,{"platform":platform,"schedule_id":"observed-"+platform,"scheduled_at":self.item["scheduled_at"],"content_hash":self.row["contentHash"],"planner_url":"https://business.facebook.com/latest/content","checked_at":self.now.isoformat()},self.now)
+        self.assertEqual(self.item["native_handoff"]["state"],"scheduled")
+        self.assertFalse(pipeline.workflow_delivery_allowed(self.item))
+
+    def test_receipt_cannot_precede_submission_or_change_slot(self):
+        reserve(self.item,self.row,self.now)
+        receipt={"platform":"instagram","schedule_id":"observed","scheduled_at":self.item["scheduled_at"],"content_hash":self.row["contentHash"],"planner_url":"https://business.facebook.com/latest/content","checked_at":self.now.isoformat()}
+        with self.assertRaises(RuntimeError):
+            record_receipt(self.item,receipt,self.now)
+        begin_submission(self.item,self.now)
+        for field,value in [("scheduled_at","2026-10-14T18:00:00+05:30"),("platform","unexpected"),("content_hash","b"*64),("planner_url","https://attacker.example"),("checked_at","2026-10-12T13:00:00+05:30")]:
+            with self.assertRaises(RuntimeError):
+                record_receipt(self.item,dict(receipt,**{field:value}),self.now)
+        self.assertEqual(self.item["native_handoff"]["receipts"],{})

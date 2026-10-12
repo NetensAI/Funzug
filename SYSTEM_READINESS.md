@@ -1,27 +1,30 @@
 # Funzug readiness, 12 October 2026
 
-Status: **not ready for unrestricted owner approvals**. Do not mark the goal complete based on passing local tests or healthy containers.
+Existing single-image drafts are available for owner review. The full goal remains incomplete. Setup permission does not authorize posting.
 
-## Current authoritative evidence
+## Verified evidence
 
-- Remote main is e09a535 (PR 35). The `codex/existing-result-route` branch has unmerged production result-route/identifier corrections, pending-draft revisions, exact-content approval checks, and updated instructions. GitHub Actions still executes main, not this branch.
-- Dashboard source/build has the IST-only draft-ingest schema, per-platform outcome display, reschedule-outcome guard, and authenticated reviewed-content fingerprints. Database and container health passed after deployment.
-- Private HTTPS transfer and read-only database inspection verified seven pending drafts, all unauthorized, with illustration disclosures and IST timezone. The already-reviewed record was unchanged. Orionids proposes 20 October at 7:30 PM IST; this is not an approved schedule.
-- A read-only HTTPS comparison matched all seven pending draft fingerprints to local headline, caption, claims, sources, platforms, MIME type and exact image bytes. Cross-language canonicalization tests passed. Workflow enforcement still requires branch merge.
-- All 111 Python tests passed. Eight outcome contract tests passed earlier. Production Next.js build/type checks passed. Pure tests do not prove live Meta publishing, unattended generation, or rendered partial-failure recovery.
-- Scheduler inspection at 12 October 11:33 AM IST reported a recent poll, no active workflows, no recorded error and no pending result sync. Its last completed approval-sync workflow was 12 October 10:29 AM IST. The first refresh remains due 13 October at 11:30 AM IST. This is a live timer, not evidence of a completed token refresh.
-- Existing saved inbox validation accepts eight exact1080x1350 images, including the already-published retained IceCube draft. Visual review is documented separately. Live Meta schedule has not been rechecked because Chrome extension returns User unavailable.
+- Main checkpoint 6921ecd records the approved Orionids publication. PRs 36-45 are merged.
+- Authenticated Chrome inspection showed seven pending cards with IST date/time selection, one unchecked confirmation, disabled Approve and enabled Reject. No controls were submitted. Pending-card times are proposals, not approved schedules.
+- Daily workspace validation accepted eight retained inbox items. Structural validation is not renewed fact verification. Pending drafts remain unchanged at the owner's request.
+- PR 42 and migration 011 accept positive portrait dimensions satisfying abs(width * 5 - height * 4) <= 2. 1080x1350 is preferred; native nearest-pixel 4:5 is allowed. No cropping or resizing. Retain Funzug headline and wordmark.
+- All 120 local Python tests passed. PRs 44 and 45 passed mandatory PostgreSQL 16 CI tests covering actual review, outcome and reschedule transactions, competing reviews, audit rollback, slot history and platform-result guards. Auth/framework adapters remain fixtures.
+- Owner-approved Orionids completed workflow run 38220155185 successfully. Facebook ID 124454514239741_1519437233554634 was recorded at 1:22:33 PM IST and Instagram ID 18116304065105811 at 1:22:49 PM IST on 12 October. BrandFlow persisted both results; Meta Business Suite independently displayed both posts. The approved slot was 1:20 PM IST, so this does not prove exact-minute delivery.
+- Scheduler inspection at 12:57:53 PM IST found a healthy container, recent poll, no errors, no active workflows and no pending result sync. Renewal remains due 13 October 2026 at 11:30 AM IST, not proven complete.
+- Read-only credential run 38213592972 passed current account-access checks, not future renewal or new publication.
 
-## Required remaining gates
+## Pending implementation
 
-1. Restore Chrome extension access. Create the fix-branch PR, inspect its checks, merge after passing, and verify main's workflow execution. Do not replace the PR/check workflow with an unreviewed direct main push.
-2. Verify real Instagram refresh, encrypted credential replacement, full credential diagnostics and automatic publisher-mode switch after the minimum token age. Preserve failure-closed behavior. Normal renewal does not prevent revocation after security or permission changes.
-3. Resolve native image-generation dimensions under the owner's generation-only constraint. Two built-in Mars attempts returned1122x1402 despite exact1080x1350 prompts. Neither was resized or queued. Do not silently weaken the dimension requirement or switch to a paid external API.
-4. Preserve existing pending drafts unchanged under the owner's latest instruction. Do not regenerate, revise, or re-verify them. The earlier Mars provenance concern remains documented, not resolved; do not present preservation as editorial verification.
-5. For future drafts, verify every claim and on-image factual statement against primary source content, including access dates and support notes. Structural validation cannot verify truth. Compare topic keys with current live schedule as well as saved history. The owner has explicitly excluded the current pending batch from further verification.
-6. Complete an unattended daily run producing7–10 fresh, individually inspected dimension-valid images and captions, followed by review-only transfer. Existing files do not prove daily generation or transfer works unattended.
-7. Exercise partial-platform failure rendering, reschedule rejection and safe recovery in a disposable integration environment. Never create invented failures in live approved drafts or automatically replay successful platforms.
-8. Verify approval/rejection and scheduling end to end with owner-authorized content after the corrections are on main. No new live test post is authorized merely by this readiness audit.
-9. Reconcile the original mixed image/carousel/reel content request with implemented capabilities: the publisher supports image/carousel formats, but BrandFlow draft integration currently accepts only one image; reels are not implemented. Do not claim the original format scope is complete.
+PR 46 contains reschedule network recovery, explicit unknown publication timestamps and fail-closed native-handoff guards. Fifteen local boundary tests pass, including successful submission exactly once with the selected IST time. Merge and dashboard deployment remain pending. Edge access is restored. The linked Funzug Facebook and Instagram native composer exposes separate schedule controls, but no native schedule has been submitted.
 
-The owner-facing interface remains one confirmation tick, selected IST date/time, and Approve/Reject. Approve authorizes only the reviewed content and chosen slot. No automation may infer approval from this document or an active goal.
+The owner requested upcoming posts in Meta Business Suite. Native scheduling is not activated. Existing upcoming approvals remain workflow-managed. A manual reservation workflow now validates the existing BrandFlow approval, content fingerprint and unchanged future IST slot, then persists a blocking reservation under queue-write concurrency. This is not a native scheduling runner. Do not dispatch it until planner receipt reconciliation and the remaining dashboard integration are ready. An uncertain submission must remain blocked pending inspection, never be retried blindly. No automatic release or fallback is implemented.
+
+## Remaining completion gates
+
+1. Verify real renewal, encrypted replacement, diagnostics and publishing-mode activation. Renewal cannot prevent provider revocation or required re-login.
+2. Complete native Meta scheduling integration and verify upcoming posts in the planner without duplicate publication. The existing single-image publication round trip is verified by the Orionids evidence above; inspect its audit entry separately.
+3. Complete a fresh 7-10-post daily batch and review-only transfer. Verify new claims and image claims against primary/authoritative sources; retain access dates and claim support metadata. Check history and relevant live Meta schedule or report unavailable access. Do not re-verify existing pending drafts.
+4. Complete mixed-format integration. Pipeline carousel publication exists, but BrandFlow sync rejects non-image drafts and ingestion stores one image. Reels are not implemented. Ordered assets must remain bound to reviewed content before carousel approval is supported.
+5. Verify interactive native schedule submission and receipt reconciliation. Existing owner approval and live Meta publication are established for Orionids, not for native scheduling.
+
+Owner controls remain one confirmation, future IST date/time and Approve/Reject. Approval authorizes only reviewed content and the chosen slot, including public media upload. No typed authorization or six-checkbox interface. Successful platform posts must not be replayed automatically.

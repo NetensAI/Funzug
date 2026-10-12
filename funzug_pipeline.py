@@ -68,6 +68,8 @@ def log_event(event: dict[str, Any]) -> None:
 
 
 def parse_time(value: str) -> dt.datetime:
+    if not isinstance(value, str):
+        raise ValueError("timestamp must be a timezone-aware string")
     parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         raise ValueError("scheduled_at must include a timezone offset")
@@ -266,6 +268,9 @@ def validate_item(
         if not https_url(source.get("url")):
             errors.append(f"source {source.get('id', '<missing>')} must be HTTPS")
         for field in ("published_at", "checked_at"):
+            # Publication instants may be unknown; access instants must be recorded.
+            if field == "published_at" and field in source and source[field] is None:
+                continue
             try:
                 parse_time(source[field])
             except (KeyError, TypeError, ValueError):
@@ -724,12 +729,19 @@ def approve(
     raise RuntimeError(f"item not found: {item_id}")
 
 
+def workflow_delivery_allowed(item: dict[str, Any]) -> bool:
+    # Explicit native handoff blocks this publisher even before Meta confirms receipt.
+    # Unknown modes fail closed. Removing a handoff requires operator reconciliation,
+    # never an automatic timeout that might replay an accepted Meta request.
+    return item.get("delivery_mode", "workflow") == "workflow" and "native_handoff" not in item
+
+
 def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None, item_id: str | None = None) -> int:
     errors = validate_queue(queue)
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
-    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and (item_id is None or item.get("id") == item_id) and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
+    due = [item for item in queue.get("items", []) if workflow_delivery_allowed(item) and item.get("status") == "approved" and (item_id is None or item.get("id") == item_id) and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
     if not due:
         print("no approved items are due")
         return 0
@@ -783,6 +795,8 @@ def retry_failed_facebook(queue: dict[str, Any], item_id: str) -> int:
     item = next((row for row in queue.get("items", []) if row.get("id") == item_id), None)
     if item is None or item.get("status") != "failed" or item.get("platforms") != ["facebook"]:
         raise RuntimeError("retry requires one failed Facebook-only queue item")
+    if not workflow_delivery_allowed(item):
+        raise RuntimeError("native Meta handoff requires reconciliation before Facebook retry")
     results = item.get("platform_results", {})
     if results.get("facebook", {}).get("status") != "failed":
         raise RuntimeError("Facebook retry requires a recorded failed attempt")
@@ -810,7 +824,8 @@ def has_due_approved_items(queue: dict[str, Any]) -> bool:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
     return any(
-        item.get("status") == "approved"
+        workflow_delivery_allowed(item)
+        and item.get("status") == "approved"
         and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current
         for item in queue.get("items", [])
     )
