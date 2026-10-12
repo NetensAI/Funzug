@@ -9,6 +9,21 @@ import funzug_pipeline as pipeline
 
 
 class ValidationTests(unittest.TestCase):
+    def test_native_handoff_and_unknown_delivery_modes_block_workflow_publication(self):
+        self.assertTrue(pipeline.workflow_delivery_allowed({}))
+        self.assertTrue(pipeline.workflow_delivery_allowed({"delivery_mode": "workflow"}))
+        for item in [{"delivery_mode": "meta_native"}, {"delivery_mode": "unexpected"}, {"native_handoff": {}}, {"native_handoff": None}]:
+            self.assertFalse(pipeline.workflow_delivery_allowed(item))
+
+    def test_native_handoff_never_calls_publisher_or_reports_due(self):
+        self.item["status"] = "approved"
+        self.item["approval"] = {"status":"approved", "approved_by":"fixture", "approved_at":"2026-10-10T10:00:00Z", "note":"Fixture approval", "review_checklist":{"approvalConfirmed":True}}
+        self.item["native_handoff"] = {"state":"uncertain"}
+        queue={"brand":{"name":"Funzug","timezone":"Asia/Kolkata","required_image_size":[1080,1350]},"items":[self.item]}
+        with patch.object(pipeline, "MetaPublisher", side_effect=AssertionError("Native handoff must not be published")):
+            self.assertEqual(pipeline.publish_due(queue,True,"FUNZUG"),0)
+            self.assertFalse(pipeline.has_due_approved_items(queue))
+
     def test_single_brandflow_approval_confirmation_is_valid(self):
         self.assertTrue(pipeline.valid_review_checklist({"approvalConfirmed": True}))
         self.assertFalse(pipeline.valid_review_checklist({"approvalConfirmed": False}))

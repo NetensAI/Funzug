@@ -729,12 +729,19 @@ def approve(
     raise RuntimeError(f"item not found: {item_id}")
 
 
+def workflow_delivery_allowed(item: dict[str, Any]) -> bool:
+    # Explicit native handoff blocks this publisher even before Meta confirms receipt.
+    # Unknown modes fail closed. Removing a handoff requires operator reconciliation,
+    # never an automatic timeout that might replay an accepted Meta request.
+    return item.get("delivery_mode", "workflow") == "workflow" and "native_handoff" not in item
+
+
 def publish_due(queue: dict[str, Any], execute: bool, confirmation: str | None, item_id: str | None = None) -> int:
     errors = validate_queue(queue)
     if errors:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
-    due = [item for item in queue.get("items", []) if item.get("status") == "approved" and (item_id is None or item.get("id") == item_id) and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
+    due = [item for item in queue.get("items", []) if workflow_delivery_allowed(item) and item.get("status") == "approved" and (item_id is None or item.get("id") == item_id) and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current]
     if not due:
         print("no approved items are due")
         return 0
@@ -815,7 +822,8 @@ def has_due_approved_items(queue: dict[str, Any]) -> bool:
         raise RuntimeError("queue validation failed:\n" + "\n".join(errors))
     current = dt.datetime.now(dt.timezone.utc)
     return any(
-        item.get("status") == "approved"
+        workflow_delivery_allowed(item)
+        and item.get("status") == "approved"
         and parse_schedule_time(item["scheduled_at"]).astimezone(dt.timezone.utc) <= current
         for item in queue.get("items", [])
     )
