@@ -21,12 +21,12 @@ export async function POST(req:Request){
  const client=await db.connect();try{
   await client.query('BEGIN');const accepted=[];
   for(const draft of parsed.data.drafts){
-   const bytes=draft.image.kind==='base64'?decodeAndVerifyImage(draft.image.data,draft.image.mimeType):null;
+   const bytes=draft.image.kind==='base64'?decodeAndVerifyImage(draft.image.data,draft.image.mimeType,draft.image.width,draft.image.height):null;
    const url=draft.image.kind==='secure_url'?draft.image.url:null;
    const {rows:[row]}=await client.query(`INSERT INTO social_post_drafts(brand_id,batch_id,external_id,headline,caption,claims,evidence_sources,source_urls,platforms,proposed_schedule,schedule_timezone,image_mime_type,image_width,image_height,image_bytes,image_url)
-    VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9::jsonb,$10,$11,$12,1080,1350,$13,$14)
-    ON CONFLICT(brand_id,batch_id,external_id) DO UPDATE SET headline=EXCLUDED.headline,caption=EXCLUDED.caption,claims=EXCLUDED.claims,evidence_sources=EXCLUDED.evidence_sources,source_urls=EXCLUDED.source_urls,platforms=EXCLUDED.platforms,proposed_schedule=EXCLUDED.proposed_schedule,schedule_timezone=EXCLUDED.schedule_timezone,image_mime_type=EXCLUDED.image_mime_type,image_width=1080,image_height=1350,image_bytes=EXCLUDED.image_bytes,image_url=EXCLUDED.image_url,updated_at=now()
-    WHERE social_post_drafts.status='pending_review' RETURNING id,status`,[brand.id,parsed.data.batchId,draft.externalId,draft.headline,draft.caption,JSON.stringify(draft.claims),JSON.stringify(draft.sources),JSON.stringify(draft.sources.map(x=>x.url)),JSON.stringify(draft.platforms),draft.proposedSchedule,draft.scheduleTimezone,draft.image.mimeType,bytes,url]);
+    VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb,$8::jsonb,$9::jsonb,$10,$11,$12,$15,$16,$13,$14)
+    ON CONFLICT(brand_id,batch_id,external_id) DO UPDATE SET headline=EXCLUDED.headline,caption=EXCLUDED.caption,claims=EXCLUDED.claims,evidence_sources=EXCLUDED.evidence_sources,source_urls=EXCLUDED.source_urls,platforms=EXCLUDED.platforms,proposed_schedule=EXCLUDED.proposed_schedule,schedule_timezone=EXCLUDED.schedule_timezone,image_mime_type=EXCLUDED.image_mime_type,image_width=EXCLUDED.image_width,image_height=EXCLUDED.image_height,image_bytes=EXCLUDED.image_bytes,image_url=EXCLUDED.image_url,updated_at=now()
+    WHERE social_post_drafts.status='pending_review' RETURNING id,status`,[brand.id,parsed.data.batchId,draft.externalId,draft.headline,draft.caption,JSON.stringify(draft.claims),JSON.stringify(draft.sources),JSON.stringify(draft.sources.map(x=>x.url)),JSON.stringify(draft.platforms),draft.proposedSchedule,draft.scheduleTimezone,draft.image.mimeType,bytes,url,draft.image.width,draft.image.height]);
    if(!row)throw new Error(`Draft ${draft.externalId} has already been reviewed`);accepted.push({externalId:draft.externalId,id:row.id,status:row.status});
   }
   await client.query(`INSERT INTO audit_logs(action,target_type,target_id,details,ip_address) VALUES('social_draft.batch_received','social_post_batch',$1,$2::jsonb,$3)`,[parsed.data.batchId,JSON.stringify({brandSlug:'funzug',draftCount:accepted.length}),req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown']);

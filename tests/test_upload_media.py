@@ -98,7 +98,7 @@ class UploadMediaTests(unittest.TestCase):
         path = self.image_file()
         path.write_bytes(
             b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\x0dIHDR"
-            + (1200).to_bytes(4, "big") + (1500).to_bytes(4, "big") + b"test payload"
+            + (1200).to_bytes(4, "big") + (1501).to_bytes(4, "big") + b"test payload"
         )
         with self.assertRaisesRegex(ValueError, "1080x1350"):
             upload_media.upload(path, "https://media.example.com", "secret-value")
@@ -174,10 +174,10 @@ class UploadMediaTests(unittest.TestCase):
             self.assertEqual(normalized.getpixel((100, 100)), (255, 255, 255))
 
     def test_server_rejects_wrong_dimensions_and_corrupt_images(self):
-        image = Image.new("RGB", (1200, 1500), "white")
+        image = Image.new("RGB", (1200, 1501), "white")
         encoded = BytesIO()
         image.save(encoded, format="JPEG")
-        with self.assertRaisesRegex(ValueError, "exactly 1080x1350"):
+        with self.assertRaisesRegex(ValueError, "portrait 4:5"):
             server.normalize_image(encoded.getvalue(), "image/jpeg")
         with self.assertRaisesRegex(ValueError, "invalid or unsafe"):
             server.normalize_image(b"\x89PNG\r\n\x1a\nnot-a-real-png", "image/png")

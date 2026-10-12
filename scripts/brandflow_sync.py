@@ -84,8 +84,11 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
         path.relative_to(ROOT)
     except ValueError:
         raise ValueError("draft image path must stay inside the repository") from None
-    if not path.is_file() or pipeline.image_size(path) != (1080, 1350):
-        raise ValueError(f"{item.get('id', '<unknown>')}: image is missing or not 1080x1350")
+    if not path.is_file():
+        raise ValueError(f"{item.get('id', '<unknown>')}: image is missing")
+    dimensions = pipeline.image_size(path)
+    if not pipeline.is_portrait_4_5(dimensions):
+        raise ValueError(f"{item.get('id', '<unknown>')}: image must be portrait 4:5")
     mime = mimetypes.guess_type(path.name)[0]
     if mime not in {"image/png", "image/jpeg"}:
         raise ValueError("draft image must be PNG or JPEG")
@@ -120,8 +123,8 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
             "image": {
                 "kind": "base64",
                 "mimeType": mime,
-                "width": 1080,
-                "height": 1350,
+                "width": dimensions[0],
+                "height": dimensions[1],
                 "data": base64.b64encode(path.read_bytes()).decode("ascii"),
             },
         }],
