@@ -75,8 +75,13 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
     if not isinstance(drafts, list):
         raise RuntimeError("BrandFlow status is unavailable")
     signature, due = approved_rows(drafts, now)
+    state["last_checked_at"] = now
     if dry_run:
         print(f"Scheduler diagnostic: approval_change={signature != state['synced_signature']}; approved_post_due={due}; no workflow dispatched", flush=True)
+        return
+    renewal_at = state.get("renew_after", config.get("renew_after"))
+    if not state["jobs"] and signature == state["synced_signature"] and not due and not state.get("sync_results_needed") and (not renewal_at or now < renewal_at):
+        write_state(path, state)
         return
     os.environ["FUNZUG_GH_APP_ID"] = "5281589"
     os.environ["FUNZUG_GH_APP_PRIVATE_KEY"] = Path(config["key_file"]).read_text()
@@ -120,9 +125,8 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
         requested.append((SYNC, {}))
     elif due and now - last.get(PUBLISH, 0) >= 300:
         requested.append((PUBLISH, {}))
-    renewal_at = state.get("renew_after", config.get("renew_after"))
     if renewal_at and now >= renewal_at and now - last.get(RENEW, 0) >= 3600:
-        requested.append((RENEW, {"renew_now": True}))
+        requested.append((RENEW, {"renew_now": True, "activate_after_refresh": True}))
     for workflow, inputs in requested:
         if workflow in blocked or now - last.get(workflow, 0) < 60 or now < state.get("cooldown_until", {}).get(workflow, 0):
             continue
