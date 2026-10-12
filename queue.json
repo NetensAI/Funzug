@@ -334,6 +334,18 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "delivery_mode": "meta_native",
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-12T16:00:48.594278+05:30",
+        "scheduled_at": "2026-10-13T10:16:00+05:30",
+        "content_hash": "e3e6b523516b6df0ebf306edcfba3503afda9e85e9ede0527e190d1a00d57d14",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
