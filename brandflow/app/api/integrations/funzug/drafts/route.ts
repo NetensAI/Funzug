@@ -1,5 +1,6 @@
 import {NextResponse} from 'next/server';
 import {db} from '@/lib/db';
+import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
 import {decodeAndVerifyImage,funzugBatchSchema,validBearer} from '@/lib/funzug-drafts';
 export {POST as PUT} from '../outcomes/route';
 
@@ -7,8 +8,9 @@ export const dynamic='force-dynamic';
 export async function GET(req:Request){
  if(!validBearer(req.headers.get('authorization')))return NextResponse.json({error:'Unauthorized'},{status:401});
  const batchId=new URL(req.url).searchParams.get('batchId');if(!batchId||batchId.length>200)return NextResponse.json({error:'Valid batchId required'},{status:400});
- const {rows}=await db.query(`SELECT d.external_id "externalId",d.status,d.proposed_schedule "proposedSchedule",d.schedule_timezone "scheduleTimezone",d.published_at "publishedAt",d.publication_authorized "publicationAuthorized",d.review_checks "reviewChecks",d.reviewed_at "reviewedAt",d.review_note "reviewNote",u.username "reviewedBy" FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id LEFT JOIN users u ON u.id=d.reviewed_by WHERE b.slug='funzug' AND d.batch_id=$1 ORDER BY d.created_at`,[batchId]);
- return NextResponse.json({batchId,drafts:rows});
+ const {rows}=await db.query(`SELECT d.headline,d.caption,d.claims,d.evidence_sources,d.platforms,d.image_bytes,d.image_mime_type,d.external_id "externalId",d.status,d.proposed_schedule "proposedSchedule",d.schedule_timezone "scheduleTimezone",d.published_at "publishedAt",d.publication_authorized "publicationAuthorized",d.review_checks "reviewChecks",d.reviewed_at "reviewedAt",d.review_note "reviewNote",u.username "reviewedBy" FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id LEFT JOIN users u ON u.id=d.reviewed_by WHERE b.slug='funzug' AND d.batch_id=$1 ORDER BY d.created_at`,[batchId]);
+ const drafts=rows.map(row=>{const {headline,caption,claims,evidence_sources,platforms,image_bytes,image_mime_type,...status}=row;return {...status,contentHash:draftContentHash(row)}});
+ return NextResponse.json({batchId,drafts});
 }
 export async function POST(req:Request){
  if(!validBearer(req.headers.get('authorization')))return NextResponse.json({error:'Unauthorized'},{status:401});

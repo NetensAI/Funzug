@@ -82,12 +82,14 @@ class BrandFlowPayloadTests(unittest.TestCase):
             patch.object(sync, "api_url", return_value="https://example.test/api"),
             patch.object(sync, "api_status", return_value={item["id"]: status}),
             patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
+            patch.object(sync, "require_matching_approved_content") as match,
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
         ):
             sync.process_approvals()
         passed_drafts = process.call_args.args[0]
         self.assertEqual(passed_drafts["items"][0]["scheduled_at"], "2026-11-12T19:15:00+05:30")
         self.assertEqual(process.call_args.args[5], {"approvalConfirmed": True})
+        match.assert_called_once_with(item, status)
 
     def test_expired_approval_is_skipped_without_blocking_future_approval(self):
         expired = {"id": "funzug-example-past", "status": "draft", "scheduled_at": "2026-11-06T22:30:00+05:30"}
@@ -117,11 +119,13 @@ class BrandFlowPayloadTests(unittest.TestCase):
                 future["id"]: future_status,
             }),
             patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
+            patch.object(sync, "require_matching_approved_content") as match,
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
         ):
             self.assertEqual(sync.process_approvals(), 0)
         self.assertEqual(process.call_count, 1)
         self.assertEqual(process.call_args.args[2], future["id"])
+        match.assert_called_once_with(future, future_status)
 
     def test_published_item_does_not_block_later_approvals(self):
         published = {"id": "already-posted", "status": "published"}

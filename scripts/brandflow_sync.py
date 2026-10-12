@@ -7,6 +7,7 @@ import argparse
 import base64
 import datetime as dt
 import json
+import hashlib
 import mimetypes
 import os
 import sys
@@ -125,6 +126,21 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
             },
         }],
     }
+
+
+def approval_content_hash(item: dict[str, Any]) -> str:
+    draft = payload_for(item)["drafts"][0]
+    content = {key: draft[key] for key in ("headline", "caption", "claims", "sources", "platforms")}
+    content["imageMimeType"] = draft["image"]["mimeType"]
+    content["imageSha256"] = hashlib.sha256(base64.b64decode(draft["image"]["data"])).hexdigest()
+    encoded = json.dumps(content, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def require_matching_approved_content(item: dict[str, Any], status: dict[str, Any]) -> None:
+    expected = status.get("contentHash")
+    if not isinstance(expected, str) or len(expected) != 64 or expected != approval_content_hash(item):
+        raise RuntimeError(f"{item['id']}: repository content does not match BrandFlow reviewed content; sync pending revisions before owner approval")
 
 
 def sync_pending(update_pending: bool = False) -> int:
@@ -281,6 +297,7 @@ def process_approvals() -> int:
         if local_schedule <= dt.datetime.now(SCHEDULE_TIMEZONE):
             print(f"{item_id}: skipped expired BrandFlow approval; no media upload or queue change")
             continue
+        require_matching_approved_content(item, status)
         item["scheduled_at"] = local_schedule.isoformat()
         checklist = {"approvalConfirmed": True}
         pipeline.host_and_approve_draft(
