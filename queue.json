@@ -349,6 +349,74 @@
           "approvalConfirmed": true
         }
       }
+    },
+    {
+      "id": "funzug-2026-10-11-hubble-white-dwarf-candidate",
+      "status": "approved",
+      "format": "image",
+      "headline": "Could A Dead Star Grow New Worlds?",
+      "caption": "Could a planet form after its star dies? A new analysis of archival Hubble observations points to that possibility around the white dwarf HS 0209+0832.\n\nResearchers found an unusual abundance of niobium in the star’s atmosphere. The chemical pattern is consistent with material from a candidate planet that may have formed from matter expelled as the star evolved.\n\nThe team describes this as a second-generation planet candidate, not a directly photographed world. The result, published in Nature Astronomy, suggests planetary systems may have a more complicated afterlife than once assumed.\n\nDo you think a star’s planetary story can have a second chapter?\n\nAI-generated concept illustration, not an image of a confirmed planet.\n\n#Hubble #Exoplanets #WhiteDwarf #SpaceScience #Astronomy",
+      "topic_key": "hubble-white-dwarf-second-generation-planet-candidate",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-14T06:18:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-hubble-second-generation-world.png",
+      "claims": [
+        {
+          "text": "Researchers reanalyzed archival Hubble observations of white dwarf HS 0209+0832 and identified niobium among unusual atmospheric abundances.",
+          "source_ids": [
+            "hubble-second-generation-nasa-2026",
+            "hubble-second-generation-nature-2026"
+          ],
+          "support_note": "NASA describes the archival Hubble reanalysis and niobium clue; the Nature Astronomy paper details the spectroscopic identification."
+        },
+        {
+          "text": "The chemical evidence is consistent with a candidate second-generation planet formed from material ejected during the star's giant phase.",
+          "source_ids": [
+            "hubble-second-generation-nasa-2026",
+            "hubble-second-generation-nature-2026"
+          ],
+          "support_note": "Both NASA and the peer-reviewed paper frame the proposed origin as a possibility or candidate, rather than a directly imaged planet."
+        },
+        {
+          "text": "The study was published in Nature Astronomy.",
+          "source_ids": [
+            "hubble-second-generation-nasa-2026",
+            "hubble-second-generation-nature-2026"
+          ],
+          "support_note": "NASA identifies the journal, and the primary journal page hosts the study."
+        }
+      ],
+      "sources": [
+        {
+          "id": "hubble-second-generation-nasa-2026",
+          "title": "Suspected Second-generation Planet Solves NASA Hubble Cold Case",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/missions/hubble/suspected-second-generation-planet-solves-nasa-hubble-cold-case/",
+          "published_at": "2026-10-05T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        },
+        {
+          "id": "hubble-second-generation-nature-2026",
+          "title": "Discovery of a second-generation planet candidate accreting onto a white dwarf",
+          "publisher": "Nature Astronomy",
+          "url": "https://www.nature.com/articles/s41550-026-02983-7",
+          "published_at": "2026-10-05T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "public_media_url": "https://media.funzug.com/media/894e0e205b333e8995c01bcee332d468.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-12T07:43:53.511Z",
+        "note": "Approved for scheduled publishing at 14 Oct 2026, 6:18 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
