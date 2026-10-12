@@ -4,3 +4,4 @@ __pycache__/
 /media-host/secrets/
 logs/*
 !logs/events.jsonl
+node_modules/
