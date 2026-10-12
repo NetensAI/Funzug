@@ -62,10 +62,12 @@ class DebugMetaTokensTests(unittest.TestCase):
             "FUNZUG_INSTAGRAM_ACCESS_TOKEN": "instagram-token",
             "FUNZUG_INSTAGRAM_API_MODE": "instagram_login",
         }):
-            with patch("scripts.meta_token_diagnostic.debug_token", side_effect=[valid_page, valid_instagram]) as debug:
+            with patch("scripts.meta_token_diagnostic.debug_token", return_value=valid_page) as debug, patch("instagram_credentials.decode_bundle", return_value={"account_id": "123", "access_token": "instagram-token", "expires_at": 1900000000}), patch("instagram_credentials.verify_account", return_value="123") as verify:
                 with patch("builtins.print"):
                     self.assertEqual(main(), 0)
-        self.assertEqual(debug.call_args_list[1].args[2], "instagram-token")
+        self.assertEqual(debug.call_count, 1)
+        self.assertEqual(debug.call_args.args[2], "page-token")
+        verify.assert_called_once_with("instagram-token", "123")
 
     def test_valid_finite_lifetime_token_passes_before_expiry(self):
         payload = {

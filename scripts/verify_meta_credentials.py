@@ -93,6 +93,16 @@ def verify_object(
 
 
 def main() -> int:
+    instagram_api_mode = (os.environ.get("FUNZUG_INSTAGRAM_API_MODE") or "facebook_login").strip().lower()
+    if instagram_api_mode == "instagram_login":
+        try:
+            from instagram_credentials import decode_bundle
+            credential = decode_bundle(os.environ.get("FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL", ""))
+        except Exception:
+            print("Instagram Login credential bundle is invalid; details omitted")
+            return 1
+        os.environ["FUNZUG_INSTAGRAM_USER_ID"] = credential["account_id"]
+        os.environ["FUNZUG_INSTAGRAM_ACCESS_TOKEN"] = credential["access_token"]
     required = {
         "Facebook Page": ("FUNZUG_FACEBOOK_PAGE_ID", "FUNZUG_FACEBOOK_PAGE_TOKEN"),
         "Instagram account": ("FUNZUG_INSTAGRAM_USER_ID", "FUNZUG_INSTAGRAM_ACCESS_TOKEN"),
