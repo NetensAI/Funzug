@@ -184,7 +184,7 @@
     },
     {
       "id": "funzug-2026-10-11-frb-cosmic-dawn",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Flash Came From The Early Universe",
       "caption": "A radio flash lasting milliseconds has been traced to a galaxy from when the universe was about 3 billion years old.\n\nUsing the James Webb Space Telescope, astronomers identified the host of FRB 20240304B as a small dwarf galaxy actively forming stars.\n\nFast radio bursts are brief flashes whose origins remain uncertain. This distant host adds a clue for researchers, but it does not settle what causes every burst.\n\nWhat would you most like astronomers to uncover about these cosmic signals?\n\nAI-generated illustration, not a photograph of the radio burst.\n\n#FastRadioBursts #JamesWebb #SpaceScience #Astronomy #Universe",
@@ -277,7 +277,20 @@
           }
         },
         "submission_started_at": "2026-10-12T15:50:09.133829+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-12T22:12:00+05:30",
+          "post_id": "1519859980179026"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-12T22:12:00+05:30",
+          "post_id": "18121810900845217"
+        }
+      },
+      "last_attempt_at": "2026-10-13T15:38:45.731664+05:30"
     },
     {
       "id": "funzug-2026-10-11-spherex-brown-dwarfs",
