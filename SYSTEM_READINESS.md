@@ -2,6 +2,12 @@
 
 ## Current deployment update
 
+At the latest 13 October check, Mars completed native publication on both platforms at 6:26 PM IST. Successful workflow `38401439937` reconciled the published IDs with the original schedule receipts, and BrandFlow has its published timestamp. Hubble remains visible on both live planner entries for 14 October at 6:18 AM IST. This closes the previously open unattended publication-and-dashboard outcome gate for image posts.
+
+PR #64 merged seven new individually generated, visually inspected, source-verified drafts. Sync run `38425276103` and validation run `38425276294` succeeded. A direct read of BrandFlow confirmed all seven new external IDs as `pending_review`, with no approval or published timestamp. Existing pending entries were preserved.
+
+The ordered-media approval work adds a shared Python/JavaScript fingerprint contract for carousel order and reel metadata. It is preparation for mixed-format integration, not delivery support. The current native worker explicitly rejects non-image packages. Remaining mixed-format work includes database storage, authenticated asset previews, complete ordered-media review, approval-bound packages, upload preparation, native composer verification, per-platform receipt checks and publication reconciliation. A newly owner-approved image still needs a full automatic native submission acceptance test.
+
 PRs #60 through #62 are also merged and deployed. Image `funzug-native-worker:pr62` reports healthy with no restarts. It polls future approvals and reconciles due native publications through the audited GitHub workflow. A read-only live test verified the publication reader against both SPHEREx platform posts. Published planner links are bound to exact caption, platform, date column and time. If Meta changes the post ID, the original schedule receipt is retained and the published outcome includes its scheduled ID and matching content fingerprint.
 
 Acceptance evidence by requirement:

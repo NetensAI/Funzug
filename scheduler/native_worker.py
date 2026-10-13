@@ -35,6 +35,8 @@ def stamp(value: str) -> dt.datetime:
 
 
 def verify_package(packet: dict) -> bytes:
+    if packet.get('format', 'image') != 'image' or 'media' in packet:
+        raise NativeFailure('unsupported_native_media_format')
     if packet.get("scheduleTimezone") != "Asia/Kolkata":
         raise NativeFailure("invalid_timezone")
     if not isinstance(packet.get("externalId"), str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}',packet['externalId']):
