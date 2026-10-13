@@ -42,6 +42,21 @@ test('a verified Meta ID may promote a prior planner placeholder without changin
  const replacement={...incoming,receipts:{...incoming.receipts,facebook:{...incoming.receipts.facebook,schedule_id:'another-actual-id'}}};
  assert.throws(()=>mergeNativeHandoff(incoming,replacement,platforms));
 });
+test('a legacy scheduled placeholder can be corrected during partial receipt promotion',()=>{
+ const placeholder=p=>({...receipt(p),schedule_id:`meta-planner-visible:funzug-legacy:${p}`,planner_url:'https://business.facebook.com/latest/content_calendar'});
+ const previous={...submitting,state:'scheduled',receipts:{facebook:placeholder('facebook'),instagram:placeholder('instagram')}};
+ const facebook={...receipt('facebook'),schedule_id:'1519859980179026',planner_url:'https://business.facebook.com/latest/insights/object_insights/?content_id=1519859980179026',checked_at:'2000-10-12T14:01:00+05:30'};
+ const partial={...previous,state:'submitting',receipts:{facebook,instagram:placeholder('instagram')}};
+ assert.deepEqual(mergeNativeHandoff(previous,partial,platforms),partial);
+ const instagram={...receipt('instagram'),schedule_id:'18121810900845217',planner_url:'https://business.facebook.com/latest/insights/object_insights/?content_id=18121810900845217',checked_at:'2000-10-12T14:02:00+05:30'};
+ const complete={...partial,state:'scheduled',receipts:{facebook,instagram}};
+ assert.deepEqual(mergeNativeHandoff(partial,complete,platforms),complete);
+ assert.throws(()=>mergeNativeHandoff(previous,{...partial,state:'scheduled'},platforms));
+ const changedPlaceholder={...partial,receipts:{facebook,instagram:{...placeholder('instagram'),schedule_id:'meta-planner-visible:changed'}}};
+ assert.throws(()=>mergeNativeHandoff(previous,changedPlaceholder,platforms));
+ const unrelated={...previous,receipts:{facebook:receipt('facebook'),instagram:placeholder('instagram')}};
+ assert.throws(()=>mergeNativeHandoff({...previous,receipts:{facebook:receipt('facebook'),instagram:receipt('instagram')}},unrelated,platforms));
+});
 test('JSONB key ordering cannot cause receipt conflicts or duplicate state writes',()=>{
  const prior=receipt('facebook');const reordered=Object.fromEntries(Object.entries(prior).reverse());
  assert.ok(nativeHandoffEqual(prior,reordered));
