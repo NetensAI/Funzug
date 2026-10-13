@@ -64,6 +64,26 @@ class SchedulerTests(unittest.TestCase):
             self.assertEqual(send.call_args.args[0], SYNC)
             self.assertIn("failed", json.loads(state.read_text())["error"])
 
+    def test_successful_sync_clears_its_stale_failure_and_cooldown(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            key = root / "key.pem"
+            key.write_text("test-key-placeholder")
+            state = root / "state.json"
+            state.write_text(json.dumps({
+                "jobs": {SYNC: {"baseline": 10, "requested_at": 1900000000, "signature": approved_rows([], 1900000100)[0], "run_id": 11}},
+                "synced_signature": "old",
+                "error": SYNC + " failed; run_id=9",
+                "cooldown_until": {SYNC: 1900000300},
+            }))
+            run = {"id": 11, "status": "completed", "conclusion": "success", "actor": {"login": "funzug-automation-netensai[bot]"}}
+            with patch("scheduler.runner.time.time", return_value=1900000100), patch("scheduler.runner.request_json", return_value={"drafts": []}), patch("scheduler.runner.installation_token", return_value="fake-auth"), patch("scheduler.runner.workflow_runs", side_effect=lambda workflow, auth: [run] if workflow == SYNC else []), patch("scheduler.runner.dispatch") as send:
+                tick({"draft_secret": "fake-secret", "key_file": str(key)}, state)
+            saved = json.loads(state.read_text())
+            self.assertNotIn("error", saved)
+            self.assertNotIn(SYNC, saved["cooldown_until"])
+            send.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

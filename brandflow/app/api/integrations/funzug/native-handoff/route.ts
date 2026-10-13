@@ -6,7 +6,7 @@ import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
 import {mergeNativeHandoff,nativeHandoffEqual} from '@/lib/funzug-native-handoff.mjs';
 export const dynamic='force-dynamic';
 const timestamp=z.string().datetime({offset:true});
-const receipt=z.object({platform:z.enum(['facebook','instagram']),schedule_id:z.string().trim().min(1).max(200),scheduled_at:timestamp,content_hash:z.string().regex(/^[0-9a-f]{64}$/),planner_url:z.string().url().max(2000),checked_at:timestamp}).strict();
+const receipt=z.object({platform:z.enum(['facebook','instagram']),schedule_id:z.string().trim().min(1).max(200).refine(value=>!value.toLowerCase().startsWith('meta-planner-visible:'),'Placeholder schedule identifiers are not Meta receipts'),scheduled_at:timestamp,content_hash:z.string().regex(/^[0-9a-f]{64}$/),planner_url:z.string().url().max(2000),checked_at:timestamp}).strict();
 const handoff=z.object({state:z.enum(['reserved','submitting','scheduled']),reserved_at:timestamp,scheduled_at:timestamp,content_hash:z.string().regex(/^[0-9a-f]{64}$/),platforms:z.array(z.enum(['facebook','instagram'])).min(1).max(2),receipts:z.record(z.enum(['facebook','instagram']),receipt),submission_started_at:timestamp.optional()}).strict();
 const schema=z.object({batchId:z.string().min(1).max(200),externalId:z.string().min(1).max(200),handoff}).strict();
 export async function POST(req:Request){

@@ -21,6 +21,10 @@ test('native receipts bind platform content and schedule and cannot be rewritten
  assert.throws(()=>mergeNativeHandoff(partial,{...submitting,receipts:{}},platforms));
  assert.throws(()=>mergeNativeHandoff(submitting,{...submitting,state:'scheduled',receipts:{}},platforms));
 });
+test('planner placeholders cannot be recorded as native Meta schedule receipts',()=>{
+ const fake={...receipt('facebook'),schedule_id:'meta-planner-visible:funzug-2026-test:facebook:2099-10-13T19:30:00+05:30'};
+ assert.throws(()=>mergeNativeHandoff(submitting,{...submitting,receipts:{facebook:fake}},platforms));
+});
 test('JSONB key ordering cannot cause receipt conflicts or duplicate state writes',()=>{
  const prior=receipt('facebook');const reordered=Object.fromEntries(Object.entries(prior).reverse());
  assert.ok(nativeHandoffEqual(prior,reordered));

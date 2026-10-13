@@ -13,7 +13,7 @@ export function mergeNativeHandoff(previous, incoming, platforms) {
   if (incoming.state==='scheduled' && receipts.length!==platforms.length) throw new Error('Missing native platform receipts');
   for (const platform of receipts) {
     const r=incoming.receipts[platform];
-    if (!r || r.platform!==platform || r.content_hash!==incoming.content_hash || r.scheduled_at!==incoming.scheduled_at || !r.schedule_id) throw new Error('Receipt differs from reservation');
+    if (!r || r.platform!==platform || r.content_hash!==incoming.content_hash || r.scheduled_at!==incoming.scheduled_at || !r.schedule_id || String(r.schedule_id).trim().toLowerCase().startsWith('meta-planner-visible:')) throw new Error('Receipt differs from reservation');
     const url=new URL(r.planner_url);
     if (url.protocol!=='https:' || url.hostname!=='business.facebook.com' || url.username || url.password) throw new Error('Invalid planner URL');
     if (!Number.isFinite(Date.parse(r.checked_at)) || Date.parse(r.checked_at)<Date.parse(incoming.submission_started_at) || Date.parse(r.checked_at)>Date.now()) throw new Error('Invalid receipt observation');

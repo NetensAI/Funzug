@@ -83,7 +83,12 @@ def record_receipt(item: dict[str, Any], receipt: dict[str, Any], now: dt.dateti
     if receipt.get("scheduled_at") != handoff.get("scheduled_at") or receipt.get("content_hash") != handoff.get("content_hash"):
         raise RuntimeError("receipt does not match the reserved content and IST slot")
     schedule_id = receipt.get("schedule_id")
-    if not isinstance(schedule_id, str) or not schedule_id.strip() or len(schedule_id) > 200:
+    if (
+        not isinstance(schedule_id, str)
+        or not schedule_id.strip()
+        or len(schedule_id) > 200
+        or schedule_id.strip().casefold().startswith("meta-planner-visible:")
+    ):
         raise RuntimeError("receipt requires the observed Meta schedule identifier")
     url = urllib.parse.urlsplit(receipt.get("planner_url", ""))
     if url.scheme != "https" or url.hostname != "business.facebook.com" or url.username or url.password:

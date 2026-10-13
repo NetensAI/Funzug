@@ -109,6 +109,9 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
         if workflow == PUBLISH:
             state["sync_results_needed"] = True
         if run.get("conclusion") == "success":
+            if state.get("error", "").startswith(workflow + " failed;"):
+                state.pop("error", None)
+            state.get("cooldown_until", {}).pop(workflow, None)
             if workflow == SYNC:
                 state["synced_signature"] = job["signature"]
             elif workflow == RENEW:
