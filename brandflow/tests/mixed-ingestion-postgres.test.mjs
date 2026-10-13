@@ -5,6 +5,7 @@ import {randomUUID} from 'node:crypto';
 import pg from 'pg';
 import {storeOrderedDraft} from '../lib/store-ordered-draft.mjs';
 import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
+import {storedOrderedMediaHash} from '../lib/funzug-content-hash.mjs';
 const url=process.env.FUNZUG_TEST_DATABASE_URL;
 if(process.env.FUNZUG_REQUIRE_DATABASE_TESTS==='1'&&!url)throw Error('Disposable PostgreSQL URL required');
 test('mixed ingestion against actual migrated PostgreSQL storage',{skip:!url},async()=>{
@@ -29,6 +30,8 @@ test('mixed ingestion against actual migrated PostgreSQL storage',{skip:!url},as
    const read=async()=>({row:(await pool.query('SELECT * FROM social_post_drafts WHERE id=$1',[accepted.id])).rows[0],assets:(await pool.query('SELECT * FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[accepted.id])).rows});
    const original=await read();assert.equal(original.row.image_bytes,null);assert.equal(original.row.image_mime_type,null);
    const before=orderedMediaManifest(original.row,original.assets).contentHash;
+   const snapshot=(await pool.query(`SELECT d.*,COALESCE((SELECT jsonb_agg(jsonb_build_object('index',a.media_index,'mimeType',a.mime_type,'width',a.width,'height',a.height,'durationMs',a.duration_ms,'sha256',a.sha256) ORDER BY a.media_index) FROM social_post_media_assets a WHERE a.draft_id=d.id),'[]'::jsonb) ordered_media FROM social_post_drafts d WHERE id=$1`,[accepted.id])).rows[0];
+   assert.equal(storedOrderedMediaHash(snapshot),before);
    await client.query('BEGIN');await storeOrderedDraft(client,brand,'batch',{...draft,caption:'Changed'});await client.query('ROLLBACK');
    const after=await read();assert.equal(orderedMediaManifest(after.row,after.assets).contentHash,before);
    await client.query('BEGIN');await assert.rejects(storeOrderedDraft(client,brand,'batch',{...draft,media:[draft.media[0],draft.media[0]]}),e=>e.code==='23505');await client.query('ROLLBACK');

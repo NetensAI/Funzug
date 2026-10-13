@@ -2,6 +2,8 @@
 
 ## Ordered media storage, not yet deployed
 
+Draft status GET now computes mixed-format fingerprints from database-generated checksums and ordered metadata selected in the same SQL snapshot as the parent. It returns only the fingerprint and status, not file bytes or the private media manifest. Invalid or incomplete manifests yield a null fingerprint. Unit tests compare the database representation with exact-byte review hashes; the disposable PostgreSQL test exercises the snapshot query. This does not enable mixed-format approval or native delivery.
+
 The existing authenticated draft POST now accepts schemaVersion 2 for one Carousel or Reel draft, with the same source/claim and IST validation as schemaVersion 1. Decoding precedes the transaction; parent metadata, exact ordered bytes and the ingest audit commit together. Reviewed drafts and changes to an existing format are rejected. The current combined JSON request limit remains 13 MB. Migration 014 permits null legacy image fields only for mixed formats, without a placeholder image. This path requires full migration/route/database integration verification and deployment before use; mixed-format approval remains disabled.
 
 `lib/decode-ordered-media.mjs` runs the private validator with a credential-free child environment, bounded output and timeout, accepting only the identical Node/Python review fingerprint. Its tests exercise actual Python/Pillow decoding and sanitized failures. The versioned `Dockerfile` adds Python, Pillow and FFmpeg to the existing dashboard runtime; copy the two required `scripts/` modules into the dashboard build context before building it. Neither the runtime nor the decoder bridge has been deployed, and the ingestion endpoint does not call the bridge yet.
