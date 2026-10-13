@@ -134,14 +134,19 @@ def record_published_outcomes(item: dict[str, Any], raw: dict[str, Any], now: dt
     saved: dict[str, dict[str, str]] = {}
     for platform in platforms:
         result = results.get(platform)
-        if not isinstance(result, dict) or set(result) != {"post_id", "published_at", "evidence_url"}:
+        legacy_fields={"post_id", "published_at", "evidence_url"}
+        mapped_fields=legacy_fields|{"scheduled_post_id","content_hash"}
+        if not isinstance(result, dict) or set(result) not in (legacy_fields,mapped_fields):
             raise RuntimeError("each publication outcome requires a Meta post ID, time, and evidence URL")
         post_id = result.get("post_id")
         if not isinstance(post_id, str) or not post_id.strip() or len(post_id) > 200:
             raise RuntimeError("Meta post ID is invalid")
         receipt = handoff.get("receipts", {}).get(platform)
-        if not isinstance(receipt, dict) or receipt.get("schedule_id") != post_id:
+        mapped=set(result)==mapped_fields
+        if not isinstance(receipt, dict) or receipt.get("schedule_id") != (result.get('scheduled_post_id') if mapped else post_id):
             raise RuntimeError("published post ID does not match the observed native Meta receipt")
+        if mapped and result.get('content_hash')!=handoff.get('content_hash'):
+            raise RuntimeError('published content does not match native reservation')
         published_at = pipeline.parse_time(result.get("published_at"))
         if published_at > now or abs(published_at - slot) > dt.timedelta(minutes=15):
             raise RuntimeError("publication time is not consistent with the approved IST slot")
@@ -161,6 +166,8 @@ def record_published_outcomes(item: dict[str, Any], raw: dict[str, Any], now: dt
             "published_at": published_at.isoformat(),
             "post_id": post_id,
         }
+        if mapped:
+            saved[platform]['scheduled_post_id']=result['scheduled_post_id']
 
     if was_published:
         if item.get("platform_results") == saved:
@@ -241,7 +248,7 @@ def main() -> int:
             history["topic_keys"] = sorted(known_topics)
             pipeline.save_json(pipeline.HISTORY_PATH, history)
             for platform, result in item["platform_results"].items():
-                pipeline.log_event({"event":"published", "item_id":args.id, "platform":platform, "post_id":result["post_id"], "published_at":result["published_at"], "source":"Meta Business Suite"})
+                pipeline.log_event({"event":"published", "item_id":args.id, "platform":platform, "post_id":result["post_id"], "scheduled_post_id":result.get('scheduled_post_id',result['post_id']), "published_at":result["published_at"], "source":"Meta Business Suite"})
         pipeline.log_event(event)
     if args.action == "published":
         print("Verified native Meta publication outcome persisted; BrandFlow sync is required")

@@ -8,7 +8,7 @@ import datetime as dt
 import hashlib
 import re
 from pathlib import Path
-from urllib.parse import urlsplit,parse_qs
+from urllib.parse import urlsplit,parse_qs,urljoin
 
 from scheduler.native_worker import IST, NativeFailure, binding, stamp
 from scheduler.publication_evidence import publication_time
@@ -177,14 +177,14 @@ class MetaBrowser:
         self.page.get_by_role('button', name='Schedule', exact=True).click(timeout=15000)
         # Any timeout returns to controller reconciliation, never click again.
 
-    def inspect(self, packet: dict) -> dict:
+    def planner_cards(self, packet: dict, allow_past=False):
         self.planner.goto(PLANNER, wait_until='domcontentloaded')
         self.visible(self.planner, 'Planner')
         self.planner.get_by_role('button', name='Week', exact=True).click()
         slot = stamp(packet['proposedSchedule'])
         today = dt.datetime.now(IST)
         delta = (slot.date() - today.date()).days
-        if not 0 <= delta <= 28:
+        if not (-28 if allow_past else 0) <= delta <= 28:
             raise NativeFailure('native_slot_outside_review_window')
         self.planner.get_by_role('button', name='Today', exact=True).click()
         # Meta renders the toolbar before its calendar data. Reading immediately
@@ -197,7 +197,7 @@ class MetaBrowser:
             if header.count() == 1:
                 break
             previous = dates.first.inner_text()
-            self.planner.get_by_role('button', name='Right', exact=True).click()
+            self.planner.get_by_role('button', name='Left' if delta<0 else 'Right', exact=True).click()
             self.planner.get_by_text(previous,exact=True).wait_for(state='hidden',timeout=15000)
             self.planner.get_by_text(re.compile(r'^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+[0-9]{1,2}$')).first.wait_for(state='visible', timeout=15000)
         else:
@@ -209,6 +209,11 @@ class MetaBrowser:
         header = self.planner.get_by_text(target, exact=True)
         bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
         cards = self.planner.get_by_label(packet['caption'], exact=True)
+        return cards,bounds
+
+    def inspect(self, packet: dict) -> dict:
+        cards,bounds=self.planner_cards(packet)
+        slot=stamp(packet['proposedSchedule'])
         results = {}
         for platform in packet['platforms']:
             name = time_label(slot) + (' Facebook' if platform == 'facebook' else ' Instagram')
@@ -244,11 +249,29 @@ class MetaBrowser:
         handoff=packet.get('nativeHandoff',{})
         if handoff.get('state')!='scheduled':
             raise NativeFailure('publication_requires_scheduled_receipts')
+        cards,bounds=self.planner_cards(packet,allow_past=True)
+        links={}
+        for platform in packet['platforms']:
+            label='Facebook' if platform=='facebook' else 'Instagram'
+            choices=cards.locator('a[href]').filter(has=self.planner.get_by_role('img',name=label,exact=True))
+            matches=[]
+            for link in choices.all():
+                position=link.bounding_box()
+                if position and bounds['left']<=position['x']+position['width']/2<=bounds['right'] and re.sub(r'\s+',' ',link.inner_text()).strip()==time_label(stamp(packet['proposedSchedule'])):
+                    href=urljoin(PLANNER,link.get_attribute('href') or '')
+                    parsed=urlsplit(href)
+                    values=parse_qs(parsed.query).get('content_id',[])
+                    if parsed.scheme=='https' and parsed.hostname=='business.facebook.com' and not parsed.username and not parsed.password and parsed.path.rstrip('/')=='/latest/insights/object_insights' and len(values)==1 and re.fullmatch(r'[0-9]+',values[0]):
+                        matches.append(values[0])
+            if len(matches)!=1:
+                raise NativeFailure('published_planner_link_not_unique')
+            links[platform]=matches[0]
         results={}
         for platform in packet['platforms']:
-            identifier=handoff.get('receipts',{}).get(platform,{}).get('schedule_id')
-            if not isinstance(identifier,str) or not re.fullmatch(r'[0-9]+',identifier):
+            scheduled_id=handoff.get('receipts',{}).get(platform,{}).get('schedule_id')
+            if not isinstance(scheduled_id,str) or not re.fullmatch(r'[0-9]+',scheduled_id):
                 raise NativeFailure('publication_identifier_missing')
+            identifier=links[platform]
             url='https://business.facebook.com/latest/insights/object_insights/?content_id='+identifier
             self.planner.goto(url,wait_until='domcontentloaded')
             self.planner.get_by_role('heading',name=packet['caption'],exact=True).wait_for(timeout=45000)
@@ -265,4 +288,6 @@ class MetaBrowser:
                 raise NativeFailure('publication_label_not_confirmed')
             published=publication_time(labels.inner_text(),packet['proposedSchedule'],dt.datetime.now(IST))
             results[platform]={'post_id':identifier,'published_at':published,'evidence_url':url}
+            if identifier!=scheduled_id:
+                results[platform].update(scheduled_post_id=scheduled_id,content_hash=packet['contentHash'])
         return {'platform_results':results}
