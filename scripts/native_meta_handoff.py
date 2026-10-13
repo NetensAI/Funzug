@@ -47,7 +47,7 @@ def reserve(item: dict[str, Any], reviewed: dict[str, Any], now: dt.datetime) ->
         if isinstance(existing, dict) and existing.get("state") == "reserved" and existing.get("content_hash") == reviewed.get("contentHash") and existing.get("scheduled_at") == slot.isoformat():
             return False
         raise RuntimeError("existing native handoff requires planner reconciliation")
-    if not pipeline.workflow_delivery_allowed(item):
+    if not pipeline.workflow_delivery_allowed(item) and item.get('delivery_mode')!='meta_native_pending':
         raise RuntimeError("unknown delivery mode requires reconciliation")
     item["delivery_mode"] = "meta_native"
     item["native_handoff"] = {

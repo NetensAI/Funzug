@@ -32,6 +32,12 @@ class NativeHandoffTests(unittest.TestCase):
                 reserve(self.item,row,self.now)
             self.assertEqual(self.item,before)
 
+    def test_pending_native_delivery_blocks_api_before_reservation(self):
+        self.item['delivery_mode']='meta_native_pending'
+        self.assertFalse(pipeline.workflow_delivery_allowed(self.item))
+        self.assertTrue(reserve(self.item,self.row,self.now))
+        self.assertFalse(pipeline.workflow_delivery_allowed(self.item))
+
     def test_due_posts_outcomes_and_uncertain_handoffs_cannot_be_reserved(self):
         for changes in [{"scheduled_at":self.now.isoformat()},{"platform_results":{"instagram":{"status":"published"}}},{"native_handoff":{"state":"uncertain"}},{"delivery_mode":"unexpected"},{"format":"carousel"}]:
             item = dict(self.item,**changes)

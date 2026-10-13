@@ -306,6 +306,13 @@ def process_approvals() -> int:
             continue
         require_matching_approved_content(item, status)
         item["scheduled_at"] = local_schedule.isoformat()
+        delivery_mode=os.environ.get('FUNZUG_DELIVERY_MODE','workflow') or 'workflow'
+        if delivery_mode not in {'workflow','meta_native'}:
+            raise RuntimeError('Configured Funzug delivery mode is invalid')
+        if delivery_mode=='meta_native':
+            # stage_draft copies this marker before recording approval. The
+            # due-time API publisher must not race the native browser worker.
+            item['delivery_mode']='meta_native_pending'
         checklist = {"approvalConfirmed": True}
         pipeline.host_and_approve_draft(
             drafts, queue, item_id, reviewer, note, checklist,

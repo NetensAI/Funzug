@@ -127,6 +127,25 @@ class BrandFlowPayloadTests(unittest.TestCase):
         self.assertEqual(process.call_args.args[2], future["id"])
         match.assert_called_once_with(future, future_status)
 
+    def test_native_approval_is_staged_with_api_delivery_disabled(self):
+        item={'id':'native-fixture','status':'draft'}
+        status={'status':'approved','publicationAuthorized':True,
+                'scheduleTimezone':'Asia/Kolkata','proposedSchedule':'2999-01-01T19:15:00+05:30',
+                'reviewedBy':'vatsal','reviewNote':'Approved','reviewChecks':{'approvalConfirmed':True}}
+        with (
+            patch.dict('os.environ',{'FUNZUG_DELIVERY_MODE':'meta_native'}),
+            patch.object(sync,'secret',return_value='s'*64),
+            patch.object(sync,'api_url',return_value='https://example.test/api'),
+            patch.object(sync,'api_status',return_value={item['id']:status}),
+            patch.object(sync.pipeline,'load_json',side_effect=[{'items':[item]},{'items':[]},{'items':[]}]),
+            patch.object(sync,'require_matching_approved_content'),
+            patch.object(sync.pipeline,'host_and_approve_draft') as process,
+        ):
+            sync.process_approvals()
+        staged=process.call_args.args[0]['items'][0]
+        self.assertEqual(staged['delivery_mode'],'meta_native_pending')
+        self.assertFalse(sync.pipeline.workflow_delivery_allowed(staged))
+
     def test_published_item_does_not_block_later_approvals(self):
         published = {"id": "already-posted", "status": "published"}
         queue = {"items": [published]}

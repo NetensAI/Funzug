@@ -51,6 +51,15 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Stage existing owner approval before native reservation
+        if: inputs.action == 'reserve'
+        env:
+          FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
+          FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+          FUNZUG_MEDIA_BASE_URL: ${{ vars.FUNZUG_MEDIA_BASE_URL }}
+          FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
+          FUNZUG_DELIVERY_MODE: meta_native
+        run: python scripts/brandflow_sync.py process-approvals
       - name: Validate and reserve existing approval
         env:
           ITEM_ID: ${{ inputs.item_id }}
