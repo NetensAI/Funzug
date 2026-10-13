@@ -8,13 +8,18 @@ const image=z.discriminatedUnion('kind',[
  z.object({kind:z.literal('base64'),mimeType:z.enum(['image/png','image/jpeg']),width:z.number().int().positive(),height:z.number().int().positive(),data:z.string().min(16)}).strict(),
  z.object({kind:z.literal('secure_url'),mimeType:z.enum(['image/png','image/jpeg']),width:z.number().int().positive(),height:z.number().int().positive(),url:httpsUrl}).strict()
 ]).refine(v=>v.width<v.height&&Math.abs(v.width*5-v.height*4)<=2,{message:'Image must be portrait 4:5 with nearest-pixel rounding'});
-const draft=z.object({externalId:z.string().trim().min(1).max(200),headline:z.string().trim().min(1).max(500),caption:z.string().trim().min(1).max(10000),claims:z.array(claim).min(1).max(100),sources:z.array(source).min(1).max(100),platforms:z.array(z.enum(['instagram','facebook'])).min(1).max(2),proposedSchedule:z.string().datetime({offset:true}),scheduleTimezone:z.literal('Asia/Kolkata'),image}).strict().superRefine((value,ctx)=>{
+const common=z.object({externalId:z.string().trim().min(1).max(200),headline:z.string().trim().min(1).max(500),caption:z.string().trim().min(1).max(10000),claims:z.array(claim).min(1).max(100),sources:z.array(source).min(1).max(100),platforms:z.array(z.enum(['instagram','facebook'])).min(1).max(2),proposedSchedule:z.string().datetime({offset:true}),scheduleTimezone:z.literal('Asia/Kolkata')}).strict();
+function validateEvidence(value:z.infer<typeof common>,ctx:z.RefinementCtx){
  if(new Set(value.platforms).size!==value.platforms.length)ctx.addIssue({code:z.ZodIssueCode.custom,path:['platforms'],message:'Platforms must be unique'});
  const ids=value.sources.map(x=>x.id);if(new Set(ids).size!==ids.length)ctx.addIssue({code:z.ZodIssueCode.custom,path:['sources'],message:'Source IDs must be unique'});
  const sources=new Set(ids);for(const [i,item] of value.claims.entries())for(const id of item.source_ids)if(!sources.has(id))ctx.addIssue({code:z.ZodIssueCode.custom,path:['claims',i,'source_ids'],message:'Claim source ID must exist in sources'});
  if(!offsetMatchesZone(value.proposedSchedule,value.scheduleTimezone))ctx.addIssue({code:z.ZodIssueCode.custom,path:['proposedSchedule'],message:'Timestamp offset does not match scheduleTimezone at that instant'});
-});
+}
+const draft=common.extend({image}).superRefine(validateEvidence);
 export const funzugBatchSchema=z.object({schemaVersion:z.literal(1),brandSlug:z.literal('funzug'),batchId:z.string().trim().min(1).max(200),drafts:z.array(draft).length(1)}).strict();
+const mediaAsset=z.object({mimeType:z.enum(['image/png','image/jpeg','video/mp4']),width:z.number().int().positive(),height:z.number().int().positive(),data:z.string().min(16),durationMs:z.number().int().min(1).max(180000).optional()}).strict();
+const orderedDraft=common.extend({format:z.enum(['carousel','reel']),media:z.array(mediaAsset).min(1).max(10)}).superRefine(validateEvidence);
+export const funzugOrderedBatchSchema=z.object({schemaVersion:z.literal(2),brandSlug:z.literal('funzug'),batchId:z.string().trim().min(1).max(200),drafts:z.array(orderedDraft).length(1)}).strict();
 
 function offsetMatchesZone(timestamp:string,timeZone:string){
  const supplied=timestamp.match(/(Z|[+-]\d{2}:\d{2})$/)?.[1];if(!supplied)return false;

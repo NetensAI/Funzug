@@ -1,7 +1,9 @@
 import {NextResponse} from 'next/server';
 import {db} from '@/lib/db';
 import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
-import {decodeAndVerifyImage,funzugBatchSchema,validBearer} from '@/lib/funzug-drafts';
+import {decodeAndVerifyImage,funzugBatchSchema,funzugOrderedBatchSchema,validBearer} from '@/lib/funzug-drafts';
+import {decodeOrderedMedia} from '@/lib/decode-ordered-media.mjs';
+import {storeOrderedDraft} from '@/lib/store-ordered-draft.mjs';
 export {POST as PUT} from '../outcomes/route';
 
 export const dynamic='force-dynamic';
@@ -16,6 +18,7 @@ export async function POST(req:Request){
  if(!validBearer(req.headers.get('authorization')))return NextResponse.json({error:'Unauthorized'},{status:401});
  const length=Number(req.headers.get('content-length')||0);if(length>13*1024*1024)return NextResponse.json({error:'Request exceeds 13 MB limit'},{status:413});
  let input:unknown;try{const text=await req.text();if(Buffer.byteLength(text,'utf8')>13*1024*1024)return NextResponse.json({error:'Request exceeds 13 MB limit'},{status:413});input=JSON.parse(text)}catch{return NextResponse.json({error:'Invalid JSON'},{status:400})}
+ if((input as any)?.schemaVersion===2)return receiveOrderedDraft(req,input);
  const parsed=funzugBatchSchema.safeParse(input);if(!parsed.success)return NextResponse.json({error:'Invalid draft batch',issues:parsed.error.issues.map(x=>({path:x.path.join('.'),message:x.message}))},{status:400});
  const {rows:[brand]}=await db.query("SELECT id FROM brands WHERE slug='funzug' AND status<>'archived'");if(!brand)return NextResponse.json({error:'Funzug brand is unavailable'},{status:409});
  const client=await db.connect();try{
@@ -32,4 +35,21 @@ export async function POST(req:Request){
   await client.query(`INSERT INTO audit_logs(action,target_type,target_id,details,ip_address) VALUES('social_draft.batch_received','social_post_batch',$1,$2::jsonb,$3)`,[parsed.data.batchId,JSON.stringify({brandSlug:'funzug',draftCount:accepted.length}),req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown']);
   await client.query('COMMIT');return NextResponse.json({batchId:parsed.data.batchId,accepted},{status:202});
  }catch(e:any){await client.query('ROLLBACK');return NextResponse.json({error:e.message||'Draft batch rejected'},{status:409})}finally{client.release()}
+}
+
+async function receiveOrderedDraft(req:Request,input:unknown){
+ const parsed=funzugOrderedBatchSchema.safeParse(input);
+ if(!parsed.success)return NextResponse.json({error:'Invalid ordered draft batch'},{status:400});
+ const packet=parsed.data;const draft=packet.drafts[0];
+ try{await decodeOrderedMedia(draft)}catch{return NextResponse.json({error:'Ordered media decoding failed'},{status:400})}
+ const {rows:[brand]}=await db.query("SELECT id FROM brands WHERE slug='funzug' AND status<>'archived'");
+ if(!brand)return NextResponse.json({error:'Funzug brand is unavailable'},{status:409});
+ const client=await db.connect();
+ try{
+  await client.query('BEGIN');
+  const accepted=await storeOrderedDraft(client,brand.id,packet.batchId,draft);
+  await client.query(`INSERT INTO audit_logs(action,target_type,target_id,details,ip_address) VALUES('social_draft.batch_received','social_post_batch',$1,$2::jsonb,$3)`,[packet.batchId,JSON.stringify({brandSlug:'funzug',draftCount:1,format:draft.format,mediaCount:draft.media.length}),req.headers.get('cf-connecting-ip')||'unknown']);
+  await client.query('COMMIT');return NextResponse.json({batchId:packet.batchId,accepted:[accepted]},{status:202});
+ }catch{await client.query('ROLLBACK');return NextResponse.json({error:'Ordered draft batch rejected'},{status:409})}
+ finally{client.release()}
 }

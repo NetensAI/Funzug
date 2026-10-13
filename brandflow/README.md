@@ -2,6 +2,8 @@
 
 ## Ordered media storage, not yet deployed
 
+The existing authenticated draft POST now accepts schemaVersion 2 for one Carousel or Reel draft, with the same source/claim and IST validation as schemaVersion 1. Decoding precedes the transaction; parent metadata, exact ordered bytes and the ingest audit commit together. Reviewed drafts and changes to an existing format are rejected. The current combined JSON request limit remains 13 MB. Migration 014 permits null legacy image fields only for mixed formats, without a placeholder image. This path requires full migration/route/database integration verification and deployment before use; mixed-format approval remains disabled.
+
 `lib/decode-ordered-media.mjs` runs the private validator with a credential-free child environment, bounded output and timeout, accepting only the identical Node/Python review fingerprint. Its tests exercise actual Python/Pillow decoding and sanitized failures. The versioned `Dockerfile` adds Python, Pillow and FFmpeg to the existing dashboard runtime; copy the two required `scripts/` modules into the dashboard build context before building it. Neither the runtime nor the decoder bridge has been deployed, and the ingestion endpoint does not call the bridge yet.
 
 `scripts/validate_ordered_media.py` decodes each Carousel slide with Pillow and each Reel with FFprobe plus a full FFmpeg decode. It checks actual dimensions, file format, duration, rotation, codec, frame rate and private byte fingerprints without resizing, cropping or uploading. A missing decoder rejects Reel validation. CI requires a real generated MP4 decode test. This validator is not yet wired into server ingestion, so mixed-format ingestion remains disabled.
