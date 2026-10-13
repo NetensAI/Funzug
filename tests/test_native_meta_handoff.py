@@ -125,6 +125,18 @@ class NativeHandoffTests(unittest.TestCase):
             for platform,post_id in post_ids.items()
         }}
 
+        mapped=copy.deepcopy(raw)
+        mapped['platform_results']['facebook'].update(post_id='999999',scheduled_post_id=post_ids['facebook'],content_hash=self.row['contentHash'],evidence_url='https://business.facebook.com/latest/insights/object_insights/?content_id=999999')
+        for changes in [{'scheduled_post_id':'wrong'},{'content_hash':'b'*64}]:
+            bad=copy.deepcopy(mapped)
+            bad['platform_results']['facebook'].update(changes)
+            with self.assertRaises(RuntimeError):
+                record_published_outcomes(copy.deepcopy(self.item),bad,published_now)
+        mapped_item=copy.deepcopy(self.item)
+        self.assertTrue(record_published_outcomes(mapped_item,mapped,published_now))
+        self.assertEqual(mapped_item['platform_results']['facebook']['scheduled_post_id'],post_ids['facebook'])
+        self.assertEqual(mapped_item['native_handoff']['receipts']['facebook']['schedule_id'],post_ids['facebook'])
+
         for bad in [
             {"platform_results":{"facebook":raw["platform_results"]["facebook"]}},
             {"platform_results":{**raw["platform_results"],"facebook":dict(raw["platform_results"]["facebook"],post_id="different-id")}},
