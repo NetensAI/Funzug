@@ -13,7 +13,7 @@ Implemented locally, not deployed:
 
 Verification on 13 October 2026:
 
-- 21 controller, checkpoint dispatcher and worker selection tests passed.
+- 24 controller, checkpoint dispatcher and worker selection tests passed.
 - 21 BrandFlow boundary tests passed using unchanged dependencies from the existing checkout. No dependency installation occurred.
 - Full Python discovery ran 143 tests, with 5 Windows temporary-directory cleanup permission errors and 1 skip. This is not a full-suite pass.
 - The Meta composer was inspected through the authorized Edge extension. The selected accounts were Funzug and funzugdotcom. An already-approved Mars image and caption were tested in the composer and discarded without scheduling or publishing.
@@ -24,7 +24,7 @@ Verification on 13 October 2026:
 Remaining implementation:
 
 1. Run the browser adapter against the persistent Mini PC browser, verify date-column and account checks, verify uploaded-image identity and render screenshots, and resolve selector differences. Never infer a receipt from a toast. Browser runtime remains unverified.
-2. Deploy the private package route and correlation workflow first. Test the worker against that deployment. A checkpoint taking more than 45 seconds is left pending for reconciliation; it is not blindly repeated. Add automated continuation for long-running checkpoint jobs before unattended readiness.
+2. Deploy the private package route and correlation workflow first. Test the worker against that deployment. A checkpoint taking more than 45 seconds is observed on a later poll with its saved correlation ID. A completed begin checkpoint may rebuild the composer only while durable state proves the Schedule click was never attempted. After submission intent, recovery only inspects the planner.
 3. Make native delivery the selected path for future BrandFlow approvals and prevent API due-time delivery before any browser submission. Preserve the existing API mode until a tested cutover, and clearly show which mode is active.
 4. Build the new Docker image and enable the persistent Chromium loopback debugging listener while preserving its existing profile. Verify the configured browser timezone is IST. Do not expose its debugging endpoint publicly or copy session cookies.
 5. Run CI, deploy and verify a newly owner-approved future post through both platforms. Existing approved posts already scheduled in Meta must only be reconciled.
