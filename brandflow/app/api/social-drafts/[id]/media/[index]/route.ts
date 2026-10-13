@@ -14,6 +14,6 @@ export async function GET(req:Request,{params}:{params:{id:string,index:string}}
   JOIN users u ON u.id=$3 AND u.active=true AND u.role='admin'
   WHERE b.slug='funzug' AND a.draft_id=$1 AND a.media_index=$2`,[params.id,Number(params.index),session.sub]);
  if(!asset)return NextResponse.json({error:'Private media not found'},{status:404});
- try{const response=privateMediaResponse(asset,req.headers.get('range'));return new NextResponse(response.body,{status:response.status,headers:response.headers});}
+ try{const response=privateMediaResponse(asset,req.headers.get('range'));return new NextResponse(response.body===null?null:new Uint8Array(response.body).buffer,{status:response.status,headers:response.headers});}
  catch{return NextResponse.json({error:'Private media requires reconciliation'},{status:409});}
 }

@@ -2,6 +2,8 @@
 
 ## Ordered media storage, not yet deployed
 
+On 13 October 2026, an isolated Mini PC build of the updated dashboard passed Next.js production compilation and type checks after correcting the private preview response to an ArrayBuffer. The resulting `brandflow-pr67-check:720683b` image passed all five decoded-media tests, including real H.264 MP4 decoding, with networking disabled. The staging directory contains an allowlisted application copy, not the production `.env`, backups or credentials. No production migrations were applied and no dashboard restart occurred. This build verifies the application/runtime, not live mixed-format scheduling.
+
 The repository sync client now sends Carousel drafts as schemaVersion 2 using existing `media_paths`, validates every original slide, enforces repository containment, preserves order and source metadata, and rejects combined JSON above 13 MB before transfer. Single-image payloads remain version 1. The client still lacks Reel queue-model support. No Carousel draft was transferred by this change.
 
 The native-package endpoint can return an approved ordered package only when `FUNZUG_NATIVE_MIXED_ENABLED=1`. It selects parent and private assets together, verifies database byte checksums and order, decodes media again, and checks any reservation fingerprint. The default remains disabled. Do not enable the flag until the native worker supports preparation, proof, planner verification and publication reconciliation for these formats. Current route tests cover the flag, approval checks, malformed order, reservation mismatch and decoding failure; they do not prove a live Meta submission.
