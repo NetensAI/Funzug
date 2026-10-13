@@ -3,3 +3,4 @@
 **/.env
 scheduler/secrets/
 scheduler/state/
+scheduler/native-state/

@@ -1,5 +1,19 @@
 # Native scheduling worker implementation status
 
+## Deployment update, 13 October 2026
+
+PRs #57, #58 and #59 are merged. Their GitHub checks passed. The private package route is deployed to BrandFlow. The Mini PC image `funzug-native-worker:pr59` is running as `funzug-native-worker`, with restart policy unless-stopped, read-only root filesystem, dropped capabilities, private credential mounts and dedicated durable state. Browser debugging remains loopback-only inside `funzug-meta-browser`; no debugging port is published.
+
+The `funzug-publish` environment variable `FUNZUG_DELIVERY_MODE=meta_native` directs future approvals to native delivery. Approval staging marks new queue entries `meta_native_pending`, preventing the API due-time publisher from racing the browser. Reservation stages the existing owner approval under the authoritative queue-write lock before reserving it.
+
+Live verification matched the existing Mars and Hubble planner entries on both approved platforms to their stored schedule IDs and IST slots. Composer preparation using the already-approved Hubble image verified exact caption, original image hash, selected accounts and date/time controls. This test did not click Schedule or Publish. Waits were added for planner rendering and date controls after the scheduling toggle. The active worker independently verified the Mars schedule.
+
+The active worker independently verified both Mars and Hubble schedules and saved `status=scheduled` with live verification timestamps. Neither existing schedule was resubmitted.
+
+Remaining acceptance checks: observe a newly owner-approved future post through reservation, native submission and both live planner receipts; verify post-publication reconciliation and dashboard outcomes. Do not infer full readiness from existing-schedule inspection. Broader content preparation and source/image validation remain separate goal requirements.
+
+The historical implementation notes below describe the pre-deployment state and are retained as an audit trail, not current deployment instructions.
+
 Worktree: `codex/native-meta-worker`, based on main `241171f`.
 
 Implemented locally, not deployed:

@@ -29,5 +29,14 @@ class NativeRunnerTests(unittest.TestCase):
                 with self.assertRaisesRegex(NativeFailure,'invalid_native_api_origin'):read_api({'native_api_url':origin},'native-package',{})
             send.assert_not_called()
 
+    def test_enabled_empty_poll_persists_liveness(self):
+        state=Path('nonexistent-native-fixture-state.json')
+        with patch('scheduler.native_runner.read_api',return_value={'drafts':[]}),patch('scheduler.native_runner.auth') as authenticate,patch('scheduler.native_runner.write_state') as save:
+            tick({},state,None,True)
+        authenticate.assert_not_called()
+        self.assertTrue(save.call_args.args[1]['enabled'])
+        self.assertEqual(save.call_args.args[1]['active_item_ids'],[])
+        self.assertGreater(save.call_args.args[1]['last_checked_at'],0)
+
 
 if __name__=='__main__':unittest.main()

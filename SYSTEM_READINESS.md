@@ -1,5 +1,15 @@
 # Funzug readiness, 13 October 2026
 
+## Current deployment update
+
+The notes below predate PRs #57 through #59. The persistent Mini PC native browser worker is now enabled, and `funzug-publish` selects `FUNZUG_DELIVERY_MODE=meta_native` for new approvals. New staged native approvals block due-time API publication before reservation. The live Mini PC adapter verified both upcoming Mars and Hubble posts against Facebook and Instagram planner IDs and approved IST slots. The active worker independently recorded both as scheduled without submitting either again. The earlier FRB and SPHEREx outcomes were reconciled through successful native workflows.
+
+Composer preparation was live-tested using already-approved content, original image bytes, exact caption, both selected accounts and selected IST controls. No Schedule or Publish click occurred in that test. PR #60 adds stale-poll, actionable-error and checkpoint-stall health checks and current deployment notes. See `NATIVE_WORKER_IMPLEMENTATION.md` for deployment evidence.
+
+Still unproven: a newly owner-approved item completing the automatic reservation, native submission and both live planner receipts; unattended post-publication outcome reconciliation; daily new-content preparation and mixed-format delivery. Existing pending drafts remain unchanged. Do not claim the entire goal is complete or treat the historical status below as current.
+
+## Historical audit notes before native-worker deployment
+
 The end-to-end goal remains incomplete. Setup and credential access do not authorize publication. No posts were scheduled or published during the work recorded here.
 
 ## Verified
