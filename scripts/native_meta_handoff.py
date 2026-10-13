@@ -117,10 +117,66 @@ def record_receipt(item: dict[str, Any], receipt: dict[str, Any], now: dt.dateti
     # Keep delivery_mode blocked even after confirmation. Meta now owns delivery.
 
 
+def record_published_outcomes(item: dict[str, Any], raw: dict[str, Any], now: dt.datetime) -> bool:
+    """Record already-published native Meta outcomes after direct UI verification."""
+    handoff = item.get("native_handoff")
+    was_published = item.get("status") == "published"
+    if item.get("status") not in {"approved", "published"} or not isinstance(handoff, dict) or handoff.get("state") != "scheduled":
+        raise RuntimeError("publication reconciliation requires an approved, natively scheduled post")
+    if item.get("platform_results") and not was_published:
+        raise RuntimeError("existing platform outcomes require explicit conflict reconciliation")
+    results = raw.get("platform_results")
+    platforms = item.get("platforms", [])
+    if not isinstance(results, dict) or set(results) != set(platforms):
+        raise RuntimeError("outcomes must cover exactly the owner-approved platforms")
+
+    slot = pipeline.parse_schedule_time(item["scheduled_at"])
+    saved: dict[str, dict[str, str]] = {}
+    for platform in platforms:
+        result = results.get(platform)
+        if not isinstance(result, dict) or set(result) != {"post_id", "published_at", "evidence_url"}:
+            raise RuntimeError("each publication outcome requires a Meta post ID, time, and evidence URL")
+        post_id = result.get("post_id")
+        if not isinstance(post_id, str) or not post_id.strip() or len(post_id) > 200:
+            raise RuntimeError("Meta post ID is invalid")
+        receipt = handoff.get("receipts", {}).get(platform)
+        if not isinstance(receipt, dict) or receipt.get("schedule_id") != post_id:
+            raise RuntimeError("published post ID does not match the observed native Meta receipt")
+        published_at = pipeline.parse_time(result.get("published_at"))
+        if published_at > now or abs(published_at - slot) > dt.timedelta(minutes=15):
+            raise RuntimeError("publication time is not consistent with the approved IST slot")
+        url = urllib.parse.urlsplit(result.get("evidence_url", ""))
+        query = urllib.parse.parse_qs(url.query)
+        if (
+            url.scheme != "https"
+            or url.hostname != "business.facebook.com"
+            or url.username
+            or url.password
+            or url.path.rstrip("/") != "/latest/insights/object_insights"
+            or query.get("content_id") != [post_id]
+        ):
+            raise RuntimeError("publication evidence must be the matching Meta Business Suite post detail")
+        saved[platform] = {
+            "status": "published",
+            "published_at": published_at.isoformat(),
+            "post_id": post_id,
+        }
+
+    if was_published:
+        if item.get("platform_results") == saved:
+            return False
+        raise RuntimeError("published outcome conflicts with the existing record")
+
+    item["platform_results"] = saved
+    item["status"] = "published"
+    item["last_attempt_at"] = now.isoformat()
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--id", required=True)
-    parser.add_argument("--action", choices=("reserve", "begin", "receipt", "dashboard"), default="reserve")
+    parser.add_argument("--action", choices=("reserve", "begin", "receipt", "published", "dashboard"), default="reserve")
     args = parser.parse_args()
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     errors = pipeline.validate_queue(queue)
@@ -150,7 +206,7 @@ def main() -> int:
             raise RuntimeError("current owner approval no longer matches native reservation")
         if args.action == "begin":
             begin_submission(item, now)
-        else:
+        elif args.action == "receipt":
             raw = os.environ.get("NATIVE_RECEIPT_JSON", "")
             if len(raw) > 4000:
                 raise RuntimeError("receipt exceeds allowed size")
@@ -158,14 +214,39 @@ def main() -> int:
             if not isinstance(receipt, dict):
                 raise RuntimeError("receipt must be an object")
             record_receipt(item, receipt, now)
-        changed = True
+        else:
+            raw = os.environ.get("NATIVE_OUTCOME_JSON", "")
+            if len(raw) > 4000:
+                raise RuntimeError("publication outcome exceeds allowed size")
+            outcome = json.loads(raw)
+            if not isinstance(outcome, dict):
+                raise RuntimeError("publication outcome must be an object")
+            changed = record_published_outcomes(item, outcome, now)
+        if args.action in {"begin", "receipt"}:
+            changed = True
     if changed:
         pipeline.save_json(pipeline.QUEUE_PATH, queue)
         event = {"event": "native_handoff_" + args.action, "item_id": args.id, "scheduled_at": item["scheduled_at"], "content_hash": reviewed["contentHash"], "state":item["native_handoff"]["state"]}
         if args.action == "receipt":
             event.update({"platform": receipt["platform"], "schedule_id": receipt["schedule_id"], "checked_at": receipt["checked_at"]})
+        elif args.action == "published":
+            event["platforms"] = sorted(item["platform_results"])
+            event["source"] = "Meta Business Suite"
+            history = pipeline.load_json(pipeline.HISTORY_PATH) if pipeline.HISTORY_PATH.exists() else {"checked_at": None, "source": "Funzug publishing workflow", "topic_keys": []}
+            topics = history.get("topic_keys", [])
+            known_topics = {topic for topic in topics if isinstance(topic, str)} if isinstance(topics, list) else set()
+            if item.get("topic_key"):
+                known_topics.add(item["topic_key"])
+            history["checked_at"] = now.isoformat()
+            history["topic_keys"] = sorted(known_topics)
+            pipeline.save_json(pipeline.HISTORY_PATH, history)
+            for platform, result in item["platform_results"].items():
+                pipeline.log_event({"event":"published", "item_id":args.id, "platform":platform, "post_id":result["post_id"], "published_at":result["published_at"], "source":"Meta Business Suite"})
         pipeline.log_event(event)
-    print("Native handoff checkpoint persisted; browser planner verification remains required" if changed else "Native reservation already persisted; inspect planner before any submission")
+    if args.action == "published":
+        print("Verified native Meta publication outcome persisted; BrandFlow sync is required")
+    else:
+        print("Native handoff checkpoint persisted; browser planner verification remains required" if changed else "Native reservation already persisted; inspect planner before any submission")
     return 0
 
 
