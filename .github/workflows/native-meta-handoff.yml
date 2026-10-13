@@ -1,8 +1,13 @@
 name: Reserve approved post for native Meta scheduling
+run-name: Native Meta ${{ inputs.action }} ${{ inputs.item_id }} ${{ inputs.request_id }}
 
 on:
   workflow_dispatch:
     inputs:
+      request_id:
+        description: Optional worker correlation ID, never a credential
+        required: false
+        type: string
       item_id:
         description: Existing owner-approved post to reserve, not schedule
         required: true

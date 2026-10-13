@@ -11,9 +11,29 @@ import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 const require=createRequire(import.meta.url);
 test('middleware routes only the exact native integration path to its bearer-protected handler',async()=>{
  const middleware=load('../middleware.ts',{'next/server':{NextResponse:{next:()=>({allowed:true}),redirect:()=>({allowed:false})}},jose:{jwtVerify:async()=>{throw Error('No session expected');}}},{process:{env:{}}}).middleware;
- for(const [path,allowed] of [['/api/integrations/funzug/native-handoff',true],['/api/integrations/funzug/native-handoff-extra',false],['/social-drafts',false]]){
+ for(const [path,allowed] of [['/api/integrations/funzug/native-handoff',true],['/api/integrations/funzug/native-package',true],['/api/integrations/funzug/native-package-extra',false],['/api/integrations/funzug/native-handoff-extra',false],['/social-drafts',false]]){
   const response=await middleware({nextUrl:{pathname:path},url:'https://funzug.netens.top'+path,headers:new Headers(),cookies:{get:()=>undefined}});
   assert.equal(response.allowed,allowed);
+ }
+});
+function packageFixture({authorized=true,overrides={}}={}){
+ const calls=[];
+ const row={external_id:'fixture',headline:'Reviewed headline',caption:'Reviewed caption',claims:[],evidence_sources:[],platforms:['facebook','instagram'],image_bytes:Buffer.from('private-reviewed-image'),image_mime_type:'image/png',image_width:1080,image_height:1350,status:'approved',publication_authorized:true,review_checks:{approvalConfirmed:true},reviewed_at:'2026-10-13T10:00:00+05:30',reviewed_by:'owner',proposed_schedule:'2099-10-13T19:30:00+05:30',schedule_timezone:'Asia/Kolkata',native_handoff:null,published_at:null,platform_outcomes:{},...overrides};
+ const GET=load('../app/api/integrations/funzug/native-package/route.ts',{
+  'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status||200,headers:options?.headers})}},
+  '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:[row]}}}},
+  '@/lib/funzug-content-hash.mjs':{draftContentHash:()=> 'a'.repeat(64)},
+  '@/lib/funzug-drafts':{validBearer:()=>authorized,decodeAndVerifyImage:()=>{if(row.image_mime_type!=='image/png')throw Error('bad image')}},
+ },{Buffer}).GET;
+ return {calls,row,send:()=>GET({url:'https://funzug.netens.top/api/integrations/funzug/native-package?batchId=fixture&externalId=fixture',headers:new Headers()})};
+}
+test('native media package authenticates before any lookup and returns only reviewed content',async()=>{
+ const denied=packageFixture({authorized:false});assert.equal((await denied.send()).status,401);assert.equal(denied.calls.length,0);
+ const fixture=packageFixture();const response=await fixture.send();assert.equal(response.status,200);assert.equal(response.headers['Cache-Control'],'no-store');assert.equal(response.body.caption,fixture.row.caption);assert.equal(Buffer.from(response.body.image.data,'base64').toString(),'private-reviewed-image');assert.match(fixture.calls[0].sql,/b.slug='funzug'/);assert.equal(JSON.stringify(fixture.calls[0].args),JSON.stringify(['fixture','fixture']));assert.equal(fixture.calls.length,1);
+});
+test('native media package denies pending, revoked, published, partial and changed approvals',async()=>{
+ for(const overrides of [{status:'pending_review'},{publication_authorized:false},{review_checks:{}},{reviewed_by:null},{published_at:'2026-10-13'},{platform_outcomes:{facebook:{status:'published'}}},{schedule_timezone:'UTC'},{platforms:['facebook','facebook']},{platforms:['other']},{native_handoff:{content_hash:'b'.repeat(64)}},{image_mime_type:'text/plain'}]){
+  const response=await packageFixture({overrides}).send();assert.equal(response.status,409,JSON.stringify(overrides));assert.equal(response.body.image,undefined);
  }
 });
 function nativeRouteFixture({authorized=true,auditFailure=false,draftOverrides={}}={}){
