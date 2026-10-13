@@ -3,13 +3,19 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 
-from scheduler.native_runner import candidates,read_api,tick
+from scheduler.native_runner import candidates,publication_candidates,read_api,tick
 from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_only_due_approved_native_schedules_are_reconciled(self):
+        now=dt.datetime.now(IST)
+        row={'externalId':'post','status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','nativeHandoff':{'state':'scheduled'},'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()}
+        invalid=[{**row,'status':'pending_review'},{**row,'publicationAuthorized':False},{**row,'nativeHandoff':None},{**row,'nativeHandoff':{'state':'submitting'}},{**row,'publishedAt':now.isoformat()},{**row,'proposedSchedule':now.isoformat()}]
+        self.assertEqual(publication_candidates([row,*invalid],now),[row])
+
     def test_only_future_owner_approved_posts_are_candidates(self):
         now=dt.datetime.now(IST)
         approved={'externalId':'item','status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','proposedSchedule':(now+dt.timedelta(days=1)).isoformat()}
@@ -37,6 +43,22 @@ class NativeRunnerTests(unittest.TestCase):
         self.assertTrue(save.call_args.args[1]['enabled'])
         self.assertEqual(save.call_args.args[1]['active_item_ids'],[])
         self.assertGreater(save.call_args.args[1]['last_checked_at'],0)
+
+    def test_due_reconciliation_never_prepares_or_submits_content(self):
+        now=dt.datetime.now(IST)
+        row={'externalId':'due','status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','nativeHandoff':{'state':'scheduled'},'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()}
+        packet={'fixture':'reviewed'}
+        outcome={'platform_results':{'facebook':{'post_id':'123'}}}
+        driver=Mock()
+        driver.inspect_publication.return_value=outcome
+        dispatcher=Mock()
+        with patch('scheduler.native_runner.read_api',side_effect=[{'drafts':[row]},packet]),patch('scheduler.native_runner.auth',return_value='fake'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.verify_package') as verify,patch('scheduler.native_runner.advance') as advance,patch('scheduler.native_runner.CheckpointDispatcher',return_value=dispatcher),patch('scheduler.meta_browser.MetaBrowser',return_value=driver):
+            tick({},Path('nonexistent-native-fixture-state.json'),None,True)
+        verify.assert_called_once_with(packet)
+        dispatcher.assert_called_once_with('published','due',outcome)
+        advance.assert_not_called()
+        driver.prepare.assert_not_called()
+        driver.submit.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()
