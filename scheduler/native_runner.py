@@ -101,6 +101,10 @@ def tick(config, state_path, context, enabled=False):
                 except Exception:pass
             save()
 
+    # A quiet poll still proves liveness when all schedules were recently
+    # verified or there are no upcoming approvals.
+    save()
+
 
 def main():
     parser=argparse.ArgumentParser()
