@@ -2,6 +2,8 @@
 
 ## Ordered media storage, not yet deployed
 
+The repository sync client now sends Carousel drafts as schemaVersion 2 using existing `media_paths`, validates every original slide, enforces repository containment, preserves order and source metadata, and rejects combined JSON above 13 MB before transfer. Single-image payloads remain version 1. The client still lacks Reel queue-model support. No Carousel draft was transferred by this change.
+
 The native-package endpoint can return an approved ordered package only when `FUNZUG_NATIVE_MIXED_ENABLED=1`. It selects parent and private assets together, verifies database byte checksums and order, decodes media again, and checks any reservation fingerprint. The default remains disabled. Do not enable the flag until the native worker supports preparation, proof, planner verification and publication reconciliation for these formats. Current route tests cover the flag, approval checks, malformed order, reservation mismatch and decoding failure; they do not prove a live Meta submission.
 
 Draft status GET now computes mixed-format fingerprints from database-generated checksums and ordered metadata selected in the same SQL snapshot as the parent. It returns only the fingerprint and status, not file bytes or the private media manifest. Invalid or incomplete manifests yield a null fingerprint. Unit tests compare the database representation with exact-byte review hashes; the disposable PostgreSQL test exercises the snapshot query. This does not enable mixed-format approval or native delivery.

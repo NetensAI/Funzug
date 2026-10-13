@@ -24,6 +24,7 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts.reviewed_media import approval_fingerprint
+from scripts.validate_ordered_media import validate_ordered_media
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -77,6 +78,8 @@ def api_status(base_url: str, token: str) -> dict[str, dict[str, Any]]:
 
 
 def payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    if item.get('format') == 'carousel':
+        return ordered_payload_for(item)
     relpath = item.get("media_path")
     if not isinstance(relpath, str) or item.get("format") != "image":
         raise ValueError(f"{item.get('id', '<unknown>')}: only single-image drafts are supported by this integration")
@@ -130,6 +133,42 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
             },
         }],
     }
+
+
+def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    paths = item.get('media_paths')
+    if not isinstance(paths, list) or not 2 <= len(paths) <= 10:
+        raise ValueError('Carousel requires 2 to 10 private media paths')
+    media = []
+    for relative in paths:
+        if not isinstance(relative, str) or not relative:
+            raise ValueError('Invalid private media path')
+        path = (ROOT / relative).resolve()
+        try:
+            path.relative_to(ROOT)
+        except ValueError:
+            raise ValueError('Draft media path must stay inside the repository') from None
+        if not path.is_file() or path.stat().st_size > 12 * 1024 * 1024:
+            raise ValueError('Draft media is missing or exceeds the size limit')
+        dimensions = pipeline.image_size(path)
+        mime = mimetypes.guess_type(path.name)[0]
+        if not pipeline.is_portrait_4_5(dimensions) or mime not in {'image/png', 'image/jpeg'}:
+            raise ValueError('Carousel slides must be portrait 4:5 PNG or JPEG')
+        media.append(dict(mimeType=mime, width=dimensions[0], height=dimensions[1], data=base64.b64encode(path.read_bytes()).decode('ascii')))
+    draft = {
+        'externalId': item['id'], 'format': 'carousel', 'media': media,
+        'headline': item['headline'], 'caption': item['caption'],
+        'claims': [{key: claim[key] for key in ('text', 'source_ids', 'support_note')} for claim in item['claims']],
+        'sources': [{key: source[key] for key in ('id', 'title', 'publisher', 'url', 'published_at', 'checked_at')} for source in item['sources']],
+        'platforms': item['platforms'],
+        'proposedSchedule': pipeline.parse_time(item['scheduled_at']).astimezone(SCHEDULE_TIMEZONE).isoformat(),
+        'scheduleTimezone': 'Asia/Kolkata',
+    }
+    validate_ordered_media(draft)
+    packet = dict(schemaVersion=2, brandSlug='funzug', batchId=BATCH_ID, drafts=[draft])
+    if len(json.dumps(packet, separators=(',', ':')).encode()) > 13 * 1024 * 1024:
+        raise ValueError('Ordered draft JSON exceeds the 13 MB ingestion limit')
+    return packet
 
 
 def approval_content_hash(item: dict[str, Any]) -> str:

@@ -9,9 +9,27 @@ from pathlib import Path
 from unittest.mock import patch
 
 import scripts.brandflow_sync as sync
+from PIL import Image
 
 
 class BrandFlowPayloadTests(unittest.TestCase):
+    def test_carousel_sync_binds_all_original_slides_in_order(self):
+        with tempfile.TemporaryDirectory(dir=sync.ROOT) as directory:
+            paths=[]
+            for index,color in enumerate(('red','blue')):
+                path=Path(directory)/f'slide-{index}.png';Image.new('RGB',(40,50),color).save(path)
+                paths.append(str(path.relative_to(sync.ROOT)))
+            item=dict(id='carousel-draft',format='carousel',media_paths=paths,headline='Headline',caption='Caption',scheduled_at='2099-01-01T12:00:00+05:30',platforms=['facebook','instagram'],claims=[dict(text='Claim',source_ids=['primary'],support_note='Primary evidence')],sources=[dict(id='primary',title='Source',publisher='Institute',url='https://example.org/primary',published_at=None,checked_at='2026-10-13T12:00:00+05:30')])
+            packet=sync.payload_for(item);draft=packet['drafts'][0]
+            self.assertEqual(packet['schemaVersion'],2)
+            self.assertNotIn('image',draft)
+            self.assertEqual([base64.b64decode(a['data']) for a in draft['media']],[(sync.ROOT/p).read_bytes() for p in paths])
+            before=sync.approval_content_hash(item)
+            item['media_paths'].reverse();self.assertNotEqual(sync.approval_content_hash(item),before)
+            item['media_paths']=[paths[0],paths[0]]
+            with self.assertRaisesRegex(ValueError,'Duplicate'):sync.payload_for(item)
+            item['media_paths']=[str(sync.ROOT.parent/'outside.png'),paths[0]]
+            with self.assertRaisesRegex(ValueError,'inside the repository'):sync.payload_for(item)
     def test_ingest_secret_trims_surrounding_whitespace(self):
         with patch.dict("os.environ", {"FUNZUG_DRAFT_INGEST_SECRET": "  " + "s" * 64 + "\r\n"}):
             self.assertEqual(sync.secret(), "s" * 64)
@@ -60,7 +78,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
 
     def test_payload_rejects_non_image_or_external_asset_path(self):
         item = {"id": "bad", "format": "carousel", "media_path": "outside.png"}
-        with self.assertRaisesRegex(ValueError, "single-image"):
+        with self.assertRaisesRegex(ValueError, "2 to 10"):
             sync.payload_for(item)
 
     def test_approval_uses_brandflow_selected_ist_schedule(self):
