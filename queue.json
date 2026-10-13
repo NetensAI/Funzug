@@ -591,6 +591,64 @@
         },
         "submission_started_at": "2026-10-12T20:47:38.958884+05:30"
       }
+    },
+    {
+      "id": "funzug-2026-10-13-glassfrog-transparency",
+      "status": "approved",
+      "format": "image",
+      "headline": "The Frog That Hides Its Blood",
+      "caption": "A glassfrog can become harder to see by hiding many of its red blood cells while it rests.\n\nResearchers studying northern glassfrogs found that sleeping animals stored nearly 90% of their circulating red blood cells in the liver. Moving those light-absorbing cells out of circulation helps the body become more transparent.\n\nIt is a camouflage strategy, not an animal turning invisible. The eyes and internal organs can still be visible.\n\nWhich animal adaptation would you most like to see explained next?\n\n#Glassfrog #WildlifeScience #AnimalAdaptations #NatureFacts #Biology",
+      "topic_key": "glassfrog-resting-red-blood-cell-liver-transparency",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-14T10:06:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-glassfrog-transparency-small-brand.png",
+      "claims": [
+        {
+          "text": "Resting northern glassfrogs become more transparent by concealing circulating red blood cells in their livers.",
+          "source_ids": [
+            "nsf-glassfrog-2023"
+          ],
+          "support_note": "NSF describes the liver storage mechanism and its relationship to resting transparency; this supports the image headline."
+        },
+        {
+          "text": "The studied sleeping frogs stored nearly 90% of circulating red blood cells in the liver.",
+          "source_ids": [
+            "nsf-glassfrog-2023"
+          ],
+          "support_note": "NSF reports this approximate proportion from laboratory imaging, not a claim about all frog species."
+        },
+        {
+          "text": "Eyes and internal organs can remain visible when resting glassfrogs become transparent.",
+          "source_ids": [
+            "nsf-glassfrog-2023"
+          ],
+          "support_note": "NSF distinguishes transparent skin and muscles from still-visible eyes, bones and internal organs."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nsf-glassfrog-2023",
+          "title": "Glassfrogs hide red blood cells in their livers to become transparent",
+          "publisher": "U.S. National Science Foundation",
+          "url": "https://www.nsf.gov/news/glassfrogs-hide-red-blood-cells-their-livers",
+          "published_at": "2023-01-24T00:00:00Z",
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "public_media_url": "https://media.funzug.com/media/c366f30c0f51b34147b61b82d87e83a4.jpeg",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-13T16:27:23.577Z",
+        "note": "Approved for scheduled publishing at 14 Oct 2026, 10:06 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
