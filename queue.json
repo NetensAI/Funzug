@@ -294,7 +294,7 @@
     },
     {
       "id": "funzug-2026-10-11-spherex-brown-dwarfs",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "A World Between Star And Planet",
       "caption": "Brown dwarfs occupy a curious middle ground: they form like stars but do not have enough mass to sustain hydrogen fusion in their cores.\n\nNASA’s SPHEREx telescope studied 37 nearby brown dwarfs across a wide temperature range. Its spectra revealed atmospheric signatures of water, carbon dioxide, carbon monoxide, and methane.\n\nThese objects can resemble giant planets while still sharing a star-like origin. The new observations give researchers a broader view of how their cloudy atmospheres vary.\n\nWhat would you call a world that is neither quite a star nor quite a planet?\n\nAI-generated illustration, not a resolved photograph of a brown dwarf.\n\n#SPHEREx #BrownDwarfs #NASA #SpaceScience #Astronomy",
@@ -377,7 +377,20 @@
           }
         },
         "submission_started_at": "2026-10-12T16:05:19.186562+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-13T10:16:00+05:30",
+          "post_id": "1520363866795304"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-13T10:16:00+05:30",
+          "post_id": "18150796294549413"
+        }
+      },
+      "last_attempt_at": "2026-10-13T15:45:41.503386+05:30"
     },
     {
       "id": "funzug-2026-10-11-curiosity-martian-dawn",
