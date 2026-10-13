@@ -1,5 +1,13 @@
 # Additive BrandFlow outcome reporting
 
+## Ordered media storage, not yet deployed
+
+Migration 013 adds `media_format` and private ordered byte storage without copying or changing existing single-image assets. Production draft IDs were verified as UUID. The database binds assets to their parent draft, computes their byte hashes, rejects duplicate bytes and invalid metadata, checks contiguous slide indexes before approval, and prevents asset writes after review. These constraints do not decode media files or prove that a caption is factual; ingestion must validate original media before storage.
+
+The new `/api/social-drafts/[id]/media/[index]` preview requires an administrator session and a currently active administrator in the database, and is limited to Funzug. It serves exact bytes with no-store and nosniff, supports bounded single byte ranges for video seeking, and never redirects to an external media host. It is not an approval endpoint or a public image host.
+
+Deploy migration 013 before either updated integration GET route, since those routes select `media_format`. Non-image content returns no legacy fingerprint and is explicitly refused by the native-package endpoint. Do not enable mixed-format approval or delivery yet. Ordered ingestion, rendered slide/video review, approval manifest packaging, native preparation and full receipt/publication verification still need implementation. No migration or application deployment has been performed for this change.
+
 Nearest-pixel policy: apply migration 011 after 010 and deploy the updated draft validator and media receiver. Positive portrait dimensions must satisfy abs(width * 5 - height * 4) <= 2. This admits 1122x1402 but rejects 1123x1402, and never changes image pixels. Existing pending rows are not rewritten.
 
 Native 4:5 policy: deploy migration 010 with the updated draft ingestion library and route. It replaces fixed width/height constraints with a positive-dimension 4:5 check, without rewriting any draft rows. The route checks embedded image dimensions against declared metadata and stores actual width/height. Deploy the media receiver change as well. No resizing or cropping is performed. Existing 1080x1350 rows remain valid.

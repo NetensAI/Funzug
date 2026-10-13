@@ -27,12 +27,30 @@ function packageFixture({authorized=true,overrides={}}={}){
  },{Buffer}).GET;
  return {calls,row,send:()=>GET({url:'https://funzug.netens.top/api/integrations/funzug/native-package?batchId=fixture&externalId=fixture',headers:new Headers()})};
 }
+
+test('ordered private previews require current administrator access before returning media',async()=>{
+ const id='11111111-1111-4111-8111-111111111111';
+ const make=(session,row)=>{
+  const calls=[];
+  const GET=load('../app/api/social-drafts/[id]/media/[index]/route.ts',{
+   'next/server':{NextResponse:class{constructor(body,options){this.body=body;Object.assign(this,options)}static json(body,options){return {body,status:options?.status||200}}}},
+   '@/lib/auth':{getSession:async()=>session},
+   '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:row?[row]:[]}}}},
+   '@/lib/private-media-response.mjs':{privateMediaResponse:()=>({body:Buffer.from('private'),status:200,headers:{'Cache-Control':'private, no-store'}})},
+  }).GET;
+  return {calls,send:(params={id,index:'0'})=>GET({headers:new Headers()}, {params})};
+ };
+ for(const session of [null,{sub:'owner',role:'viewer'}]){const f=make(session,{});assert.equal((await f.send()).status,403);assert.equal(f.calls.length,0);}
+ const f=make({sub:'owner',role:'admin'},{});assert.equal((await f.send()).status,200);assert.match(f.calls[0].sql,/u.active=true AND u.role='admin'/);assert.match(f.calls[0].sql,/b.slug='funzug'/);assert.equal(f.calls[0].args[1],0);
+ const invalid=make({sub:'owner',role:'admin'},{});assert.equal((await invalid.send({id,index:'10'})).status,400);assert.equal(invalid.calls.length,0);
+ const revoked=make({sub:'owner',role:'admin'},null);assert.equal((await revoked.send()).status,404);
+});
 test('native media package authenticates before any lookup and returns only reviewed content',async()=>{
  const denied=packageFixture({authorized:false});assert.equal((await denied.send()).status,401);assert.equal(denied.calls.length,0);
  const fixture=packageFixture();const response=await fixture.send();assert.equal(response.status,200);assert.equal(response.headers['Cache-Control'],'no-store');assert.equal(response.body.caption,fixture.row.caption);assert.equal(Buffer.from(response.body.image.data,'base64').toString(),'private-reviewed-image');assert.match(fixture.calls[0].sql,/b.slug='funzug'/);assert.equal(JSON.stringify(fixture.calls[0].args),JSON.stringify(['fixture','fixture']));assert.equal(fixture.calls.length,1);
 });
 test('native media package denies pending, revoked, published, partial and changed approvals',async()=>{
- for(const overrides of [{status:'pending_review'},{publication_authorized:false},{review_checks:{}},{reviewed_by:null},{published_at:'2026-10-13'},{platform_outcomes:{facebook:{status:'published'}}},{schedule_timezone:'UTC'},{platforms:['facebook','facebook']},{platforms:['other']},{native_handoff:{content_hash:'b'.repeat(64)}},{image_mime_type:'text/plain'}]){
+ for(const overrides of [{media_format:'carousel'},{media_format:'reel'},{status:'pending_review'},{publication_authorized:false},{review_checks:{}},{reviewed_by:null},{published_at:'2026-10-13'},{platform_outcomes:{facebook:{status:'published'}}},{schedule_timezone:'UTC'},{platforms:['facebook','facebook']},{platforms:['other']},{native_handoff:{content_hash:'b'.repeat(64)}},{image_mime_type:'text/plain'}]){
   const response=await packageFixture({overrides}).send();assert.equal(response.status,409,JSON.stringify(overrides));assert.equal(response.body.image,undefined);
  }
 });

@@ -12,10 +12,11 @@ export async function GET(req:Request){
  const query=new URL(req.url).searchParams;
  const batchId=query.get('batchId'),externalId=query.get('externalId');
  if(!batchId||batchId.length>200||!externalId||externalId.length>200)return NextResponse.json({error:'Valid batchId and externalId required'},{status:400});
- const {rows:[draft]}=await db.query(`SELECT d.external_id,d.headline,d.caption,d.claims,d.evidence_sources,d.platforms,d.image_bytes,d.image_mime_type,d.image_width,d.image_height,d.status,d.publication_authorized,d.review_checks,d.reviewed_at,d.reviewed_by,d.proposed_schedule,d.schedule_timezone,d.native_handoff,d.published_at,d.platform_outcomes
+ const {rows:[draft]}=await db.query(`SELECT d.media_format,d.external_id,d.headline,d.caption,d.claims,d.evidence_sources,d.platforms,d.image_bytes,d.image_mime_type,d.image_width,d.image_height,d.status,d.publication_authorized,d.review_checks,d.reviewed_at,d.reviewed_by,d.proposed_schedule,d.schedule_timezone,d.native_handoff,d.published_at,d.platform_outcomes
   FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id
   WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2`,[batchId,externalId]);
  if(!draft)return NextResponse.json({error:'Approved Funzug draft not found'},{status:404});
+ if(draft.media_format&&draft.media_format!=='image')return NextResponse.json({error:'Mixed-format native delivery is not enabled'},{status:409});
  if(draft.status!=='approved'||draft.publication_authorized!==true||!draft.reviewed_by||!draft.reviewed_at||draft.published_at||Object.keys(draft.platform_outcomes||{}).length||draft.schedule_timezone!=='Asia/Kolkata')return NextResponse.json({error:'Owner approval is unavailable for native scheduling'},{status:409});
  const checks=draft.review_checks||{};
  const confirmed=checks.approvalConfirmed===true||['claims','sources','caption','images','platforms','schedule'].every(key=>checks[key]===true);
