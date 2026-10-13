@@ -5,6 +5,7 @@ import json
 import math
 import subprocess
 import tempfile
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -84,3 +85,15 @@ def verify_video_metadata(info, asset):
         raise ValueError('Decoded Reel duration differs from reviewed metadata')
     if 'mp4' not in info.get('format', {}).get('format_name', '').split(','):
         raise ValueError('Reel must use an MP4 container')
+
+
+if __name__ == '__main__':
+    try:
+        packet = sys.stdin.buffer.read(140 * 1024 * 1024 + 1)
+        if len(packet) > 140 * 1024 * 1024:
+            raise ValueError('Media packet too large')
+        print(validate_ordered_media(json.loads(packet)))
+    except Exception:
+        # Never return media bytes, metadata, paths or subprocess stderr.
+        sys.stderr.write('Ordered media validation failed\n')
+        sys.exit(1)
