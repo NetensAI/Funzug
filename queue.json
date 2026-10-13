@@ -394,7 +394,7 @@
     },
     {
       "id": "funzug-2026-10-11-curiosity-martian-dawn",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Mars Wakes In Blue Light",
       "caption": "A new Curiosity panorama shows sunlight reaching wind-carved cliffs on Mars. The rover captured six Mastcam images at 8:30 a.m. local Mars time on its 4,982nd Martian day.\n\nThe team processed this panorama without its usual white balancing, preserving the scene’s early-morning appearance. The blue foreground is part of that processed view, not a claim that Mars looks exactly like this to human eyes.\n\nThe distant yardang layer stretches about 16 kilometers across the northwestern side of Mount Sharp. Scientists are still working out how it formed, with ancient volcanic ash among the possibilities.\n\nWould you explore this landscape at sunrise?\n\nThe accompanying image is an AI-generated illustration, not Curiosity’s panorama.\n\n#Mars #CuriosityRover #NASA #SpaceExploration #PlanetaryScience",
@@ -477,7 +477,22 @@
           }
         },
         "submission_started_at": "2026-10-12T16:30:46.320075+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-13T18:26:00+05:30",
+          "post_id": "1520703526761338",
+          "scheduled_post_id": "2196880197528136"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-13T18:26:00+05:30",
+          "post_id": "18096924269388359",
+          "scheduled_post_id": "27766411866367016"
+        }
+      },
+      "last_attempt_at": "2026-10-13T18:29:44.618235+05:30"
     },
     {
       "id": "funzug-2026-10-11-hubble-white-dwarf-candidate",
