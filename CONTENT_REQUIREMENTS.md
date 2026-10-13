@@ -15,17 +15,20 @@ When a reference image, screenshot, news story, viral claim, or accompanying tex
 
 - Owner clarification on 12 October 2026: retain the Funzug headline and wordmark on Funzug social images. This specific requirement overrides the generic project instruction for text-free posters.
 - Owner clarification on 12 October 2026: accept native portrait 4:5 dimensions with nearest-pixel rounding, not only 1080x1350. Verify positive width less than height and abs(width * 5 - height * 4) <= 2, equivalent to width rounded from height * 4/5 to the nearest integer. This accepts 1122x1402. Do not locally resize or crop generated artwork. Reject ratios outside this narrow rounding allowance.
-- Clearly identify AI-generated or conceptual science artwork as illustration. Never imply it is a telescope, rover, or detector photograph. When on-image wording could imply documentary provenance, include a readable illustration label and revise misleading wording, not merely the caption.
+- Owner clarification on 13 October 2026: do not add an AI-generation disclosure sentence to public captions or an AI label to the artwork. Keep generation provenance in private metadata and retain necessary scientific caveats. Do not claim an illustrative scene is an actual telescope, rover, detector, expedition or study photograph. Revise any wording that implies documentary provenance. Do not remove platform-applied labels or required disclosures.
+- Owner clarification on 13 October 2026: Funzug must have a different, unique designed lettering style on every post, tailored to that image's scene. Do not stamp one fixed wordmark on every image or use basic plain typed text. Vary the typography, ornamental treatment and palette while keeping the exact word `Funzug` legible, premium and inside safe margins. Preserve the scientific scene when replacing an older basic wordmark.
 
 - For an image post, produce exactly one final image. For a carousel, produce 2-10 individual slide images, never a collage. Every image must be native portrait 4:5; 1080x1350 is a preferred example, not a fixed resolution. Keep the main subject, headline, and Funzug branding inside safe margins.
 - Make a fresh, premium, cinematic, high-contrast, mobile-first editorial design with one dominant cohesive scene. The source is for information and inspiration, not layout, typography, colors, branding, or composition to copy.
 - Keep on-image text minimal: use one strong, curiosity-driven headline of about 5-10 words and at most one short supporting line. Do not place the whole story on the image.
-- Every image must visibly include a small, tasteful `Funzug` wordmark, normally near the bottom. Do not include source-page logos or watermarks, fake quotes, fake statistics, or fake signage. Do not use cluttered collages or dense explainer panels.
+- Every image must visibly include a small, discreet, uniquely styled `Funzug` wordmark, normally near the bottom. Target about 12% of canvas width and at most 3% of its height, with safe margins. Keep it secondary to the headline and scene, never oversized or dominant; avoid large flourishes around it. Do not include source-page logos or watermarks, fake quotes, fake statistics, or fake signage. Do not use cluttered collages or dense explainer panels.
 - Keep people realistic unless a cartoon is requested. Maintain credible anatomy, animals, machinery, architecture, science, geography, and historical detail. Do not make speculative visuals appear to be documentary evidence.
 - If using a real supplied photograph is essential, preserve it where possible and redesign the editable composition around it. Otherwise create a fresh visual.
 - Inspect every final image and verify its actual pixel dimensions before adding it to the queue. Carousel `media_paths` and staged `public_media_urls` must use the same slide order.
 
 ## Caption
+
+- Do not include an AI-generation disclosure line in public captions. Keep factual caveats and generation provenance in their appropriate review metadata; do not imply an illustration is an actual research photograph.
 
 - Immediately provide a complete, natural, engaging, journalistic caption, usually 4-7 short paragraphs, with a strong opening, accurate explanation, helpful context, and why it matters.
 - Use exactly one blank line between paragraphs. A few relevant emojis are fine. Avoid em dashes and semicolons when ordinary punctuation works.
