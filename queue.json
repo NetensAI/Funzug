@@ -700,7 +700,7 @@
           "checked_at": "2026-10-13T17:51:57+05:30"
         }
       ],
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "public_media_url": "https://media.funzug.com/media/5bf82526d26a89e0872542077ada6084.jpeg",
       "approval": {
         "status": "approved",
@@ -710,6 +710,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-13T21:59:46.699828+05:30",
+        "scheduled_at": "2026-10-14T22:30:00+05:30",
+        "content_hash": "0acc51f7e84c612aa33b25ebd42c90d6e5d8fae46728ea87b7ce482e45d61a1a",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     }
   ]
