@@ -7,7 +7,7 @@ export function orderedMediaManifest(row, assets) {
   if (!['carousel', 'reel'].includes(row.media_format) || !Array.isArray(assets))
     throw Error('Unsupported ordered media package');
   const media = assets.map((asset, index) => {
-    if (asset.draft_id !== row.id || asset.asset_index !== index)
+    if (asset.draft_id !== row.id || asset.media_index !== index)
       throw Error('Ordered media parent or index mismatch');
     if (!Buffer.isBuffer(asset.media_bytes)) throw Error('Private media bytes required');
     const hash = createHash('sha256').update(asset.media_bytes).digest('hex');

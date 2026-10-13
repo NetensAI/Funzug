@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {randomUUID,createHash} from 'node:crypto';
 import pg from 'pg';
+import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
 
 const url=process.env.FUNZUG_TEST_DATABASE_URL;
 if(process.env.FUNZUG_REQUIRE_DATABASE_TESTS==='1'&&!url)throw Error('Disposable PostgreSQL URL required');
@@ -35,6 +36,18 @@ test('ordered media migration against disposable PostgreSQL',{skip:!url},async t
    await pool.query('UPDATE social_post_media_assets SET media_index=1 WHERE draft_id=$1 AND media_index=2',[id]);
    const rows=(await pool.query('SELECT media_index,sha256 FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[id])).rows;
    assert.deepEqual(rows.map(x=>x.media_index),[0,1]);assert.equal(rows[0].sha256,createHash('sha256').update('first').digest('hex'));
+  });
+  await t.test('real database rows build the same ordered review package',async()=>{
+   const row={...(await pool.query('SELECT * FROM social_post_drafts WHERE id=$1',[id])).rows[0],headline:'Reviewed headline',caption:'Reviewed caption',claims:[],evidence_sources:[],platforms:['facebook','instagram']};
+   const assets=(await pool.query('SELECT * FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[id])).rows;
+   const package1=orderedMediaManifest(row,assets);
+   assert.equal(package1.draft.media.length,2);
+   assert.equal(Buffer.from(package1.draft.media[0].data,'base64').toString(),'first');
+   assert.equal(Buffer.from(package1.draft.media[1].data,'base64').toString(),'second');
+   assert.throws(()=>orderedMediaManifest(row,assets.toReversed()),/index mismatch/);
+   await pool.query('UPDATE social_post_media_assets SET media_bytes=$2 WHERE draft_id=$1 AND media_index=1',[id,Buffer.from('changed second')]);
+   const changed=(await pool.query('SELECT * FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[id])).rows;
+   assert.notEqual(package1.contentHash,orderedMediaManifest(row,changed).contentHash);
   });
   await t.test('reviewed bytes, order, parent and format cannot be changed',async()=>{
    await assert.rejects(pool.query("UPDATE social_post_drafts SET media_format='image' WHERE id=$1",[id]),/Clear pending assets/);

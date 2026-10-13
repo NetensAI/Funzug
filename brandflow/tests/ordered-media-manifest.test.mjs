@@ -7,7 +7,7 @@ function fixture() {
   const row = {id:'private-draft',media_format:'carousel',headline:'Headline',caption:'Caption',claims:[],evidence_sources:[],platforms:['facebook','instagram']};
   const assets = ['first','second'].map((value,index) => {
     const bytes = Buffer.from(value);
-    return {draft_id:row.id,asset_index:index,media_bytes:bytes,sha256:createHash('sha256').update(bytes).digest('hex'),mime_type:'image/png',width:1122,height:1402,duration_ms:null};
+    return {draft_id:row.id,media_index:index,media_bytes:bytes,sha256:createHash('sha256').update(bytes).digest('hex'),mime_type:'image/png',width:1122,height:1402,duration_ms:null};
   });
   return {row,assets};
 }
@@ -15,13 +15,13 @@ test('database manifest binds exact private bytes and displayed order', () => {
   const {row,assets} = fixture();
   const package1 = orderedMediaManifest(row,assets);
   assert.equal(package1.draft.media[0].data,assets[0].media_bytes.toString('base64'));
-  const reversed = assets.toReversed().map((asset,index)=>({...asset,asset_index:index}));
+  const reversed = assets.toReversed().map((asset,index)=>({...asset,media_index:index}));
   assert.notEqual(package1.contentHash,orderedMediaManifest(row,reversed).contentHash);
   assert.notEqual(package1.contentHash,orderedMediaManifest({...row,caption:'Changed'},assets).contentHash);
 });
 test('rejects cross-draft, gaps, absent bytes, forged checksums and duplicates', () => {
   for (const mutation of [
-    asset=>{asset.draft_id='other'}, asset=>{asset.asset_index=3},
+    asset=>{asset.draft_id='other'}, asset=>{asset.media_index=3},
     asset=>{asset.media_bytes=null}, asset=>{asset.sha256='0'.repeat(64)},
     asset=>{asset.width=1123},
   ]) {
@@ -29,7 +29,7 @@ test('rejects cross-draft, gaps, absent bytes, forged checksums and duplicates',
     assert.throws(()=>orderedMediaManifest(row,assets));
   }
   const {row,assets}=fixture();
-  assets[1]={...assets[0],asset_index:1};
+  assets[1]={...assets[0],media_index:1};
   assert.throws(()=>orderedMediaManifest(row,assets),/Duplicate/);
 });
 test('reel package binds duration and refuses image MIME', () => {

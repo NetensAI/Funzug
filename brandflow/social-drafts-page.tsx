@@ -14,8 +14,8 @@ export default async function Page({searchParams}:{searchParams:{brand?:string,s
  const session=await getSession();
  const mixedIds=rows.filter(d=>d.media_format&&d.media_format!=='image').map(d=>d.id);
  if(mixedIds.length){
-  const {rows:assets}=await db.query('SELECT draft_id,asset_index,mime_type,width,height FROM social_post_media_assets WHERE draft_id=ANY($1::uuid[]) ORDER BY draft_id,asset_index',[mixedIds]);
-  for(const draft of rows)draft.media_assets=assets.filter(a=>a.draft_id===draft.id).map(a=>({index:a.asset_index,mimeType:a.mime_type,width:a.width,height:a.height}));
+  const {rows:assets}=await db.query('SELECT draft_id,media_index,mime_type,width,height FROM social_post_media_assets WHERE draft_id=ANY($1::uuid[]) ORDER BY draft_id,media_index',[mixedIds]);
+  for(const draft of rows)draft.media_assets=assets.filter(a=>a.draft_id===draft.id).map(a=>({index:a.media_index,mimeType:a.mime_type,width:a.width,height:a.height}));
  }
  return <AppPage>{()=> <div className="stack">
   <div className="card"><div className="row spread"><div><h2>{brand.name} social-post review</h2><div className="muted">Approve to authorize publishing at your selected IST time. Approval does not publish immediately.</div></div><div className="row">{['pending_review','approved','rejected'].map(s=><a className={`btn ${s===status?'':'secondary'}`} href={`/social-drafts?brand=${brand.slug}&status=${s}`} key={s}>{s.replace('_',' ')}</a>)}</div></div></div>
