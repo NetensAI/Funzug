@@ -6,10 +6,18 @@ import hashlib
 import unittest
 from PIL import Image
 from scripts.reviewed_media import approval_fingerprint
-from scheduler.native_worker import IST, NativeFailure, advance, binding, verify_delivery_package, verify_ordered_package, verify_package
+from scheduler.native_worker import IST, NativeFailure, advance, binding, verify_delivery_package, verify_ordered_package, verify_package, verify_proof
 from tests.test_native_worker import Driver, checkpoint, receipts
 
 class NativeOrderedPackageTests(unittest.TestCase):
+    def test_composer_proof_must_preserve_reviewed_order_and_format(self):
+        packet=self.fixture();assets=verify_ordered_package(packet)
+        proof={**binding(packet),'format':'carousel','caption':packet['caption'],'media_sha256':[hashlib.sha256(asset).hexdigest() for asset in assets],'timezone':'Asia/Kolkata','story':False,'boost':False}
+        verify_proof(packet,proof,assets)
+        for update in ({'media_sha256':list(reversed(proof['media_sha256']))},{'format':'reel'},{'story':True},{'boost':True},{'media_sha256':proof['media_sha256'][:1]}):
+            with self.assertRaisesRegex(NativeFailure,'composer_does_not_match_approval'):
+                verify_proof(packet,{**proof,**update},assets)
+
     def test_unimplemented_adapter_cannot_dispatch_mixed_content(self):
         packet=self.fixture();calls=[]
         with self.assertRaisesRegex(NativeFailure,'unsupported_native_media_format'):

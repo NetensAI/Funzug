@@ -52,9 +52,9 @@ class NativeRunnerTests(unittest.TestCase):
         driver=Mock()
         driver.inspect_publication.return_value=outcome
         dispatcher=Mock()
-        with patch('scheduler.native_runner.read_api',side_effect=[{'drafts':[row]},packet]),patch('scheduler.native_runner.auth',return_value='fake'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.verify_package') as verify,patch('scheduler.native_runner.advance') as advance,patch('scheduler.native_runner.CheckpointDispatcher',return_value=dispatcher),patch('scheduler.meta_browser.MetaBrowser',return_value=driver):
+        with patch('scheduler.native_runner.read_api',side_effect=[{'drafts':[row]},packet]),patch('scheduler.native_runner.auth',return_value='fake'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.verify_delivery_package') as verify,patch('scheduler.native_runner.advance') as advance,patch('scheduler.native_runner.CheckpointDispatcher',return_value=dispatcher),patch('scheduler.meta_browser.MetaBrowser',return_value=driver):
             tick({},Path('nonexistent-native-fixture-state.json'),None,True)
-        verify.assert_called_once_with(packet)
+        verify.assert_called_once_with(packet,driver)
         dispatcher.assert_called_once_with('published','due',outcome)
         advance.assert_not_called()
         driver.prepare.assert_not_called()
