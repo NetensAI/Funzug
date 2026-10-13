@@ -1,10 +1,20 @@
 # Funzug publishing workflow
 
 
-Workflow starter for Funzug's Facebook Page and linked Instagram Professional account.
+Approval-gated publishing for Funzug's Facebook Page and Instagram account.
 
 
-Publishing uses Meta's Graph API. The queue is approval-gated, every factual claim needs a source, and images must be 1080x1350.
+The deployed path uses BrandFlow approval and the persistent Mini PC browser to schedule posts in Meta Business Suite. The Graph API publisher remains available for separately configured workflow delivery, but is blocked for native-pending and native-reserved items. Every factual claim needs source evidence. Images must be native portrait 4:5, allowing nearest-pixel rounding; 1080x1350 is preferred, not mandatory. Do not resize or crop generated artwork.
+
+## Current owner workflow
+
+1. Open `https://funzug.netens.top` and review the pending post, image and factual evidence.
+2. Select a future date and time in IST within the next 28 days, tick the single confirmation and click Approve. This authorizes only that reviewed content, selected platforms and selected time. Reject is available. No separate authorization phrase is needed.
+3. The Mini PC worker transfers the approval through durable GitHub checkpoints, prepares the exact reviewed image and caption, schedules once and verifies each platform in Meta Planner. Leave at least 15 minutes before the selected slot for processing; slots too close to submission fail safely rather than publishing immediately.
+4. Review the resulting Facebook and Instagram entries in the Meta Business Suite app. An approval or reservation is not proof of scheduling. Both live planner receipts must match the reviewed content and IST slot.
+5. After the slot, the reconciliation worker reads explicit published evidence and synchronizes outcomes through the audited workflow to BrandFlow, `queue.json`, `history.json` and `logs/events.jsonl`. It never republishes to repair a missing result.
+
+Deployment: Mini PC `funzug-native-worker:pr62`, with persistent state, health checks and `FUNZUG_DELIVERY_MODE=meta_native`. Both existing upcoming schedules were independently verified. Full acceptance is still pending a newly approved post completing the automatic handoff and a real scheduled-to-published transition completing audit synchronization. Mixed-format BrandFlow review is not yet supported. See `SYSTEM_READINESS.md` for remaining scope.
 
 All publishing and proposed schedule times use India Standard Time (IST, `Asia/Kolkata`) only. Queue timestamps must include the `+05:30` offset; validation rejects other offsets before approval, public upload, or publishing. Dashboard schedule fields use `Asia/Kolkata`.
 
@@ -25,7 +35,7 @@ All publishing and proposed schedule times use India Standard Time (IST, `Asia/K
 
 - `queue.json`: content, approvals, schedule, sources, and media URLs.
 - `drafts/queue.json`: draft-only content and source evidence; public media URLs and approvals are not required.
-- `drafts/assets/`: locally generated 1080x1350 draft images and carousel slides.
+- `drafts/assets/`: locally generated portrait 4:5 draft images and carousel slides.
 - `media-host/`: optional self-hosted Docker image origin with authenticated uploads and public read-only media URLs.
 - `history.json`: inspected topics already visible in Meta, used to catch repeats.
 - `meta_assets_snapshot.json`: Meta IDs and visible account details observed during setup.
@@ -44,8 +54,8 @@ All publishing and proposed schedule times use India Standard Time (IST, `Asia/K
 6. For each story, follow `CONTENT_REQUIREMENTS.md`. The ChatGPT/Codex built-in image generator can create the image within an interactive task using the ChatGPT plan. It is not callable by this GitHub Actions workflow. Do not put ChatGPT or Meta credentials in a prompt, queue item, image, or log.
 7. Save locally reviewable posts and generated images in `drafts/queue.json` and `drafts/assets/`. Validate them with `python funzug_pipeline.py validate-drafts`. Drafts are not visible to the publishing workflow and do not need a public media URL.
 8. Review each draft's factual claims against its cited sources, inspect the source pages, caption, every image, platform destinations, and scheduled time. Source metadata or link availability alone is not fact-checking.
-9. To approve from GitHub, open Actions > “Approve Funzug post for scheduled publication,” choose the `main` branch, enter the draft ID and a review note, select all six review checkboxes, and choose “Yes, upload publicly and publish at scheduled time.” This explicit choice permits GitHub Actions to upload the reviewed image or carousel slides to `media.funzug.com`, record your named approval, and authorize the publisher to post at the chosen schedule. Choosing “No, keep it as a draft,” leaving any review checkbox clear, or failing validation prevents upload and approval. No Meta call happens in the approval workflow.
-10. GitHub Actions checks approved posts every five minutes. Before any Meta publishing call, it verifies both tokens belong to the configured app, have the required scopes, and Meta reports both token and data-access expiry as either zero (non-expiring) or later than the current time. An expired, invalid, wrong-app, or under-scoped token blocks publishing. A due item publishes only if its named approval record, complete review checklist, sources, media, and schedule all validate. Results are recorded in `queue.json`, `history.json`, and `logs/events.jsonl`. The pipeline does not generate or approve content automatically, and it does not publish drafts.
+9. Use BrandFlow's single-confirmation approval screen and selected IST slot. The older GitHub manual approval command is an alternative interface, not the daily owner workflow. Never approve on the owner's behalf or upload unapproved assets.
+10. Native delivery uses the authorized persistent Meta browser session and live planner verification. API delivery has a separate token preflight and remains blocked for native items. The Instagram Login credential-renewal workflow refreshes the API credential automatically; Meta security revocation or expired browser login can still require owner re-login. No setup can guarantee that Meta will never require authentication again.
 
 
 ## Commands
@@ -64,7 +74,7 @@ python funzug_pipeline.py check-due
 ```
 
 
-Image and carousel posts are supported. Instagram carousel publishing creates and waits for each child container, creates the parent carousel container, waits for readiness, then publishes once. Facebook carousel publishing uploads each image as unpublished media and creates one Page post with all attached photos. Facebook and Instagram are handled as separate operations. Every image and slide is validated as exactly 1080x1350. Reels are not yet supported and remain rejected until their separate 9:16 video validation and upload flow is implemented.
+The API pipeline supports images and carousels. BrandFlow ingestion and the deployed native browser worker support single-image posts only. Do not interpret API carousel tests as end-to-end BrandFlow carousel readiness. Every image and slide must satisfy `abs(width * 5 - height * 4) <= 2` with positive portrait dimensions. Reels remain unsupported until video validation, review, approval binding and delivery are implemented.
 
 
 ## Human approval and automation boundary

@@ -2,6 +2,22 @@
 
 ## Current deployment update
 
+PRs #60 through #62 are also merged and deployed. Image `funzug-native-worker:pr62` reports healthy with no restarts. It polls future approvals and reconciles due native publications through the audited GitHub workflow. A read-only live test verified the publication reader against both SPHEREx platform posts. Published planner links are bound to exact caption, platform, date column and time. If Meta changes the post ID, the original schedule receipt is retained and the published outcome includes its scheduled ID and matching content fingerprint.
+
+Acceptance evidence by requirement:
+
+| Requirement | Evidence | Open acceptance gate |
+| --- | --- | --- |
+| Source verification | CONTENT_REQUIREMENTS.md; claim source IDs, support notes and source timestamps validated by funzug_pipeline.py | New daily batches still need actual primary-source inspection; metadata validation is not fact-checking. Preserve existing pending drafts unchanged. |
+| Image handling | Native PNG/JPEG decoding, dimensions, rounding allowance and original-byte content hash checks; live composer test | Each new generated image still needs visual inspection and native 4:5 dimensions. No local resizing or cropping. |
+| Owner approval | BrandFlow single confirmation, selected IST slot, named reviewer, content fingerprint and refreshed approval before submission | A newly owner-approved post must finish the deployed automatic handoff. No agent-created approval is permitted. |
+| Meta scheduling | Live Mars and Hubble Facebook/Instagram planner matches; durable reserve, begin and submission-intent checkpoints | Newly approved submission still needs both actual live planner receipts. Existing schedules are not resubmitted as a test. |
+| Logging and outcomes | Native workflow commits queue/history/events and syncs BrandFlow; live reader matches existing published SPHEREx posts | Observe one real due scheduled post completing unattended publication reconciliation and dashboard sync. |
+| Credential readiness | Initial Instagram Login renewal succeeded; persistent browser session and GitHub App auth work; health monitoring active | Continue renewal monitoring. Security revocation or expired login may require owner authentication. |
+| Mixed formats | API carousel implementation only | BrandFlow/native carousel and Reels review and delivery remain incomplete. |
+
+The full goal is not complete. A healthy worker or green CI alone does not satisfy these open acceptance gates.
+
 The notes below predate PRs #57 through #59. The persistent Mini PC native browser worker is now enabled, and `funzug-publish` selects `FUNZUG_DELIVERY_MODE=meta_native` for new approvals. New staged native approvals block due-time API publication before reservation. The live Mini PC adapter verified both upcoming Mars and Hubble posts against Facebook and Instagram planner IDs and approved IST slots. The active worker independently recorded both as scheduled without submitting either again. The earlier FRB and SPHEREx outcomes were reconciled through successful native workflows.
 
 Composer preparation was live-tested using already-approved content, original image bytes, exact caption, both selected accounts and selected IST controls. No Schedule or Publish click occurred in that test. PR #60 adds stale-poll, actionable-error and checkpoint-stall health checks and current deployment notes. See `NATIVE_WORKER_IMPLEMENTATION.md` for deployment evidence.
