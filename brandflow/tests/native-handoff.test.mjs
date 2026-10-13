@@ -25,6 +25,23 @@ test('planner placeholders cannot be recorded as native Meta schedule receipts',
  const fake={...receipt('facebook'),schedule_id:'meta-planner-visible:funzug-2026-test:facebook:2099-10-13T19:30:00+05:30'};
  assert.throws(()=>mergeNativeHandoff(submitting,{...submitting,receipts:{facebook:fake}},platforms));
 });
+test('a verified Meta ID may promote a prior planner placeholder without changing the approved handoff',()=>{
+ const placeholder=p=>({...receipt(p),schedule_id:`meta-planner-visible:funzug-test:${p}`,planner_url:'https://business.facebook.com/latest/content_calendar'});
+ const previous={...submitting,state:'scheduled',receipts:{facebook:placeholder('facebook'),instagram:placeholder('instagram')}};
+ const promoted=p=>({...receipt(p),schedule_id:p==='facebook'?'1519859980179026':'18121810900845217',planner_url:`https://business.facebook.com/latest/insights/object_insights/?content_id=${p==='facebook'?'1519859980179026':'18121810900845217'}`,checked_at:'2000-10-12T14:01:00+05:30'});
+ const incoming={...previous,receipts:{facebook:promoted('facebook'),instagram:promoted('instagram')}};
+ assert.deepEqual(mergeNativeHandoff(previous,incoming,platforms),incoming);
+ for(const changes of [
+  {content_hash:'b'.repeat(64)},
+  {scheduled_at:'2099-10-14T19:30:00+05:30'},
+  {checked_at:'2000-10-12T13:59:00+05:30'},
+ ]) {
+  const invalid={...incoming,receipts:{...incoming.receipts,facebook:{...incoming.receipts.facebook,...changes}}};
+  assert.throws(()=>mergeNativeHandoff(previous,invalid,platforms));
+ }
+ const replacement={...incoming,receipts:{...incoming.receipts,facebook:{...incoming.receipts.facebook,schedule_id:'another-actual-id'}}};
+ assert.throws(()=>mergeNativeHandoff(incoming,replacement,platforms));
+});
 test('JSONB key ordering cannot cause receipt conflicts or duplicate state writes',()=>{
  const prior=receipt('facebook');const reordered=Object.fromEntries(Object.entries(prior).reverse());
  assert.ok(nativeHandoffEqual(prior,reordered));

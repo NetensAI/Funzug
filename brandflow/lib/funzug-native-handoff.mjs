@@ -25,7 +25,20 @@ export function mergeNativeHandoff(previous, incoming, platforms) {
     const rank={reserved:0,submitting:1,scheduled:2};
     if (!Object.hasOwn(rank,previous.state) || rank[incoming.state]<rank[previous.state] || rank[incoming.state]>rank[previous.state]+1) throw new Error('Native state needs reconciliation');
     if (previous.submission_started_at && previous.submission_started_at!==incoming.submission_started_at) throw new Error('Submission checkpoint cannot change');
-    for (const [p,r] of Object.entries(previous.receipts||{})) if (!nativeHandoffEqual(incoming.receipts[p],r)) throw new Error('Native receipt cannot change');
+    for (const [p,r] of Object.entries(previous.receipts||{})) {
+      const next=incoming.receipts[p];
+      if (nativeHandoffEqual(next,r)) continue;
+      const oldId=typeof r?.schedule_id==='string'?r.schedule_id.trim().toLowerCase():'';
+      const newId=typeof next?.schedule_id==='string'?next.schedule_id.trim().toLowerCase():'';
+      const isPlaceholderPromotion=oldId.startsWith('meta-planner-visible:')
+        && !!newId
+        && !newId.startsWith('meta-planner-visible:')
+        && next.platform===r.platform
+        && next.scheduled_at===r.scheduled_at
+        && next.content_hash===r.content_hash
+        && Date.parse(next.checked_at)>=Date.parse(r.checked_at);
+      if (!isPlaceholderPromotion) throw new Error('Native receipt cannot change');
+    }
   }
   return incoming;
 }
