@@ -9,6 +9,26 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 const require=createRequire(import.meta.url);
+test('ordered ingestion authenticates and decodes before storage, and rolls back audit failure',async()=>{
+ const draft={format:'carousel',media:[]};
+ for(const mode of ['unauthorized','decode-failed','audit-failed','valid']){
+  const calls=[];
+  const POST=load('../app/api/integrations/funzug/drafts/route.ts',{
+   'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status||200})}},
+   '@/lib/funzug-content-hash.mjs':{draftContentHash:()=>null},
+   '@/lib/funzug-drafts':{validBearer:()=>mode!=='unauthorized',funzugOrderedBatchSchema:{safeParse:()=>({success:true,data:{batchId:'batch',drafts:[draft]}})},funzugBatchSchema:{},decodeAndVerifyImage:()=>{}},
+   '@/lib/decode-ordered-media.mjs':{decodeOrderedMedia:async()=>{calls.push('decode');if(mode==='decode-failed')throw Error('private error')}},
+   '@/lib/store-ordered-draft.mjs':{storeOrderedDraft:async()=>{calls.push('store');return {id:'fixture',status:'pending_review'}}},
+   './outcomes/route':{},'../outcomes/route':{},
+   '@/lib/db':{db:{query:async()=>{calls.push('brand');return {rows:[{id:'brand'}]}},connect:async()=>({query:async sql=>{calls.push(sql);if(mode==='audit-failed'&&sql.startsWith('INSERT INTO audit_logs'))throw Error('audit error');return {rows:[]}},release:()=>calls.push('release')})}},
+  }).POST;
+  const res=await POST({headers:new Headers(),text:async()=>JSON.stringify({schemaVersion:2})});
+  if(mode==='unauthorized'){assert.equal(res.status,401);assert.equal(calls.length,0);}
+  else if(mode==='decode-failed'){assert.equal(res.status,400);assert.deepEqual(calls,['decode']);assert.doesNotMatch(JSON.stringify(res),/private error/);}
+  else if(mode==='audit-failed'){assert.equal(res.status,409);assert.ok(calls.includes('ROLLBACK'));assert.ok(!calls.includes('COMMIT'));}
+  else{assert.equal(res.status,202);assert.deepEqual(calls.slice(0,4),['decode','brand','BEGIN','store']);assert.ok(calls.includes('COMMIT'));}
+ }
+});
 test('middleware routes only the exact native integration path to its bearer-protected handler',async()=>{
  const middleware=load('../middleware.ts',{'next/server':{NextResponse:{next:()=>({allowed:true}),redirect:()=>({allowed:false})}},jose:{jwtVerify:async()=>{throw Error('No session expected');}}},{process:{env:{}}}).middleware;
  for(const [path,allowed] of [['/api/integrations/funzug/native-handoff',true],['/api/integrations/funzug/native-package',true],['/api/integrations/funzug/native-package-extra',false],['/api/integrations/funzug/native-handoff-extra',false],['/social-drafts',false]]){
