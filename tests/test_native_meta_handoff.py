@@ -66,3 +66,32 @@ class NativeHandoffTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 record_receipt(self.item,dict(receipt,**{field:value}),self.now)
         self.assertEqual(self.item["native_handoff"]["receipts"],{})
+
+    def test_observed_receipt_replaces_placeholder_and_requires_all_real_ids(self):
+        reserve(self.item,self.row,self.now)
+        begin_submission(self.item,self.now)
+        handoff = self.item["native_handoff"]
+        handoff["state"] = "scheduled"
+        handoff["receipts"] = {
+            platform: {
+                "platform": platform,
+                "schedule_id": f"meta-planner-visible:fixture:{platform}",
+                "scheduled_at": handoff["scheduled_at"],
+                "content_hash": handoff["content_hash"],
+                "planner_url": "https://business.facebook.com/latest/content_calendar",
+                "checked_at": self.now.isoformat(),
+            }
+            for platform in self.item["platforms"]
+        }
+        actual = {"platform":"facebook", "schedule_id":"1519859980179026", "scheduled_at":handoff["scheduled_at"], "content_hash":handoff["content_hash"], "planner_url":"https://business.facebook.com/latest/content_calendar?business_id=123&asset_id=456", "checked_at":self.now.isoformat()}
+
+        record_receipt(self.item,actual,self.now)
+        self.assertEqual(handoff["receipts"]["facebook"]["schedule_id"],"1519859980179026")
+        self.assertEqual(handoff["state"],"submitting")
+
+        with self.assertRaisesRegex(RuntimeError,"conflicting receipt"):
+            record_receipt(self.item,dict(actual,schedule_id="another-actual-id"),self.now)
+
+        instagram = dict(actual,platform="instagram",schedule_id="18121810900845217")
+        record_receipt(self.item,instagram,self.now)
+        self.assertEqual(handoff["state"],"scheduled")

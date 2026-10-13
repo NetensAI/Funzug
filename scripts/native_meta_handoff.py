@@ -100,10 +100,20 @@ def record_receipt(item: dict[str, Any], receipt: dict[str, Any], now: dt.dateti
     saved = {key:receipt[key] for key in ("platform", "schedule_id", "scheduled_at", "content_hash", "planner_url", "checked_at")}
     previous = handoff["receipts"].get(platform)
     if previous is not None and previous != saved:
-        raise RuntimeError("conflicting receipt requires native schedule reconciliation")
+        previous_id = previous.get("schedule_id") if isinstance(previous, dict) else None
+        if not isinstance(previous_id, str) or not previous_id.strip().casefold().startswith("meta-planner-visible:"):
+            raise RuntimeError("conflicting receipt requires native schedule reconciliation")
     handoff["receipts"][platform] = saved
-    if set(handoff["receipts"]) == set(handoff["platforms"]):
+    all_platforms_confirmed = all(
+        isinstance(handoff["receipts"].get(required_platform), dict)
+        and isinstance(handoff["receipts"][required_platform].get("schedule_id"), str)
+        and not handoff["receipts"][required_platform]["schedule_id"].strip().casefold().startswith("meta-planner-visible:")
+        for required_platform in handoff["platforms"]
+    )
+    if all_platforms_confirmed:
         handoff["state"] = "scheduled"
+    else:
+        handoff["state"] = "submitting"
     # Keep delivery_mode blocked even after confirmation. Meta now owns delivery.
 
 
@@ -151,7 +161,10 @@ def main() -> int:
         changed = True
     if changed:
         pipeline.save_json(pipeline.QUEUE_PATH, queue)
-        pipeline.log_event({"event": "native_handoff_" + args.action, "item_id": args.id, "scheduled_at": item["scheduled_at"], "content_hash": reviewed["contentHash"], "state":item["native_handoff"]["state"]})
+        event = {"event": "native_handoff_" + args.action, "item_id": args.id, "scheduled_at": item["scheduled_at"], "content_hash": reviewed["contentHash"], "state":item["native_handoff"]["state"]}
+        if args.action == "receipt":
+            event.update({"platform": receipt["platform"], "schedule_id": receipt["schedule_id"], "checked_at": receipt["checked_at"]})
+        pipeline.log_event(event)
     print("Native handoff checkpoint persisted; browser planner verification remains required" if changed else "Native reservation already persisted; inspect planner before any submission")
     return 0
 
