@@ -1,30 +1,42 @@
-# Funzug readiness, 12 October 2026
+# Funzug readiness, 13 October 2026
 
-Existing single-image drafts are available for owner review. The full goal remains incomplete. Setup permission does not authorize posting.
+The end-to-end goal remains incomplete. Setup and credential access do not authorize publication. No posts were scheduled or published during the work recorded here.
 
-## Verified evidence
+## Verified
 
-- Main checkpoint 6921ecd records the approved Orionids publication. PRs 36-45 are merged.
-- Authenticated Chrome inspection showed seven pending cards with IST date/time selection, one unchecked confirmation, disabled Approve and enabled Reject. No controls were submitted. Pending-card times are proposals, not approved schedules.
-- Daily workspace validation accepted eight retained inbox items. Structural validation is not renewed fact verification. Pending drafts remain unchanged at the owner's request.
-- PR 42 and migration 011 accept positive portrait dimensions satisfying abs(width * 5 - height * 4) <= 2. 1080x1350 is preferred; native nearest-pixel 4:5 is allowed. No cropping or resizing. Retain Funzug headline and wordmark.
-- All 120 local Python tests passed. PRs 44 and 45 passed mandatory PostgreSQL 16 CI tests covering actual review, outcome and reschedule transactions, competing reviews, audit rollback, slot history and platform-result guards. Auth/framework adapters remain fixtures.
-- Owner-approved Orionids completed workflow run 38220155185 successfully. Facebook ID 124454514239741_1519437233554634 was recorded at 1:22:33 PM IST and Instagram ID 18116304065105811 at 1:22:49 PM IST on 12 October. BrandFlow persisted both results; Meta Business Suite independently displayed both posts. The approved slot was 1:20 PM IST, so this does not prove exact-minute delivery.
-- Scheduler inspection at 12:57:53 PM IST found a healthy container, recent poll, no errors, no active workflows and no pending result sync. Renewal remains due 13 October 2026 at 11:30 AM IST, not proven complete.
-- Read-only credential run 38213592972 passed current account-access checks, not future renewal or new publication.
+- PR #55 (`c9271b2`) merged the legacy Meta placeholder receipt reconciliation fix. It allows a verified schedule ID to replace a stored planner placeholder while retaining the other platform's unchanged placeholder during partial reconciliation.
+- The merged BrandFlow helper is deployed at `/home/vatsal/apps/brandflow/lib/funzug-native-handoff.mjs`, SHA-256 `6d69bb579fe4f6adefff3d15ca8001ac5035ad68571360669d7ed96db234dce0`. The prior helper is preserved as `funzug-native-handoff.mjs.pre-pr55-20261013.bak`.
+- BrandFlow dashboard and database containers are healthy. `/api/health` reports healthy, database connected, and timezone `Asia/Kolkata`.
+- PR #55 checks passed: Python 132 passed, 1 skipped; BrandFlow Node 34 passed, 1 skipped. The deployed dashboard build compiled successfully.
+- Instagram Login renewal run #2 completed successfully at 11:30 AM IST on 13 October. `FUNZUG_INSTAGRAM_API_MODE` is `instagram_login`.
+- Mini PC scheduler is healthy. Last poll was 2:00 PM IST; no active workflows, error, or pending result sync. Next renewal is 11:31 AM IST on 20 October.
+- Latest observed GitHub runs: renewal #2 success; BrandFlow draft approval sync #168 success; publish-approved #161 success; native Meta handoff #14 failed before PR #55 was merged and deployed.
 
-## Pending implementation
+## Native Meta reconciliation still required
 
-PR 46 contains reschedule network recovery, explicit unknown publication timestamps and fail-closed native-handoff guards. Fifteen local boundary tests pass, including successful submission exactly once with the selected IST time. Merge and dashboard deployment remain pending. Edge access is restored. The linked Funzug Facebook and Instagram native composer exposes separate schedule controls, but no native schedule has been submitted.
+The authoritative queue still has four approved posts:
 
-The owner requested upcoming posts in Meta Business Suite. Native scheduling is not activated. Existing upcoming approvals remain workflow-managed. A manual reservation workflow now validates the existing BrandFlow approval, content fingerprint and unchanged future IST slot, then persists a blocking reservation under queue-write concurrency. This is not a native scheduling runner. Do not dispatch it until planner receipt reconciliation and the remaining dashboard integration are ready. An uncertain submission must remain blocked pending inspection, never be retried blindly. No automatic release or fallback is implemented.
+- “This Flash Came From The Early Universe”: `submitting`, both platform receipts are legacy placeholders.
+- “A World Between Star And Planet”: `scheduled`, both platform receipts are legacy placeholders.
+- “Mars Wakes In Blue Light”: `submitting`, no platform receipts.
+- “Could A Dead Star Grow New Worlds?”: `submitting`, no platform receipts.
 
-## Remaining completion gates
+BrandFlow currently reflects these incomplete checkpoints. A prior Meta Business Suite inspection found the first two posts published and the latter two scheduled, but the current Chrome and Edge browser connections report `User unavailable` with no accessible tabs. Do not treat old screenshots, queue state, a workflow run, or stored placeholders as current planner verification. Reopen the authenticated Meta Business Suite browser connection, inspect the live planner, then record only observed IDs and slots through the native handoff workflow. Do not repeat a schedule submission for an uncertain post.
 
-1. Verify real renewal, encrypted replacement, diagnostics and publishing-mode activation. Renewal cannot prevent provider revocation or required re-login.
-2. Complete native Meta scheduling integration and verify upcoming posts in the planner without duplicate publication. The existing single-image publication round trip is verified by the Orionids evidence above; inspect its audit entry separately.
-3. Complete a fresh 7-10-post daily batch and review-only transfer. Verify new claims and image claims against primary/authoritative sources; retain access dates and claim support metadata. Check history and relevant live Meta schedule or report unavailable access. Do not re-verify existing pending drafts.
-4. Complete mixed-format integration. Pipeline carousel publication exists, but BrandFlow sync rejects non-image drafts and ingestion stores one image. Reels are not implemented. Ordered assets must remain bound to reviewed content before carousel approval is supported.
-5. Verify interactive native schedule submission and receipt reconciliation. Existing owner approval and live Meta publication are established for Orionids, not for native scheduling.
+There is no unattended native-browser scheduler. The native handoff currently uses an owner-approved queue reservation, a pre-submission checkpoint, one browser submission, planner inspection, and per-platform receipt reconciliation. Until the planner is accessible and these records are reconciled, do not tell the owner that all approvals are scheduled or ready for another approval batch.
 
-Owner controls remain one confirmation, future IST date/time and Approve/Reject. Approval authorizes only reviewed content and the chosen slot, including public media upload. No typed authorization or six-checkbox interface. Successful platform posts must not be replayed automatically.
+## Remaining end-to-end work
+
+1. Verify all four native Meta planner entries against the authoritative queue and BrandFlow, reconcile actual schedule or publication IDs, and verify the resulting audit records. Keep all times in IST. Do not alter existing Meta schedules.
+2. Decide and implement the supported unattended handoff path after testing the authorized browser workflow. A reservation or Graph API publication alone does not prove that a post appears in the Meta Business Suite Planner.
+3. Complete daily fresh-draft preparation with current source verification and on-image claim verification, source URLs, access dates, claim IDs, support notes, history/schedule checks, image review, and validator pass. Preserve pending drafts unchanged unless the owner directs otherwise.
+4. Complete mixed-format review and publishing if still in scope. The existing pipeline has carousel publication code, but BrandFlow ingestion/review remains single-image. Reels are not implemented. Keep ordered assets bound to approved content before enabling multi-image approval.
+5. Continue monitoring Instagram credential renewal. Renewal cannot prevent Meta revocation or required re-login after security or permission changes.
+
+## Approval and safety invariants
+
+- Approval is one confirmation plus the selected future IST slot. Reject remains available; no separate authorization typing is required.
+- Approval binds the source claims, caption, platforms, MIME type, image bytes, and content hash. Schedule changes require explicit owner rescheduling and audit history.
+- No public media upload or post publication before the owner approves the reviewed content and selected slot.
+- Successful platform results are not replayed automatically. Partial failure preserves successful platform IDs and requires platform-specific reconciliation.
+- Native Meta scheduling requires observed Business Suite planner receipts for every approved platform. A reservation, submission checkpoint, API response, or placeholder alone is not proof.
