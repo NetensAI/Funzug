@@ -60,6 +60,7 @@ def tick(config, state_path, context, enabled=False):
     state['last_checked_at']=int(time.time())
     selected=candidates(rows,now)
     state['approved_upcoming_count']=len(selected)
+    state['active_item_ids']=[row['externalId'] for row in selected]
     state['enabled']=enabled
     save=lambda:write_state(state_path,state)
     if not enabled:
