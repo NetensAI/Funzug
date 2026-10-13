@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import funzug_pipeline as pipeline
+from scripts.reviewed_media import approval_fingerprint
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -133,11 +134,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
 
 def approval_content_hash(item: dict[str, Any]) -> str:
     draft = payload_for(item)["drafts"][0]
-    content = {key: draft[key] for key in ("headline", "caption", "claims", "sources", "platforms")}
-    content["imageMimeType"] = draft["image"]["mimeType"]
-    content["imageSha256"] = hashlib.sha256(base64.b64decode(draft["image"]["data"])).hexdigest()
-    encoded = json.dumps(content, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return approval_fingerprint(draft)
 
 
 def require_matching_approved_content(item: dict[str, Any], status: dict[str, Any]) -> None:
