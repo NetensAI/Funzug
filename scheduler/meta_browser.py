@@ -121,6 +121,7 @@ class MetaBrowser:
         self.page.get_by_role('switch', name='Set date and time', exact=True).check()
         slot = stamp(packet['proposedSchedule'])
         dates = self.page.get_by_role('textbox', name='Date picker', exact=True)
+        dates.first.wait_for(state='visible', timeout=15000)
         hours = self.page.get_by_role('spinbutton', name='hours', exact=True)
         minutes = self.page.get_by_role('spinbutton', name='minutes', exact=True)
         periods = self.page.get_by_role('spinbutton', name='meridiem', exact=True)
