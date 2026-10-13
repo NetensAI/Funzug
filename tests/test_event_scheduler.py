@@ -14,6 +14,18 @@ class SchedulerTests(unittest.TestCase):
     def test_published_rows_do_not_trigger_due(self):
         self.assertFalse(approved_rows([{"status": "published", "publicationAuthorized": True}], 1900000000)[1])
 
+    def test_native_handoff_rows_do_not_trigger_api_publishing(self):
+        for state in ("reserved", "submitting", "scheduled"):
+            row = {
+                "status": "approved",
+                "publicationAuthorized": True,
+                "scheduleTimezone": "Asia/Kolkata",
+                "externalId": "native-" + state,
+                "proposedSchedule": "2026-10-11T23:30:00+05:30",
+                "nativeHandoff": {"state": state},
+            }
+            self.assertFalse(approved_rows([row], 1900000000)[1], state)
+
     def test_reschedule_changes_event_signature_and_future_post_is_not_due(self):
         row = {"status": "approved", "publicationAuthorized": True, "scheduleTimezone": "Asia/Kolkata", "externalId": "test", "proposedSchedule": "2035-01-01T10:15:00+05:30"}
         first, due = approved_rows([row], 1900000000)

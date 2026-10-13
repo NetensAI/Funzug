@@ -25,6 +25,12 @@ def approved_rows(rows: list, now: int) -> tuple[str, bool]:
     for row in rows:
         if not isinstance(row, dict) or row.get("status") != "approved" or row.get("publicationAuthorized") is not True or row.get("publishedAt"):
             continue
+        # Native Meta handoffs are scheduled in Business Suite, not via the
+        # Graph API publisher. Keep them out of both due dispatches and the
+        # scheduler's approval signature so a native slot cannot trigger a
+        # second publishing path after its time passes.
+        if row.get("nativeHandoff") is not None:
+            continue
         if row.get("scheduleTimezone") != "Asia/Kolkata":
             raise RuntimeError("Approved schedule timezone is invalid")
         stamp = datetime.fromisoformat(row["proposedSchedule"].replace("Z", "+00:00"))
