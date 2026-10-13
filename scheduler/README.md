@@ -11,3 +11,5 @@ The renewal timer dispatches the credential workflow after the initial 25-hour t
 Deploy under `/home/vatsal/apps/funzug-automation`. Install only the draft integration secret into `scheduler/secrets/config.json`, with mode 600. Mount the user-downloaded App key as `scheduler/secrets/github-app-key.pem`, also mode 600. Neither file belongs in Git.
 
 Run the container once with `--once --dry-run` before starting it. Confirm one accepted sync workflow and its completed run, then verify the local scheduler state. A healthy container alone does not prove workflow completion.
+Mixed-format package work: `verify_ordered_package` independently validates schedule identity, targets, content fingerprint and decoded ordered bytes. The native image now includes FFmpeg and the private validators. The live `advance` path still rejects mixed formats; do not enable the dashboard mixed-delivery flag until browser preparation, matching composer proof, planner receipts and publication reconciliation are implemented and verified. No worker deployment was performed for this change.
+

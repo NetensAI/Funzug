@@ -72,6 +72,38 @@ def binding(packet: dict) -> dict:
     return {"item_id": packet["externalId"], "content_hash": packet["contentHash"], "scheduled_at": stamp(packet["proposedSchedule"]).isoformat(), "platforms": list(packet["platforms"])}
 
 
+def verify_ordered_package(packet: dict) -> list[bytes]:
+    """Independent mixed-package verification, not a delivery enable switch."""
+    from scripts.reviewed_media import approval_fingerprint
+    from scripts.validate_ordered_media import validate_ordered_media
+    if packet.get('format') not in {'carousel', 'reel'} or 'image' in packet:
+        raise NativeFailure('unsupported_native_media_format')
+    if packet.get('scheduleTimezone') != 'Asia/Kolkata':
+        raise NativeFailure('invalid_timezone')
+    if not isinstance(packet.get('externalId'), str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}', packet['externalId']):
+        raise NativeFailure('invalid_item')
+    stamp(packet.get('proposedSchedule'))
+    platforms = packet.get('platforms')
+    if not isinstance(platforms, list) or not platforms or any(not isinstance(p, str) for p in platforms) or len(set(platforms)) != len(platforms) or not set(platforms) <= {'facebook', 'instagram'}:
+        raise NativeFailure('invalid_platforms')
+    for key in ('headline', 'caption'):
+        if not isinstance(packet.get(key), str) or not packet[key].strip():
+            raise NativeFailure('invalid_reviewed_content')
+    if any(not isinstance(packet.get(key), list) or not packet[key] for key in ('claims', 'sources')):
+        raise NativeFailure('invalid_reviewed_content')
+    try:
+        digest = approval_fingerprint(packet)
+    except (ValueError, TypeError, KeyError):
+        raise NativeFailure('invalid_reviewed_media') from None
+    if digest != packet.get('contentHash'):
+        raise NativeFailure('reviewed_content_changed')
+    try:
+        validate_ordered_media(packet)
+        return [base64.b64decode(asset['data'], validate=True) for asset in packet['media']]
+    except Exception:
+        raise NativeFailure('invalid_reviewed_media') from None
+
+
 class Browser(Protocol):
     def inspect(self, packet: dict) -> dict[str, dict]: ...
     def prepare(self, packet: dict, image: bytes) -> dict: ...
