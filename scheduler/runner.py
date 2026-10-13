@@ -80,7 +80,7 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
         print(f"Scheduler diagnostic: approval_change={signature != state['synced_signature']}; approved_post_due={due}; no workflow dispatched", flush=True)
         return
     renewal_at = state.get("renew_after", config.get("renew_after"))
-    if not state["jobs"] and signature == state["synced_signature"] and not due and not state.get("sync_results_needed") and (not renewal_at or now < renewal_at):
+    if not state["jobs"] and not state.get("error") and signature == state["synced_signature"] and not due and not state.get("sync_results_needed") and (not renewal_at or now < renewal_at):
         write_state(path, state)
         return
     os.environ["FUNZUG_GH_APP_ID"] = "5281589"
@@ -121,6 +121,28 @@ def tick(config: dict, path: Path, dry_run: bool = False) -> None:
             state.setdefault("cooldown_until", {})[workflow] = now + 300
             print(state["error"], flush=True)
         del state["jobs"][workflow]
+    error = state.get("error")
+    if isinstance(error, str):
+        for workflow, records in runs.items():
+            prefix = workflow + " failed; run_id="
+            if not error.startswith(prefix):
+                continue
+            try:
+                failed_run_id = int(error[len(prefix):])
+            except ValueError:
+                break
+            recovered = any(
+                isinstance(run.get("id"), int)
+                and run["id"] > failed_run_id
+                and run.get("status") == "completed"
+                and run.get("conclusion") == "success"
+                and run.get("actor", {}).get("login") == "funzug-automation-netensai[bot]"
+                for run in records
+            )
+            if recovered:
+                state.pop("error", None)
+                state.get("cooldown_until", {}).pop(workflow, None)
+            break
     for workflow, records in runs.items():
         if any(r.get("status") != "completed" for r in records):
             blocked.add(workflow)
