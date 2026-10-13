@@ -24,7 +24,7 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts.reviewed_media import approval_fingerprint
-from scripts.validate_ordered_media import validate_ordered_media
+from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -78,7 +78,7 @@ def api_status(base_url: str, token: str) -> dict[str, dict[str, Any]]:
 
 
 def payload_for(item: dict[str, Any]) -> dict[str, Any]:
-    if item.get('format') == 'carousel':
+    if item.get('format') in {'carousel', 'reel'}:
         return ordered_payload_for(item)
     relpath = item.get("media_path")
     if not isinstance(relpath, str) or item.get("format") != "image":
@@ -136,8 +136,9 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
-    paths = item.get('media_paths')
-    if not isinstance(paths, list) or not 2 <= len(paths) <= 10:
+    kind = item.get('format')
+    paths = item.get('media_paths') if kind == 'carousel' else [item.get('media_path')]
+    if not isinstance(paths, list) or not (2 <= len(paths) <= 10 if kind == 'carousel' else len(paths) == 1):
         raise ValueError('Carousel requires 2 to 10 private media paths')
     media = []
     for relative in paths:
@@ -148,15 +149,18 @@ def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
             path.relative_to(ROOT)
         except ValueError:
             raise ValueError('Draft media path must stay inside the repository') from None
-        if not path.is_file() or path.stat().st_size > 12 * 1024 * 1024:
+        if not path.is_file() or path.stat().st_size > (12 if kind == 'carousel' else 100) * 1024 * 1024:
             raise ValueError('Draft media is missing or exceeds the size limit')
+        if kind == 'reel':
+            media.append(probe_video_asset(path))
+            continue
         dimensions = pipeline.image_size(path)
         mime = mimetypes.guess_type(path.name)[0]
         if not pipeline.is_portrait_4_5(dimensions) or mime not in {'image/png', 'image/jpeg'}:
             raise ValueError('Carousel slides must be portrait 4:5 PNG or JPEG')
         media.append(dict(mimeType=mime, width=dimensions[0], height=dimensions[1], data=base64.b64encode(path.read_bytes()).decode('ascii')))
     draft = {
-        'externalId': item['id'], 'format': 'carousel', 'media': media,
+        'externalId': item['id'], 'format': kind, 'media': media,
         'headline': item['headline'], 'caption': item['caption'],
         'claims': [{key: claim[key] for key in ('text', 'source_ids', 'support_note')} for claim in item['claims']],
         'sources': [{key: source[key] for key in ('id', 'title', 'publisher', 'url', 'published_at', 'checked_at')} for source in item['sources']],

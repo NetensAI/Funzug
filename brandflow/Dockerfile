@@ -13,7 +13,7 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
-RUN apk add --no-cache python3 py3-pillow ffmpeg && addgroup --system app && adduser --system --ingroup app app
+RUN apk add --no-cache python3 py3-pillow ffmpeg tzdata && addgroup --system app && adduser --system --ingroup app app
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static

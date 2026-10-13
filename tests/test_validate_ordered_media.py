@@ -8,7 +8,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 from PIL import Image
-from scripts.validate_ordered_media import validate_ordered_media, verify_video_metadata
+from unittest.mock import patch
+from scripts.validate_ordered_media import validate_ordered_media, verify_video_metadata, probe_video_asset
 
 
 class OrderedMediaDecodeTests(unittest.TestCase):
@@ -24,9 +25,28 @@ class OrderedMediaDecodeTests(unittest.TestCase):
             draft = self.fixture(); draft['format'] = 'reel'
             draft['media'] = [dict(mimeType='video/mp4',width=40,height=50,durationMs=1000,data=base64.b64encode(path.read_bytes()).decode())]
             self.assertEqual(len(validate_ordered_media(draft)),64)
+            self.assertEqual(probe_video_asset(path),draft['media'][0])
             draft['media'][0]['durationMs'] = 2000
             with self.assertRaisesRegex(ValueError,'duration differs'):
                 validate_ordered_media(draft)
+
+    def test_real_reel_draft_validation_and_sync(self):
+        if not (shutil.which('ffmpeg') and shutil.which('ffprobe')):
+            if os.environ.get('FUNZUG_REQUIRE_MEDIA_DECODER_TESTS')=='1':self.fail('Real decoders required')
+            self.skipTest('FFmpeg is not installed locally')
+        import funzug_pipeline as pipeline
+        import scripts.brandflow_sync as sync
+        with tempfile.TemporaryDirectory(prefix='funzug-reel-sync-') as directory:
+            path=Path(directory)/'fixture.mp4'
+            subprocess.run(['ffmpeg','-v','error','-nostdin','-f','lavfi','-i','color=c=blue:s=40x50:r=10','-t','1','-c:v','libx264','-pix_fmt','yuv420p',str(path)],check=True,capture_output=True,timeout=30)
+            item=dict(id='reel-draft',format='reel',media_path='fixture.mp4',headline='Headline',caption='Caption',topic_key='reel-fixture',scheduled_at='2099-01-01T12:00:00+05:30',platforms=['facebook','instagram'],claims=[dict(text='Claim',source_ids=['primary'],support_note='Source establishes this claim')],sources=[dict(id='primary',title='Source',publisher='Institute',url='https://example.org/source',published_at=None,checked_at='2026-10-13T12:00:00+05:30')])
+            with patch.object(pipeline,'ROOT',Path(directory)),patch.object(sync,'ROOT',Path(directory)):
+                self.assertEqual(pipeline.validate_item(item,(1080,1350),require_public_media_url=False),[])
+                self.assertTrue(any('Reel delivery is not enabled' in e for e in pipeline.validate_item(item,(1080,1350))))
+                packet=sync.payload_for(item);self.assertEqual(packet['schemaVersion'],2)
+                media=packet['drafts'][0]['media'][0]
+                self.assertEqual((media['width'],media['height'],media['durationMs']),(40,50,1000))
+                self.assertEqual(base64.b64decode(media['data']),path.read_bytes())
 
     def fixture(self):
         assets = []

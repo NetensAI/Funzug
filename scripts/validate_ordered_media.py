@@ -87,6 +87,25 @@ def verify_video_metadata(info, asset):
         raise ValueError('Reel must use an MP4 container')
 
 
+def probe_video_asset(path, *, ffprobe='ffprobe'):
+    """Derive metadata from original private bytes, not caller declarations."""
+    path = Path(path)
+    if path.suffix.lower() != '.mp4' or not path.is_file() or not 0 < path.stat().st_size <= 100 * 1024 * 1024:
+        raise ValueError('Private Reel must be an MP4 within the byte limit')
+    try:
+        result = subprocess.run([ffprobe, '-v', 'error', '-protocol_whitelist', 'file', '-show_streams', '-show_format', '-of', 'json', str(path)], check=True, capture_output=True, timeout=30)
+        info = json.loads(result.stdout)
+        stream = next(s for s in info['streams'] if s.get('codec_type') == 'video')
+        duration = float(info['format']['duration']) * 1000
+        if not math.isfinite(duration):
+            raise ValueError()
+        asset = dict(mimeType='video/mp4', width=stream['width'], height=stream['height'], durationMs=round(duration), data=base64.b64encode(path.read_bytes()).decode('ascii'))
+        verify_video_metadata(info, asset)
+        return asset
+    except (OSError, subprocess.SubprocessError, ValueError, KeyError, StopIteration, TypeError):
+        raise ValueError('Private Reel metadata could not be verified') from None
+
+
 if __name__ == '__main__':
     try:
         packet = sys.stdin.buffer.read(140 * 1024 * 1024 + 1)
