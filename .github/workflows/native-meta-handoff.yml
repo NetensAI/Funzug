@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       action:
-        description: Reserve, checkpoint before UI submission, or record verified planner receipt
+        description: Reserve, checkpoint before UI submission, record a verified planner receipt, or reconcile an observed publication
         required: true
         default: reserve
         type: choice
@@ -16,9 +16,14 @@ on:
           - reserve
           - begin
           - receipt
+          - published
           - dashboard
       receipt_json:
         description: Observed planner receipt, only for receipt action, never credentials
+        required: false
+        type: string
+      outcome_json:
+        description: Verified Meta publication outcomes, only for published action, never credentials
         required: false
         type: string
 
@@ -46,6 +51,7 @@ jobs:
           ITEM_ID: ${{ inputs.item_id }}
           HANDOFF_ACTION: ${{ inputs.action }}
           NATIVE_RECEIPT_JSON: ${{ inputs.receipt_json }}
+          NATIVE_OUTCOME_JSON: ${{ inputs.outcome_json }}
           FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
           FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
         run: python -m scripts.native_meta_handoff --id "$ITEM_ID" --action "$HANDOFF_ACTION"
@@ -55,13 +61,22 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add queue.json
           if [ -f logs/events.jsonl ]; then git add logs/events.jsonl; fi
+          if [ -f history.json ]; then git add history.json; fi
           if ! git diff --cached --quiet; then
             git commit -m "Reserve owner-approved native Meta handoff"
             git push
           fi
       - name: Confirm dashboard guard after authoritative queue commit
+        if: inputs.action != 'published'
         env:
           ITEM_ID: ${{ inputs.item_id }}
           FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
           FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
         run: python -m scripts.native_meta_handoff --id "$ITEM_ID" --action dashboard
+
+      - name: Sync verified native publication outcomes to BrandFlow
+        if: inputs.action == 'published'
+        env:
+          FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
+          FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+        run: python scripts/brandflow_sync.py sync-results

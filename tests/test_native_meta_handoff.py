@@ -3,7 +3,7 @@ import datetime as dt
 import unittest
 from unittest.mock import patch
 
-from scripts.native_meta_handoff import reserve, begin_submission, record_receipt
+from scripts.native_meta_handoff import reserve, begin_submission, record_receipt, record_published_outcomes
 import funzug_pipeline as pipeline
 
 
@@ -95,3 +95,42 @@ class NativeHandoffTests(unittest.TestCase):
         instagram = dict(actual,platform="instagram",schedule_id="18121810900845217")
         record_receipt(self.item,instagram,self.now)
         self.assertEqual(handoff["state"],"scheduled")
+
+    def test_published_outcomes_require_matching_meta_receipts_and_verified_detail_urls(self):
+        reserve(self.item,self.row,self.now)
+        begin_submission(self.item,self.now)
+        post_ids = {"facebook":"1519859980179026", "instagram":"18121810900845217"}
+        for platform, post_id in post_ids.items():
+            record_receipt(self.item, {
+                "platform":platform,
+                "schedule_id":post_id,
+                "scheduled_at":self.item["scheduled_at"],
+                "content_hash":self.row["contentHash"],
+                "planner_url":f"https://business.facebook.com/latest/insights/object_insights/?content_id={post_id}",
+                "checked_at":self.now.isoformat(),
+            },self.now)
+        published_now = dt.datetime.fromisoformat("2026-10-13T18:05:00+05:30")
+        raw = {"platform_results": {
+            platform: {
+                "post_id":post_id,
+                "published_at":"2026-10-13T18:00:00+05:30",
+                "evidence_url":f"https://business.facebook.com/latest/insights/object_insights/?content_id={post_id}",
+            }
+            for platform,post_id in post_ids.items()
+        }}
+
+        for bad in [
+            {"platform_results":{"facebook":raw["platform_results"]["facebook"]}},
+            {"platform_results":{**raw["platform_results"],"facebook":dict(raw["platform_results"]["facebook"],post_id="different-id")}},
+            {"platform_results":{**raw["platform_results"],"instagram":dict(raw["platform_results"]["instagram"],published_at="2026-10-13T19:00:00+05:30")}},
+            {"platform_results":{**raw["platform_results"],"facebook":dict(raw["platform_results"]["facebook"],evidence_url="https://attacker.example/latest/insights/object_insights/?content_id=1519859980179026")}},
+        ]:
+            before = copy.deepcopy(self.item)
+            with self.assertRaises(RuntimeError):
+                record_published_outcomes(self.item,bad,published_now)
+            self.assertEqual(self.item,before)
+
+        self.assertTrue(record_published_outcomes(self.item,raw,published_now))
+        self.assertEqual(self.item["status"],"published")
+        self.assertEqual(self.item["platform_results"]["facebook"]["post_id"],post_ids["facebook"])
+        self.assertFalse(record_published_outcomes(self.item,raw,published_now))
