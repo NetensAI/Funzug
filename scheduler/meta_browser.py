@@ -184,12 +184,19 @@ class MetaBrowser:
         if not 0 <= delta <= 28:
             raise NativeFailure('native_slot_outside_review_window')
         self.planner.get_by_role('button', name='Today', exact=True).click()
+        # Meta renders the toolbar before its calendar data. Reading immediately
+        # can advance five empty weeks before the first date header exists.
+        dates = self.planner.get_by_text(re.compile(r'^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+[0-9]{1,2}$'))
+        dates.first.wait_for(state='visible', timeout=45000)
         target = calendar_label(slot)
         for _ in range(5):
             header = self.planner.get_by_text(target, exact=True)
             if header.count() == 1:
                 break
+            previous = dates.first.inner_text()
             self.planner.get_by_role('button', name='Right', exact=True).click()
+            self.planner.get_by_text(previous,exact=True).wait_for(state='hidden',timeout=15000)
+            self.planner.get_by_text(re.compile(r'^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+[0-9]{1,2}$')).first.wait_for(state='visible', timeout=15000)
         else:
             raise NativeFailure('planner_date_not_visible')
         month = self.planner.get_by_role('heading', name=slot.strftime('%B'), exact=True)

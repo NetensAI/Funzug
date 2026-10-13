@@ -42,6 +42,7 @@ jobs:
           FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
           FUNZUG_MEDIA_BASE_URL: ${{ vars.FUNZUG_MEDIA_BASE_URL }}
           FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
+          FUNZUG_DELIVERY_MODE: ${{ vars.FUNZUG_DELIVERY_MODE }}
         run: |
           python scripts/brandflow_sync.py sync
           python scripts/brandflow_sync.py sync-results
