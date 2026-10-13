@@ -34,7 +34,8 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
    INSERT INTO users VALUES('owner','owner',true,'admin'),('other','other',true,'admin');
    ALTER TABLE social_post_drafts ADD COLUMN proposed_schedule timestamptz, ADD COLUMN schedule_timezone text,
     ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz,
-    ADD COLUMN headline text, ADD COLUMN caption text, ADD COLUMN claims jsonb, ADD COLUMN evidence_sources jsonb, ADD COLUMN image_bytes bytea, ADD COLUMN image_mime_type text;
+    ADD COLUMN headline text, ADD COLUMN caption text, ADD COLUMN claims jsonb, ADD COLUMN evidence_sources jsonb, ADD COLUMN image_bytes bytea, ADD COLUMN image_mime_type text,
+    ADD COLUMN media_format text NOT NULL DEFAULT 'image';
    CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);
   await pool.query(fs.readFileSync(new URL('../db/migrations/012_funzug_native_handoff.sql',import.meta.url),'utf8'));
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;

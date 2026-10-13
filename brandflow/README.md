@@ -2,6 +2,8 @@
 
 ## Ordered media storage, not yet deployed
 
+The review page now renders all Carousel slides in database index order and a private, non-autoplay Reel player. Invalid packages display an error, not the legacy image placeholder. Mixed-format approval is blocked both in the UI and in the review SQL until ingestion, content binding and native delivery are connected. Migration 013 must precede this review-route deployment too. These changes have not been deployed.
+
 `lib/ordered-media-manifest.mjs` builds a review package from the parent's private database assets. It checks parent identity, contiguous indexes, actual byte checksums, counts, ratio, MIME metadata and Reel duration, then binds caption, evidence, platform targets and ordered media into one fingerprint. It does not decode media or enable ingestion, approval or delivery. Callers must load parent and assets in one consistent database transaction and validate media decoding before this package can be shown for approval. The unit tests use synthetic bytes to test binding, not to prove valid image/video decoding.
 
 Migration 013 adds `media_format` and private ordered byte storage without copying or changing existing single-image assets. Production draft IDs were verified as UUID. The database binds assets to their parent draft, computes their byte hashes, rejects duplicate bytes and invalid metadata, checks contiguous slide indexes before approval, and prevents asset writes after review. These constraints do not decode media files or prove that a caption is factual; ingestion must validate original media before storage.

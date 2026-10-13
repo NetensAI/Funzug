@@ -200,6 +200,7 @@ test('actual dashboard renders partial failure, preserves post ID, and hides res
   '@/components/AppPage':{__esModule:true,default:({children})=>children()},
   '@/components/SocialDraftReview':{__esModule:true,default:()=>React.createElement('button',null,'Fixture approval control')},
   '@/components/SocialDraftReschedule':{__esModule:true,default:()=>React.createElement('button',null,'Fixture reschedule control')},
+  '@/components/SocialDraftMedia':load('../components/SocialDraftMedia.tsx',{}, {React}),
   '@/lib/db':{db:{async query(sql){return {rows:sql.startsWith('SELECT * FROM brands')?[{id:'fixture-brand',slug:'funzug',name:'Funzug'}]:[draft]};}}},
   '@/lib/auth':{getSession:async()=>({role:'admin'})},
  }).default;
