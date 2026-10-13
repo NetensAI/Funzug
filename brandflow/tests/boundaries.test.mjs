@@ -8,6 +8,8 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
+import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
+import {createHash} from 'node:crypto';
 const require=createRequire(import.meta.url);
 test('ordered ingestion authenticates and decodes before storage, and rolls back audit failure',async()=>{
  const draft={format:'carousel',media:[]};
@@ -36,17 +38,31 @@ test('middleware routes only the exact native integration path to its bearer-pro
   assert.equal(response.allowed,allowed);
  }
 });
-function packageFixture({authorized=true,overrides={}}={}){
+function packageFixture({authorized=true,overrides={},mixedEnabled=false,decodeFails=false}={}){
  const calls=[];
  const row={external_id:'fixture',headline:'Reviewed headline',caption:'Reviewed caption',claims:[],evidence_sources:[],platforms:['facebook','instagram'],image_bytes:Buffer.from('private-reviewed-image'),image_mime_type:'image/png',image_width:1080,image_height:1350,status:'approved',publication_authorized:true,review_checks:{approvalConfirmed:true},reviewed_at:'2026-10-13T10:00:00+05:30',reviewed_by:'owner',proposed_schedule:'2099-10-13T19:30:00+05:30',schedule_timezone:'Asia/Kolkata',native_handoff:null,published_at:null,platform_outcomes:{},...overrides};
  const GET=load('../app/api/integrations/funzug/native-package/route.ts',{
   'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status||200,headers:options?.headers})}},
   '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:[row]}}}},
   '@/lib/funzug-content-hash.mjs':{draftContentHash:()=> 'a'.repeat(64)},
+  '@/lib/ordered-media-manifest.mjs':{orderedMediaManifest},
+  '@/lib/decode-ordered-media.mjs':{decodeOrderedMedia:async()=>{if(decodeFails)throw Error('private decode error');return orderedMediaManifest(row,row.private_assets.map(a=>({...a,media_bytes:Buffer.from(a.hex_bytes,'hex')}))).contentHash;}},
   '@/lib/funzug-drafts':{validBearer:()=>authorized,decodeAndVerifyImage:()=>{if(row.image_mime_type!=='image/png')throw Error('bad image')}},
- },{Buffer}).GET;
+ },{Buffer,process:{env:{FUNZUG_NATIVE_MIXED_ENABLED:mixedEnabled?'1':'0'}}}).GET;
  return {calls,row,send:()=>GET({url:'https://funzug.netens.top/api/integrations/funzug/native-package?batchId=fixture&externalId=fixture',headers:new Headers()})};
 }
+
+test('mixed native packages remain gated and bind approved ordered bytes',async()=>{
+ const private_assets=['first','second'].map((data,index)=>({draft_id:'parent',media_index:index,mime_type:'image/png',width:40,height:50,duration_ms:null,sha256:createHash('sha256').update(data).digest('hex'),hex_bytes:Buffer.from(data).toString('hex')}));
+ const overrides={id:'parent',media_format:'carousel',private_assets};
+ assert.equal((await packageFixture({overrides}).send()).status,409);
+ const good=await packageFixture({overrides,mixedEnabled:true}).send();
+ assert.equal(good.status,200);assert.equal(good.body.format,'carousel');assert.equal(good.body.media.length,2);
+ assert.equal(Buffer.from(good.body.media[0].data,'base64').toString(),'first');
+ assert.equal(good.headers['Cache-Control'],'no-store');assert.ok(!('image' in good.body));
+ for(const changes of [{status:'pending_review'},{publication_authorized:false},{published_at:'2026-10-13'},{private_assets:private_assets.toReversed()},{native_handoff:{content_hash:'wrong'}}])assert.equal((await packageFixture({overrides:{...overrides,...changes},mixedEnabled:true}).send()).status,409);
+ const failed=await packageFixture({overrides,mixedEnabled:true,decodeFails:true}).send();assert.equal(failed.status,409);assert.doesNotMatch(JSON.stringify(failed),/private decode error/);
+});
 
 test('ordered private previews require current administrator access before returning media',async()=>{
  const id='11111111-1111-4111-8111-111111111111';
