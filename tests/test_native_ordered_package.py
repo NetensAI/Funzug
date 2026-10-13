@@ -1,12 +1,46 @@
 import base64
 import copy
 import io
+import datetime as dt
+import hashlib
 import unittest
 from PIL import Image
 from scripts.reviewed_media import approval_fingerprint
-from scheduler.native_worker import NativeFailure, verify_ordered_package, verify_package
+from scheduler.native_worker import IST, NativeFailure, advance, binding, verify_delivery_package, verify_ordered_package, verify_package
+from tests.test_native_worker import Driver, checkpoint, receipts
 
 class NativeOrderedPackageTests(unittest.TestCase):
+    def test_unimplemented_adapter_cannot_dispatch_mixed_content(self):
+        packet=self.fixture();calls=[]
+        with self.assertRaisesRegex(NativeFailure,'unsupported_native_media_format'):
+            advance(packet,{},Driver(packet),lambda *args:calls.append(args),lambda state:None,lambda:packet,dt.datetime.now(IST))
+        self.assertEqual(calls,[])
+
+    def test_ordered_handoff_preserves_durable_submit_and_restart_invariants(self):
+        class OrderedDriver(Driver):
+            supported_media_formats=('carousel',)
+            def proof(self,packet,assets):
+                return {**binding(packet),'format':'carousel','caption':packet['caption'],'media_sha256':[hashlib.sha256(asset).hexdigest() for asset in assets],'timezone':'Asia/Kolkata','story':False,'boost':False}
+            def prepared(self,packet):
+                return self.proof(packet,verify_delivery_package(packet,self))
+        packet=self.fixture();packet['nativeHandoff']=checkpoint(packet)
+        state={'binding':binding(packet),'phase':'reserved'};saved=[];calls=[]
+        driver=OrderedDriver(packet,[{},receipts(packet)])
+        def workflow(action,item,receipt=None):
+            calls.append(action)
+            if action=='begin':packet['nativeHandoff']=checkpoint(packet,'submitting')
+        def submit():
+            self.assertEqual(saved[-1]['phase'],'submission_intent')
+            driver.submits+=1
+        driver.submit=submit
+        self.assertEqual(advance(copy.deepcopy(packet),state,driver,workflow,lambda value:saved.append(copy.deepcopy(value)),lambda:copy.deepcopy(packet),dt.datetime.now(IST)),'scheduled')
+        self.assertEqual(driver.submits,1)
+        self.assertEqual(calls,['begin','receipt','receipt'])
+        driver.observations=[receipts(packet)]
+        state['phase']='submission_intent'
+        advance(packet,state,driver,workflow,lambda value:None,lambda:packet,dt.datetime.now(IST))
+        self.assertEqual(driver.submits,1)
+
     def fixture(self):
         media=[]
         for color in ('red','blue'):

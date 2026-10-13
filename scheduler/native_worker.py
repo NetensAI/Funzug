@@ -106,15 +106,32 @@ def verify_ordered_package(packet: dict) -> list[bytes]:
 
 class Browser(Protocol):
     def inspect(self, packet: dict) -> dict[str, dict]: ...
-    def prepare(self, packet: dict, image: bytes) -> dict: ...
+    def prepare(self, packet: dict, image: bytes | list[bytes]) -> dict: ...
     def prepared(self, packet: dict) -> dict: ...
     def submit(self) -> None: ...
 
 
-def verify_proof(packet: dict, proof: dict, image: bytes) -> None:
+def verify_proof(packet: dict, proof: dict, image: bytes | list[bytes]) -> None:
     expected = binding(packet)
-    if proof != {**expected, "caption": packet["caption"], "image_sha256": hashlib.sha256(image).hexdigest(), "timezone": "Asia/Kolkata", "story": False, "boost": False}:
+    media_proof = ({'format': packet['format'], 'media_sha256': [hashlib.sha256(asset).hexdigest() for asset in image]}
+                   if isinstance(image, list) else {'image_sha256': hashlib.sha256(image).hexdigest()})
+    if proof != {**expected, "caption": packet["caption"], **media_proof, "timezone": "Asia/Kolkata", "story": False, "boost": False}:
         raise NativeFailure("composer_does_not_match_approval")
+
+
+def verify_delivery_package(packet: dict, browser: Browser) -> bytes | list[bytes]:
+    """Mixed adapters must explicitly advertise implemented format support.
+
+    The deployed image adapter advertises none, preserving its fail-closed gate.
+    Every refresh uses this same independent verification boundary.
+    """
+    media_format = packet.get('format', 'image')
+    if media_format == 'image':
+        return verify_package(packet)
+    supported = getattr(browser, 'supported_media_formats', ())
+    if not isinstance(supported, (tuple, frozenset)) or media_format not in supported:
+        raise NativeFailure('unsupported_native_media_format')
+    return verify_ordered_package(packet)
 
 
 def verify_receipts(packet: dict, receipts: dict, now: dt.datetime) -> None:
@@ -139,7 +156,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
     and dashboard checkpoint. refresh() re-reads approval before public submission.
     persist(state) must atomically save state before it returns.
     """
-    image = verify_package(packet)
+    image = verify_delivery_package(packet, browser)
     expected = binding(packet)
     if state.get("binding") and state["binding"] != expected:
         raise NativeFailure("approval_changed_after_handoff")
@@ -176,7 +193,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
             # both the authoritative queue commit and dashboard confirmation.
             workflow('begin',packet['externalId'])
             current=refresh()
-            verify_package(current)
+            verify_delivery_package(current, browser)
             if binding(current)!=expected or current.get('nativeHandoff',{}).get('state')!='submitting':
                 raise NativeFailure('submission_checkpoint_unconfirmed')
             return advance(current,state,browser,workflow,persist,refresh,dt.datetime.now(IST))
@@ -190,7 +207,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
             raise NativeFailure("existing_planner_post_needs_reconciliation")
         verify_proof(packet, browser.prepare(packet, image), image)
         current = refresh()
-        verify_package(current)
+        verify_delivery_package(current, browser)
         if binding(current) != expected or current.get("nativeHandoff") != handoff:
             raise NativeFailure("approval_changed_before_checkpoint")
         state["phase"] = "begin_intent"
@@ -199,7 +216,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
         state["phase"] = "begin_confirmed"
         persist(state)
         current = refresh()
-        verify_package(current)
+        verify_delivery_package(current, browser)
         if binding(current) != expected or current.get("nativeHandoff", {}).get("state") != "submitting":
             raise NativeFailure("submission_checkpoint_unconfirmed")
         if stamp(current["proposedSchedule"]) <= dt.datetime.now(IST):
@@ -224,7 +241,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
         # phases preceding that marker may rebuild an unsent composer on restart.
         verify_proof(packet,browser.prepare(packet,image),image)
         current=refresh()
-        verify_package(current)
+        verify_delivery_package(current, browser)
         if binding(current)!=expected or current.get('nativeHandoff')!=handoff:
             raise NativeFailure('approval_changed_before_submission')
         verify_proof(current,browser.prepared(current),image)
