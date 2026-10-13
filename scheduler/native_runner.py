@@ -13,7 +13,7 @@ from urllib.request import Request
 
 from instagram_credentials import request_json
 from scheduler.native_dispatch import CheckpointDispatcher
-from scheduler.native_worker import IST, NativeFailure, advance, stamp
+from scheduler.native_worker import IST, NativeFailure, advance, stamp,verify_package
 from scheduler.runner import write_state
 from scripts.renew_instagram_credential import installation_token
 
@@ -51,6 +51,21 @@ def candidates(rows, now):
     return sorted(result,key=lambda row:stamp(row['proposedSchedule']))
 
 
+def publication_candidates(rows,now):
+    """Read-only reconciliation of due native schedules, never a retry publish."""
+    result=[]
+    for row in rows:
+        if not isinstance(row,dict) or row.get('status')!='approved' or row.get('publicationAuthorized') is not True or row.get('publishedAt'):
+            continue
+        if (row.get('nativeHandoff') or {}).get('state')!='scheduled':
+            continue
+        if row.get('scheduleTimezone')!='Asia/Kolkata':
+            raise NativeFailure('invalid_timezone')
+        if stamp(row.get('proposedSchedule'))<=now-dt.timedelta(minutes=2):
+            result.append(row)
+    return sorted(result,key=lambda row:stamp(row['proposedSchedule']))
+
+
 def tick(config, state_path, context, enabled=False):
     now=dt.datetime.now(IST)
     rows=read_api(config,'drafts',{'batchId':BATCH}).get('drafts')
@@ -60,6 +75,9 @@ def tick(config, state_path, context, enabled=False):
     state['last_checked_at']=int(time.time())
     selected=candidates(rows,now)
     state['approved_upcoming_count']=len(selected)
+    due=publication_candidates(rows,now)
+    state['publication_reconciliation_count']=len(due)
+    selected=selected+due
     state['active_item_ids']=[row['externalId'] for row in selected]
     state['enabled']=enabled
     save=lambda:write_state(state_path,state)
@@ -85,7 +103,13 @@ def tick(config, state_path, context, enabled=False):
             if token is None:token=auth(config)
             dispatcher=CheckpointDispatcher(token,local,lambda _:save())
             browser=MetaBrowser(context,Path('/tmp/funzug-native')/identifier)
-            status=advance(packet,local,browser,dispatcher,lambda _:save(),refresh,now)
+            if row in due:
+                verify_package(packet)
+                outcome=browser.inspect_publication(packet)
+                dispatcher('published',identifier,outcome)
+                status='published'
+            else:
+                status=advance(packet,local,browser,dispatcher,lambda _:save(),refresh,now)
             local.pop('error',None)
             if status=='scheduled':local['last_verified_at']=int(time.time())
             local['status']=status

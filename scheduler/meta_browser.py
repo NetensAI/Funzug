@@ -8,8 +8,10 @@ import datetime as dt
 import hashlib
 import re
 from pathlib import Path
+from urllib.parse import urlsplit,parse_qs
 
 from scheduler.native_worker import IST, NativeFailure, binding, stamp
+from scheduler.publication_evidence import publication_time
 
 PAGE_ID = '124454514239741'
 BUSINESS_ID = '327637346385766'
@@ -236,3 +238,31 @@ class MetaBrowser:
                 raise NativeFailure('planner_detail_close_changed')
             closes.click()
         return results
+
+    def inspect_publication(self, packet: dict) -> dict:
+        """Read published evidence only. Never interact with delivery controls."""
+        handoff=packet.get('nativeHandoff',{})
+        if handoff.get('state')!='scheduled':
+            raise NativeFailure('publication_requires_scheduled_receipts')
+        results={}
+        for platform in packet['platforms']:
+            identifier=handoff.get('receipts',{}).get(platform,{}).get('schedule_id')
+            if not isinstance(identifier,str) or not re.fullmatch(r'[0-9]+',identifier):
+                raise NativeFailure('publication_identifier_missing')
+            url='https://business.facebook.com/latest/insights/object_insights/?content_id='+identifier
+            self.planner.goto(url,wait_until='domcontentloaded')
+            self.planner.get_by_role('heading',name=packet['caption'],exact=True).wait_for(timeout=45000)
+            self.timezone(self.planner)
+            observed=urlsplit(self.planner.url)
+            if observed.scheme!='https' or observed.hostname!='business.facebook.com' or observed.path.rstrip('/')!='/latest/insights/object_insights' or parse_qs(observed.query).get('content_id')!=[identifier]:
+                raise NativeFailure('publication_identifier_changed')
+            account='Funzug' if platform=='facebook' else 'funzugdotcom'
+            self.planner.get_by_text(account,exact=True).first.wait_for(state='visible',timeout=15000)
+            destination='View post on Facebook' if platform=='facebook' else 'View post on Instagram'
+            self.planner.get_by_text(destination,exact=True).wait_for(state='visible',timeout=15000)
+            labels=self.planner.get_by_text(re.compile(r'^Post · Published on: '))
+            if labels.count()!=1:
+                raise NativeFailure('publication_label_not_confirmed')
+            published=publication_time(labels.inner_text(),packet['proposedSchedule'],dt.datetime.now(IST))
+            results[platform]={'post_id':identifier,'published_at':published,'evidence_url':url}
+        return {'platform_results':results}

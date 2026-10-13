@@ -25,8 +25,10 @@ class CheckpointDispatcher:
         return result['workflow_runs']
 
     def __call__(self, action, item_id, receipt=None):
-        if action not in {'reserve', 'begin', 'receipt'}:
+        if action not in {'reserve', 'begin', 'receipt', 'published'}:
             raise NativeFailure('unsupported_worker_checkpoint')
+        if action=='published' and (not isinstance(receipt,dict) or set(receipt)!={'platform_results'} or not isinstance(receipt['platform_results'],dict) or not receipt['platform_results']):
+            raise NativeFailure('publication_evidence_required')
         key = action + ':' + item_id + ':' + (receipt or {}).get('platform', '')
         jobs = self.state.setdefault('checkpoints', {})
         job = jobs.get(key)
@@ -37,7 +39,7 @@ class CheckpointDispatcher:
             self.persist(self.state)
             inputs = {'item_id': item_id, 'action': action, 'request_id': correlation}
             if receipt:
-                inputs['receipt_json'] = json.dumps(receipt, separators=(',', ':'))
+                inputs['outcome_json' if action=='published' else 'receipt_json'] = json.dumps(receipt, separators=(',', ':'))
             body = json.dumps({'ref': 'main', 'inputs': inputs}).encode()
             request = Request('https://api.github.com' + REPO + '/actions/workflows/' + WORKFLOW + '/dispatches', data=body, method='POST', headers={'Authorization':'Bearer ' + self.auth,'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'})
             try:

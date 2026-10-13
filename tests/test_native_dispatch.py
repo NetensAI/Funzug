@@ -46,9 +46,29 @@ class DispatchTests(unittest.TestCase):
             with self.assertRaisesRegex(NativeFailure,'pending_reconciliation'):CheckpointDispatcher('fake',state,persist)('reserve','item')
         send.assert_not_called()
 
-    def test_dispatcher_rejects_publication_or_arbitrary_workflow_actions(self):
-        for action in ['published','publish','approve','dashboard']:
+    def test_dispatcher_rejects_arbitrary_workflow_actions(self):
+        for action in ['publish','approve','dashboard']:
             with self.assertRaisesRegex(NativeFailure,'unsupported'):CheckpointDispatcher('fake',{},Mock())(action,'item')
+
+    def test_publication_reconciliation_requires_evidence(self):
+        with patch('scheduler.native_dispatch.build_opener') as send:
+            with self.assertRaisesRegex(NativeFailure,'publication_evidence_required'):
+                CheckpointDispatcher('fake',{},Mock())('published','item')
+        send.assert_not_called()
+
+    def test_publication_reconciliation_uses_outcome_input_only(self):
+        import json
+        state={}
+        outcome={'platform_results':{'facebook':{'post_id':'123','published_at':'2026-10-13T10:16:00+05:30','evidence_url':'https://business.facebook.com/latest/insights/object_insights/?content_id=123'}}}
+        opener=Mock()
+        opener.open.return_value.__enter__=Mock(return_value=Mock(status=204))
+        opener.open.return_value.__exit__=Mock(return_value=False)
+        with patch('scheduler.native_dispatch.build_opener',return_value=opener),patch('scheduler.native_dispatch.time.monotonic',side_effect=[0,100]):
+            with self.assertRaisesRegex(NativeFailure,'pending_reconciliation'):
+                CheckpointDispatcher('fake',state,Mock())('published','item',outcome)
+        inputs=json.loads(opener.open.call_args.args[0].data)['inputs']
+        self.assertEqual(json.loads(inputs['outcome_json']),outcome)
+        self.assertNotIn('receipt_json',inputs)
 
 
 if __name__=='__main__':unittest.main()
