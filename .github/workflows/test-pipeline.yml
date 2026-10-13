@@ -63,5 +63,8 @@ jobs:
       - name: Validate the publishing queue
         run: python funzug_pipeline.py validate
 
+      - name: Build disabled native Meta worker
+        run: docker build -f scheduler/native.Dockerfile -t funzug-native-worker-ci .
+
       - name: Validate the review-only draft inbox
         run: python funzug_pipeline.py validate-drafts

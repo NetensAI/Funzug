@@ -1,0 +1,22 @@
+services:
+  native-worker:
+    build:
+      context: ..
+      dockerfile: scheduler/native.Dockerfile
+    restart: unless-stopped
+    # Debugging binds to loopback inside the already-authorized browser container.
+    # No debugging port is published to the LAN or Cloudflare.
+    network_mode: container:funzug-meta-browser
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      TZ: Asia/Kolkata
+      PYTHONDONTWRITEBYTECODE: '1'
+      FUNZUG_NATIVE_BROWSER_ENABLED: ${FUNZUG_NATIVE_BROWSER_ENABLED:-0}
+      FUNZUG_BROWSER_CDP: http://127.0.0.1:9222
+    volumes:
+      - ./secrets:/run/secrets:ro
+      - ./native-state:/state
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=0700
