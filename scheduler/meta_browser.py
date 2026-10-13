@@ -69,6 +69,23 @@ class MetaBrowser:
             raise NativeFailure('unexpected_selected_account')
         return selected
 
+    def open_reel_composer(self, platforms):
+        """Navigate to the observed native Reel wizard without uploading media."""
+        self.page.goto(PLANNER)
+        self.visible(self.page, 'Planner')
+        self.page.get_by_role('button', name='Create', exact=True).click()
+        self.page.get_by_role('menuitem', name='Create reel', exact=True).click()
+        self.visible(self.page, 'Create reel')
+        self.select_platforms(platforms)
+        if self.page.get_by_role('button', name='Add Video', exact=True).count() != 1:
+            raise NativeFailure('reel_composer_changed')
+        next_button = self.page.get_by_role('button', name='Next', exact=True)
+        if next_button.count() != 1 or next_button.is_enabled():
+            raise NativeFailure('reel_composer_not_empty')
+        caption = self.page.get_by_role('textbox', name=CAPTION, exact=True)
+        if caption.count() != 1 or caption.input_value():
+            raise NativeFailure('reel_composer_not_empty')
+
     def select_platforms(self, platforms):
         selected = self.selected_platforms()
         if set(selected) == set(platforms):
