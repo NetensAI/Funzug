@@ -105,3 +105,5 @@
 {"logged_at": "2026-10-14T09:38:04+00:00", "event": "native_handoff_reserve", "item_id": "funzug-2026-10-14-ocean-bioluminescence", "scheduled_at": "2026-10-18T20:17:00+05:30", "content_hash": "55a9d5f29939c48f598bc783d6fdae264f9d4d80bb2b163e571508bfdd44c91c", "state": "reserved"}
 {"logged_at": "2026-10-14T09:38:58+00:00", "event": "approved", "item_id": "funzug-2026-10-14-jbj-soul-kitchen", "approved_by": "vatsal"}
 {"logged_at": "2026-10-14T09:38:58+00:00", "event": "approved", "item_id": "funzug-2026-10-14-chesapeake-bridge-tunnel", "approved_by": "vatsal"}
+{"logged_at": "2026-10-14T09:40:01+00:00", "event": "approved", "item_id": "funzug-2026-10-14-dolly-imagination-library", "approved_by": "vatsal"}
+{"logged_at": "2026-10-14T09:40:01+00:00", "event": "approved", "item_id": "funzug-2026-10-14-popcorn-turns-inside-out", "approved_by": "vatsal"}
