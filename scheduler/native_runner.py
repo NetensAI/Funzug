@@ -13,7 +13,7 @@ from urllib.request import Request
 
 from instagram_credentials import request_json
 from scheduler.native_dispatch import CheckpointDispatcher
-from scheduler.native_worker import IST, NativeFailure, advance, stamp,verify_package
+from scheduler.native_worker import IST, NativeFailure, advance, stamp, verify_delivery_package
 from scheduler.runner import write_state
 from scripts.renew_instagram_credential import installation_token
 
@@ -104,7 +104,7 @@ def tick(config, state_path, context, enabled=False):
             dispatcher=CheckpointDispatcher(token,local,lambda _:save())
             browser=MetaBrowser(context,Path('/tmp/funzug-native')/identifier)
             if row in due:
-                verify_package(packet)
+                verify_delivery_package(packet, browser)
                 outcome=browser.inspect_publication(packet)
                 dispatcher('published',identifier,outcome)
                 status='published'

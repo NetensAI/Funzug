@@ -24,6 +24,7 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts.reviewed_media import approval_fingerprint
+from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -77,6 +78,8 @@ def api_status(base_url: str, token: str) -> dict[str, dict[str, Any]]:
 
 
 def payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    if item.get('format') in {'carousel', 'reel'}:
+        return ordered_payload_for(item)
     relpath = item.get("media_path")
     if not isinstance(relpath, str) or item.get("format") != "image":
         raise ValueError(f"{item.get('id', '<unknown>')}: only single-image drafts are supported by this integration")
@@ -130,6 +133,46 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
             },
         }],
     }
+
+
+def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    kind = item.get('format')
+    paths = item.get('media_paths') if kind == 'carousel' else [item.get('media_path')]
+    if not isinstance(paths, list) or not (2 <= len(paths) <= 10 if kind == 'carousel' else len(paths) == 1):
+        raise ValueError('Carousel requires 2 to 10 private media paths')
+    media = []
+    for relative in paths:
+        if not isinstance(relative, str) or not relative:
+            raise ValueError('Invalid private media path')
+        path = (ROOT / relative).resolve()
+        try:
+            path.relative_to(ROOT)
+        except ValueError:
+            raise ValueError('Draft media path must stay inside the repository') from None
+        if not path.is_file() or path.stat().st_size > (12 if kind == 'carousel' else 100) * 1024 * 1024:
+            raise ValueError('Draft media is missing or exceeds the size limit')
+        if kind == 'reel':
+            media.append(probe_video_asset(path))
+            continue
+        dimensions = pipeline.image_size(path)
+        mime = mimetypes.guess_type(path.name)[0]
+        if not pipeline.is_portrait_4_5(dimensions) or mime not in {'image/png', 'image/jpeg'}:
+            raise ValueError('Carousel slides must be portrait 4:5 PNG or JPEG')
+        media.append(dict(mimeType=mime, width=dimensions[0], height=dimensions[1], data=base64.b64encode(path.read_bytes()).decode('ascii')))
+    draft = {
+        'externalId': item['id'], 'format': kind, 'media': media,
+        'headline': item['headline'], 'caption': item['caption'],
+        'claims': [{key: claim[key] for key in ('text', 'source_ids', 'support_note')} for claim in item['claims']],
+        'sources': [{key: source[key] for key in ('id', 'title', 'publisher', 'url', 'published_at', 'checked_at')} for source in item['sources']],
+        'platforms': item['platforms'],
+        'proposedSchedule': pipeline.parse_time(item['scheduled_at']).astimezone(SCHEDULE_TIMEZONE).isoformat(),
+        'scheduleTimezone': 'Asia/Kolkata',
+    }
+    validate_ordered_media(draft)
+    packet = dict(schemaVersion=2, brandSlug='funzug', batchId=BATCH_ID, drafts=[draft])
+    if len(json.dumps(packet, separators=(',', ':')).encode()) > 13 * 1024 * 1024:
+        raise ValueError('Ordered draft JSON exceeds the 13 MB ingestion limit')
+    return packet
 
 
 def approval_content_hash(item: dict[str, Any]) -> str:
@@ -243,6 +286,25 @@ def reschedule_approved_item(queue: dict[str, Any], item_id: str, scheduled_at: 
     raise RuntimeError(f"{item_id}: approved post is absent from the publishing queue")
 
 
+def approve_native_draft(drafts, queue, item_id, reviewer, note, approved_at, content_hash):
+    """Stage privately decoded media only after matching explicit dashboard review."""
+    candidate = next((item for item in drafts.get('items', []) if item.get('id') == item_id), None)
+    if not candidate or candidate.get('status') != 'draft':
+        raise RuntimeError('Native approval requires an existing unapproved draft')
+    if any(item.get('id') == item_id for item in queue.get('items', [])):
+        raise RuntimeError('Native item is already in the publish queue')
+    if approval_content_hash(candidate) != content_hash:
+        raise RuntimeError('Reviewed native media changed')
+    errors = pipeline.validate_draft_queue(drafts)
+    if errors:
+        raise RuntimeError('Native draft validation failed: ' + '\n'.join(errors))
+    item = json.loads(json.dumps(candidate))
+    item['delivery_mode'] = 'meta_native_pending'
+    item['reviewed_content_hash'] = content_hash
+    staged = {**queue, 'items':[*queue.get('items', []), item]}
+    pipeline.approve(staged, item_id, reviewer, note, {'approvalConfirmed':True}, approved_at)
+
+
 def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
@@ -310,6 +372,10 @@ def process_approvals() -> int:
             # stage_draft copies this marker before recording approval. The
             # due-time API publisher must not race the native browser worker.
             item['delivery_mode']='meta_native_pending'
+            approve_native_draft(drafts, queue, item_id, reviewer, note, dashboard_time, status['contentHash'])
+            queue = pipeline.load_json(pipeline.QUEUE_PATH)
+            completed += 1
+            continue
         checklist = {"approvalConfirmed": True}
         pipeline.host_and_approve_draft(
             drafts, queue, item_id, reviewer, note, checklist,

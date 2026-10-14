@@ -38,6 +38,23 @@ class NativeHandoffTests(unittest.TestCase):
         self.assertTrue(reserve(self.item,self.row,self.now))
         self.assertFalse(pipeline.workflow_delivery_allowed(self.item))
 
+    def test_mixed_reservation_requires_enable_gate_and_original_review(self):
+        for media_format in ('carousel','reel'):
+            item={**copy.deepcopy(self.item),'format':media_format,'delivery_mode':'meta_native_pending'}
+            with patch.dict('os.environ',{'FUNZUG_NATIVE_MIXED_ENABLED':'0'}):
+                with self.assertRaisesRegex(RuntimeError,'not enabled'):reserve(item,self.row,self.now)
+            self.assertNotIn('native_handoff',item)
+            with patch.dict('os.environ',{'FUNZUG_NATIVE_MIXED_ENABLED':'1'}):
+                self.assertTrue(reserve(item,self.row,self.now))
+            self.assertEqual(item['native_handoff']['content_hash'],self.row['contentHash'])
+            self.assertFalse(pipeline.workflow_delivery_allowed(item))
+
+    def test_invalid_platform_lists_never_mutate_handoff(self):
+        for platforms in (['facebook','facebook'],[{}],['other'],'facebook'):
+            item={**copy.deepcopy(self.item),'platforms':platforms}
+            before=copy.deepcopy(item)
+            with self.assertRaisesRegex(RuntimeError,'unique approved platforms'):reserve(item,self.row,self.now)
+            self.assertEqual(item,before)
     def test_due_posts_outcomes_and_uncertain_handoffs_cannot_be_reserved(self):
         for changes in [{"scheduled_at":self.now.isoformat()},{"platform_results":{"instagram":{"status":"published"}}},{"native_handoff":{"state":"uncertain"}},{"delivery_mode":"unexpected"},{"format":"carousel"}]:
             item = dict(self.item,**changes)

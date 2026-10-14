@@ -144,6 +144,10 @@ def validate_item(
     required_size: tuple[int, int],
     require_public_media_url: bool = True,
 ) -> list[str]:
+    # Native delivery uploads reviewed private bytes through the browser. It
+    # never needs a public media URL and must remain excluded from API delivery.
+    native_delivery = item.get('delivery_mode') in {'meta_native_pending', 'meta_native'}
+    require_public_media_url = require_public_media_url and not native_delivery
     errors: list[str] = []
     item_id = item.get("id", "<missing id>")
     if not isinstance(item_id, str) or not item_id.strip():
@@ -166,8 +170,10 @@ def validate_item(
         except (KeyError, TypeError, ValueError):
             errors.append("approved item needs a timezone-aware approved_at")
     post_format = item.get("format")
-    if post_format not in {"image", "carousel"}:
-        errors.append("format must be image or carousel")
+    if post_format not in {"image", "carousel", "reel"}:
+        errors.append("format must be image, carousel or reel")
+    if post_format == 'reel' and require_public_media_url:
+        errors.append('Reel delivery is not enabled; only private draft validation is supported')
     platforms = item.get("platforms", [])
     if not isinstance(platforms, list):
         errors.append("platforms must be an array")
@@ -185,7 +191,7 @@ def validate_item(
     for field in ("caption", "headline", "topic_key"):
         if not isinstance(item.get(field), str) or not item[field].strip():
             errors.append(f"missing {field}")
-    if post_format == "image":
+    if post_format in {"image", "reel"}:
         media_paths = [item.get("media_path")]
         media_url = item.get("public_media_url")
         media_urls = [media_url] if media_url is not None else None
@@ -290,8 +296,15 @@ def validate_item(
                 errors.append(f"image does not exist: {media_path}")
             else:
                 try:
+                    if post_format == 'reel':
+                        from scripts.validate_ordered_media import probe_video_asset, validate_ordered_media
+                        asset = probe_video_asset(path)
+                        packet = {key: item.get(key) for key in ('headline', 'caption', 'claims', 'sources', 'platforms')}
+                        packet.update(format='reel', media=[asset])
+                        validate_ordered_media(packet)
+                        continue
                     dimensions = image_size(path)
-                except OSError as exc:
+                except (OSError, ValueError, KeyError, TypeError) as exc:
                     errors.append(f"could not read image: {exc}")
                 else:
                     if not is_portrait_4_5(dimensions):

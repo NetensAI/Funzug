@@ -9,7 +9,7 @@ function toIstInput(value:string){
  return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
 }
 
-export default function SocialDraftReview({id,initialSchedule}:{id:string;initialSchedule:string}){
+export default function SocialDraftReview({id,initialSchedule,reviewedContentHash}:{id:string;initialSchedule:string;reviewedContentHash:string}){
  const router=useRouter();
  const [approved,setApproved]=useState(false);
  const [schedule,setSchedule]=useState(()=>toIstInput(initialSchedule));
@@ -18,7 +18,7 @@ export default function SocialDraftReview({id,initialSchedule}:{id:string;initia
 
  async function submit(action:'approve'|'reject'){
   setBusy(true);setError('');
-  const body=action==='approve'?{action,approvalConfirmed:approved,proposedSchedule:`${schedule}:00+05:30`}:{action};
+  const body=action==='approve'?{action,approvalConfirmed:approved,proposedSchedule:`${schedule}:00+05:30`,reviewedContentHash}:{action};
   try{
    const res=await fetch(`/api/social-drafts/${id}/review`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
    const data=await res.json();
@@ -32,7 +32,7 @@ export default function SocialDraftReview({id,initialSchedule}:{id:string;initia
    <input className="input" type="datetime-local" value={schedule} onChange={e=>setSchedule(e.target.value)} required/>
   </label>
   <label><input type="checkbox" checked={approved} onChange={e=>setApproved(e.target.checked)}/> I approve this post for scheduled publishing</label>
-  <div className="warning">Approving authorizes the reviewed image to be uploaded publicly and published at the selected IST time. It will not publish immediately.</div>
+  <div className="warning">Approving authorizes the reviewed media to be uploaded to Meta and published at the selected IST time. It will not publish immediately.</div>
   {error&&<div className="error">{error}</div>}
   <div className="row"><button className="btn" disabled={busy||!approved||!schedule} onClick={()=>submit('approve')}>Approve</button><button className="btn danger" disabled={busy} onClick={()=>submit('reject')}>Reject</button></div>
  </div>;

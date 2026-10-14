@@ -8,7 +8,30 @@ import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
+import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
+import {createHash} from 'node:crypto';
+import * as hashHelpers from '../lib/funzug-content-hash.mjs';
 const require=createRequire(import.meta.url);
+test('ordered ingestion authenticates and decodes before storage, and rolls back audit failure',async()=>{
+ const draft={format:'carousel',media:[]};
+ for(const mode of ['unauthorized','decode-failed','audit-failed','valid']){
+  const calls=[];
+  const POST=load('../app/api/integrations/funzug/drafts/route.ts',{
+   'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status||200})}},
+   '@/lib/funzug-content-hash.mjs':{draftContentHash:()=>null},
+   '@/lib/funzug-drafts':{validBearer:()=>mode!=='unauthorized',funzugOrderedBatchSchema:{safeParse:()=>({success:true,data:{batchId:'batch',drafts:[draft]}})},funzugBatchSchema:{},decodeAndVerifyImage:()=>{}},
+   '@/lib/decode-ordered-media.mjs':{decodeOrderedMedia:async()=>{calls.push('decode');if(mode==='decode-failed')throw Error('private error')}},
+   '@/lib/store-ordered-draft.mjs':{storeOrderedDraft:async()=>{calls.push('store');return {id:'fixture',status:'pending_review'}}},
+   './outcomes/route':{},'../outcomes/route':{},
+   '@/lib/db':{db:{query:async()=>{calls.push('brand');return {rows:[{id:'brand'}]}},connect:async()=>({query:async sql=>{calls.push(sql);if(mode==='audit-failed'&&sql.startsWith('INSERT INTO audit_logs'))throw Error('audit error');return {rows:[]}},release:()=>calls.push('release')})}},
+  }).POST;
+  const res=await POST({headers:new Headers(),text:async()=>JSON.stringify({schemaVersion:2})});
+  if(mode==='unauthorized'){assert.equal(res.status,401);assert.equal(calls.length,0);}
+  else if(mode==='decode-failed'){assert.equal(res.status,400);assert.deepEqual(calls,['decode']);assert.doesNotMatch(JSON.stringify(res),/private error/);}
+  else if(mode==='audit-failed'){assert.equal(res.status,409);assert.ok(calls.includes('ROLLBACK'));assert.ok(!calls.includes('COMMIT'));}
+  else{assert.equal(res.status,202);assert.deepEqual(calls.slice(0,4),['decode','brand','BEGIN','store']);assert.ok(calls.includes('COMMIT'));}
+ }
+});
 test('middleware routes only the exact native integration path to its bearer-protected handler',async()=>{
  const middleware=load('../middleware.ts',{'next/server':{NextResponse:{next:()=>({allowed:true}),redirect:()=>({allowed:false})}},jose:{jwtVerify:async()=>{throw Error('No session expected');}}},{process:{env:{}}}).middleware;
  for(const [path,allowed] of [['/api/integrations/funzug/native-handoff',true],['/api/integrations/funzug/native-package',true],['/api/integrations/funzug/native-package-extra',false],['/api/integrations/funzug/native-handoff-extra',false],['/social-drafts',false]]){
@@ -16,23 +39,55 @@ test('middleware routes only the exact native integration path to its bearer-pro
   assert.equal(response.allowed,allowed);
  }
 });
-function packageFixture({authorized=true,overrides={}}={}){
+function packageFixture({authorized=true,overrides={},mixedEnabled=false,decodeFails=false}={}){
  const calls=[];
  const row={external_id:'fixture',headline:'Reviewed headline',caption:'Reviewed caption',claims:[],evidence_sources:[],platforms:['facebook','instagram'],image_bytes:Buffer.from('private-reviewed-image'),image_mime_type:'image/png',image_width:1080,image_height:1350,status:'approved',publication_authorized:true,review_checks:{approvalConfirmed:true},reviewed_at:'2026-10-13T10:00:00+05:30',reviewed_by:'owner',proposed_schedule:'2099-10-13T19:30:00+05:30',schedule_timezone:'Asia/Kolkata',native_handoff:null,published_at:null,platform_outcomes:{},...overrides};
  const GET=load('../app/api/integrations/funzug/native-package/route.ts',{
   'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status||200,headers:options?.headers})}},
   '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:[row]}}}},
   '@/lib/funzug-content-hash.mjs':{draftContentHash:()=> 'a'.repeat(64)},
+  '@/lib/ordered-media-manifest.mjs':{orderedMediaManifest},
+  '@/lib/decode-ordered-media.mjs':{decodeOrderedMedia:async()=>{if(decodeFails)throw Error('private decode error');return orderedMediaManifest(row,row.private_assets.map(a=>({...a,media_bytes:Buffer.from(a.hex_bytes,'hex')}))).contentHash;}},
   '@/lib/funzug-drafts':{validBearer:()=>authorized,decodeAndVerifyImage:()=>{if(row.image_mime_type!=='image/png')throw Error('bad image')}},
- },{Buffer}).GET;
+ },{Buffer,process:{env:{FUNZUG_NATIVE_MIXED_ENABLED:mixedEnabled?'1':'0'}}}).GET;
  return {calls,row,send:()=>GET({url:'https://funzug.netens.top/api/integrations/funzug/native-package?batchId=fixture&externalId=fixture',headers:new Headers()})};
 }
+
+test('mixed native packages remain gated and bind approved ordered bytes',async()=>{
+ const private_assets=['first','second'].map((data,index)=>({draft_id:'parent',media_index:index,mime_type:'image/png',width:40,height:50,duration_ms:null,sha256:createHash('sha256').update(data).digest('hex'),hex_bytes:Buffer.from(data).toString('hex')}));
+ const overrides={id:'parent',media_format:'carousel',private_assets};
+ assert.equal((await packageFixture({overrides}).send()).status,409);
+ const good=await packageFixture({overrides,mixedEnabled:true}).send();
+ assert.equal(good.status,200);assert.equal(good.body.format,'carousel');assert.equal(good.body.media.length,2);
+ assert.equal(Buffer.from(good.body.media[0].data,'base64').toString(),'first');
+ assert.equal(good.headers['Cache-Control'],'no-store');assert.ok(!('image' in good.body));
+ for(const changes of [{status:'pending_review'},{publication_authorized:false},{published_at:'2026-10-13'},{private_assets:private_assets.toReversed()},{native_handoff:{content_hash:'wrong'}}])assert.equal((await packageFixture({overrides:{...overrides,...changes},mixedEnabled:true}).send()).status,409);
+ const failed=await packageFixture({overrides,mixedEnabled:true,decodeFails:true}).send();assert.equal(failed.status,409);assert.doesNotMatch(JSON.stringify(failed),/private decode error/);
+});
+
+test('ordered private previews require current administrator access before returning media',async()=>{
+ const id='11111111-1111-4111-8111-111111111111';
+ const make=(session,row)=>{
+  const calls=[];
+  const GET=load('../app/api/social-drafts/[id]/media/[index]/route.ts',{
+   'next/server':{NextResponse:class{constructor(body,options){this.body=body;Object.assign(this,options)}static json(body,options){return {body,status:options?.status||200}}}},
+   '@/lib/auth':{getSession:async()=>session},
+   '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:row?[row]:[]}}}},
+   '@/lib/private-media-response.mjs':{privateMediaResponse:()=>({body:Buffer.from('private'),status:200,headers:{'Cache-Control':'private, no-store'}})},
+  }).GET;
+  return {calls,send:(params={id,index:'0'})=>GET({headers:new Headers()}, {params})};
+ };
+ for(const session of [null,{sub:'owner',role:'viewer'}]){const f=make(session,{});assert.equal((await f.send()).status,403);assert.equal(f.calls.length,0);}
+ const f=make({sub:'owner',role:'admin'},{});assert.equal((await f.send()).status,200);assert.match(f.calls[0].sql,/u.active=true AND u.role='admin'/);assert.match(f.calls[0].sql,/b.slug='funzug'/);assert.equal(f.calls[0].args[1],0);
+ const invalid=make({sub:'owner',role:'admin'},{});assert.equal((await invalid.send({id,index:'10'})).status,400);assert.equal(invalid.calls.length,0);
+ const revoked=make({sub:'owner',role:'admin'},null);assert.equal((await revoked.send()).status,404);
+});
 test('native media package authenticates before any lookup and returns only reviewed content',async()=>{
  const denied=packageFixture({authorized:false});assert.equal((await denied.send()).status,401);assert.equal(denied.calls.length,0);
  const fixture=packageFixture();const response=await fixture.send();assert.equal(response.status,200);assert.equal(response.headers['Cache-Control'],'no-store');assert.equal(response.body.caption,fixture.row.caption);assert.equal(Buffer.from(response.body.image.data,'base64').toString(),'private-reviewed-image');assert.match(fixture.calls[0].sql,/b.slug='funzug'/);assert.equal(JSON.stringify(fixture.calls[0].args),JSON.stringify(['fixture','fixture']));assert.equal(fixture.calls.length,1);
 });
 test('native media package denies pending, revoked, published, partial and changed approvals',async()=>{
- for(const overrides of [{status:'pending_review'},{publication_authorized:false},{review_checks:{}},{reviewed_by:null},{published_at:'2026-10-13'},{platform_outcomes:{facebook:{status:'published'}}},{schedule_timezone:'UTC'},{platforms:['facebook','facebook']},{platforms:['other']},{native_handoff:{content_hash:'b'.repeat(64)}},{image_mime_type:'text/plain'}]){
+ for(const overrides of [{media_format:'carousel'},{media_format:'reel'},{status:'pending_review'},{publication_authorized:false},{review_checks:{}},{reviewed_by:null},{published_at:'2026-10-13'},{platform_outcomes:{facebook:{status:'published'}}},{schedule_timezone:'UTC'},{platforms:['facebook','facebook']},{platforms:['other']},{native_handoff:{content_hash:'b'.repeat(64)}},{image_mime_type:'text/plain'}]){
   const response=await packageFixture({overrides}).send();assert.equal(response.status,409,JSON.stringify(overrides));assert.equal(response.body.image,undefined);
  }
 });
@@ -60,22 +115,31 @@ test('native checkpoint audit failure rolls back, and replay does not write',asy
  const failed=nativeRouteFixture({auditFailure:true});assert.equal((await failed.send()).status,409);assert.equal(failed.calls.at(-1).sql,'ROLLBACK');assert.ok(!failed.calls.some(x=>x.sql==='COMMIT'));
  const original=nativeRouteFixture();const replay=nativeRouteFixture({draftOverrides:{native_handoff:original.handoff}});assert.equal((await replay.send()).status,200);assert.ok(!replay.calls.some(x=>x.sql.startsWith('UPDATE')||x.sql.startsWith('INSERT')));
 });
-function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true}={}){
+function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true,currentHash='a'.repeat(64)}={}){
  const calls=[];
  const handler=load('../app/api/social-drafts/[id]/review/route.ts',{
   'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
   '@/lib/auth':{getSession:async()=>session},'@/lib/security':{sameOrigin:()=>origin,clientIp:()=>''},
+  '@/lib/funzug-content-hash.mjs':{draftContentHash:()=>currentHash},
   '@/lib/db':{db:{connect:async()=>({release(){},query:async(sql,args)=>{calls.push({sql,args});if(sql.startsWith('SELECT'))return {rows:user?[user]:[]};if(sql.startsWith('UPDATE'))return {rows:found?[{id:'fixture',brand_id:'brand',status:args[1],proposed_schedule:args[6],schedule_timezone:'Asia/Kolkata'}]:[]};if(sql.startsWith('INSERT')&&auditFailure)throw Error('fixture audit failure');return {rows:[]};}})}},
  }).POST;
  return {calls,send:body=>handler({json:async()=>body},{params:{id:'fixture'}})};
 }
 const futureIst='2099-10-13T19:30:00+05:30';
+test('approval rejects content changed after the review screen loaded',async()=>{
+ const r=reviewFixture({currentHash:'b'.repeat(64)});
+ const result=await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst,reviewedContentHash:'a'.repeat(64)});
+ assert.equal(result.status,409);assert.match(result.body.error,/changed since review/);
+ assert.ok(r.calls.some(x=>x.sql.includes('FOR UPDATE')));
+ assert.ok(!r.calls.some(x=>x.sql.startsWith('UPDATE')||x.sql.startsWith('INSERT')));
+ assert.equal(r.calls.at(-1).sql,'ROLLBACK');
+});
 test('review rejects invalid origin and missing admin session before database access',async()=>{
  for(const options of [{origin:false},{session:null},{session:{sub:'owner',role:'viewer'}}]){const r=reviewFixture(options);assert.equal((await r.send({action:'reject'})).status,403);assert.equal(r.calls.length,0);}
 });
 test('review requires one confirmation and a future IST slot without authorization text',async()=>{
  for(const body of [{action:'approve',proposedSchedule:futureIst},{action:'approve',approvalConfirmed:false,proposedSchedule:futureIst},{action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T14:00:00Z'},{action:'approve',approvalConfirmed:true,proposedSchedule:'2000-01-01T19:30:00+05:30'}]){const r=reviewFixture();assert.equal((await r.send(body)).status,400);assert.equal(r.calls.length,0);}
- const r=reviewFixture();assert.equal((await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst})).status,200);
+ const r=reviewFixture();assert.equal((await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst,reviewedContentHash:'a'.repeat(64)})).status,200);
  const update=r.calls.find(x=>x.sql.startsWith('UPDATE'));assert.equal(update.args[1],'approved');assert.equal(update.args[5],true);assert.equal(JSON.parse(update.args[2]).approvalConfirmed,true);assert.match(update.sql,/status='pending_review'/);assert.equal(r.calls.at(-1).sql,'COMMIT');
 });
 test('reject does not require a checkbox or schedule and removes publication authorization',async()=>{
@@ -119,7 +183,7 @@ function load(file, overrides, globals={}){
  const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
  const module={exports:{}};
- vm.runInNewContext(compiled,{...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
+ vm.runInNewContext(compiled,{process:{env:{}},...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
  return module.exports;
 }
 test('actual reschedule component releases busy state after network and non-JSON errors',async()=>{
@@ -181,7 +245,9 @@ test('actual dashboard renders partial failure, preserves post ID, and hides res
  const Page=load('../social-drafts-page.tsx',{
   '@/components/AppPage':{__esModule:true,default:({children})=>children()},
   '@/components/SocialDraftReview':{__esModule:true,default:()=>React.createElement('button',null,'Fixture approval control')},
+  '@/lib/funzug-content-hash.mjs':hashHelpers,
   '@/components/SocialDraftReschedule':{__esModule:true,default:()=>React.createElement('button',null,'Fixture reschedule control')},
+  '@/components/SocialDraftMedia':load('../components/SocialDraftMedia.tsx',{}, {React}),
   '@/lib/db':{db:{async query(sql){return {rows:sql.startsWith('SELECT * FROM brands')?[{id:'fixture-brand',slug:'funzug',name:'Funzug'}]:[draft]};}}},
   '@/lib/auth':{getSession:async()=>({role:'admin'})},
  }).default;

@@ -9,9 +9,27 @@ from pathlib import Path
 from unittest.mock import patch
 
 import scripts.brandflow_sync as sync
+from PIL import Image
 
 
 class BrandFlowPayloadTests(unittest.TestCase):
+    def test_carousel_sync_binds_all_original_slides_in_order(self):
+        with tempfile.TemporaryDirectory(dir=sync.ROOT) as directory:
+            paths=[]
+            for index,color in enumerate(('red','blue')):
+                path=Path(directory)/f'slide-{index}.png';Image.new('RGB',(40,50),color).save(path)
+                paths.append(str(path.relative_to(sync.ROOT)))
+            item=dict(id='carousel-draft',format='carousel',media_paths=paths,headline='Headline',caption='Caption',scheduled_at='2099-01-01T12:00:00+05:30',platforms=['facebook','instagram'],claims=[dict(text='Claim',source_ids=['primary'],support_note='Primary evidence')],sources=[dict(id='primary',title='Source',publisher='Institute',url='https://example.org/primary',published_at=None,checked_at='2026-10-13T12:00:00+05:30')])
+            packet=sync.payload_for(item);draft=packet['drafts'][0]
+            self.assertEqual(packet['schemaVersion'],2)
+            self.assertNotIn('image',draft)
+            self.assertEqual([base64.b64decode(a['data']) for a in draft['media']],[(sync.ROOT/p).read_bytes() for p in paths])
+            before=sync.approval_content_hash(item)
+            item['media_paths'].reverse();self.assertNotEqual(sync.approval_content_hash(item),before)
+            item['media_paths']=[paths[0],paths[0]]
+            with self.assertRaisesRegex(ValueError,'Duplicate'):sync.payload_for(item)
+            item['media_paths']=[str(sync.ROOT.parent/'outside.png'),paths[0]]
+            with self.assertRaisesRegex(ValueError,'inside the repository'):sync.payload_for(item)
     def test_ingest_secret_trims_surrounding_whitespace(self):
         with patch.dict("os.environ", {"FUNZUG_DRAFT_INGEST_SECRET": "  " + "s" * 64 + "\r\n"}):
             self.assertEqual(sync.secret(), "s" * 64)
@@ -60,7 +78,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
 
     def test_payload_rejects_non_image_or_external_asset_path(self):
         item = {"id": "bad", "format": "carousel", "media_path": "outside.png"}
-        with self.assertRaisesRegex(ValueError, "single-image"):
+        with self.assertRaisesRegex(ValueError, "2 to 10"):
             sync.payload_for(item)
 
     def test_approval_uses_brandflow_selected_ist_schedule(self):
@@ -130,6 +148,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
     def test_native_approval_is_staged_with_api_delivery_disabled(self):
         item={'id':'native-fixture','status':'draft'}
         status={'status':'approved','publicationAuthorized':True,
+                'contentHash':'a'*64,
                 'scheduleTimezone':'Asia/Kolkata','proposedSchedule':'2999-01-01T19:15:00+05:30',
                 'reviewedBy':'vatsal','reviewNote':'Approved','reviewChecks':{'approvalConfirmed':True}}
         with (
@@ -139,12 +158,28 @@ class BrandFlowPayloadTests(unittest.TestCase):
             patch.object(sync,'api_status',return_value={item['id']:status}),
             patch.object(sync.pipeline,'load_json',side_effect=[{'items':[item]},{'items':[]},{'items':[]}]),
             patch.object(sync,'require_matching_approved_content'),
-            patch.object(sync.pipeline,'host_and_approve_draft') as process,
+            patch.object(sync,'approve_native_draft') as process,
+            patch.object(sync.pipeline,'host_and_approve_draft') as public_upload,
         ):
             sync.process_approvals()
         staged=process.call_args.args[0]['items'][0]
         self.assertEqual(staged['delivery_mode'],'meta_native_pending')
         self.assertFalse(sync.pipeline.workflow_delivery_allowed(staged))
+        public_upload.assert_not_called()
+
+    def test_private_native_staging_keeps_reviewed_hash_and_never_uploads(self):
+        candidate={'id':'native-fixture','status':'draft','format':'carousel'}
+        with patch.object(sync,'approval_content_hash',return_value='a'*64),patch.object(sync.pipeline,'validate_draft_queue',return_value=[]),patch.object(sync.pipeline,'approve') as approve:
+            sync.approve_native_draft({'items':[candidate]},{'items':[]},candidate['id'],'vatsal','Approved','2026-10-14T11:00:00+05:30','a'*64)
+        staged=approve.call_args.args[0]['items'][0]
+        self.assertEqual(staged['reviewed_content_hash'],'a'*64)
+        self.assertEqual(staged['delivery_mode'],'meta_native_pending')
+        self.assertFalse(sync.pipeline.workflow_delivery_allowed(staged))
+        self.assertNotIn('delivery_mode',candidate)
+        with patch.object(sync,'approval_content_hash',return_value='b'*64),patch.object(sync.pipeline,'approve') as approve:
+            with self.assertRaisesRegex(RuntimeError,'Reviewed native media changed'):
+                sync.approve_native_draft({'items':[candidate]},{'items':[]},candidate['id'],'vatsal','Approved',None,'a'*64)
+        approve.assert_not_called()
 
     def test_published_item_does_not_block_later_approvals(self):
         published = {"id": "already-posted", "status": "published"}

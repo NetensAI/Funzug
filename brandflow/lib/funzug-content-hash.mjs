@@ -37,6 +37,29 @@ export function reviewedMediaHash(draft){
   return contentHash({...content,format:kind,media});
 }
 export function draftContentHash(row){
+  if(row.media_format&&row.media_format!=='image'){
+    try{return storedOrderedMediaHash(row)}catch{return null}
+  }
   if(!Buffer.isBuffer(row.image_bytes))return null;
   return contentHash({headline:row.headline,caption:row.caption,claims:row.claims,sources:row.evidence_sources,platforms:row.platforms,imageMimeType:row.image_mime_type,imageSha256:createHash('sha256').update(row.image_bytes).digest('hex')});
+}
+
+// Database-generated checksums from one parent/asset snapshot, never client hashes.
+export function storedOrderedMediaHash(row){
+  const kind=row.media_format,assets=row.ordered_media;
+  if(!['carousel','reel'].includes(kind)||!Array.isArray(assets))throw Error('Missing stored media manifest');
+  if(kind==='carousel'?(assets.length<2||assets.length>10):assets.length!==1)throw Error('Invalid stored media count');
+  const media=assets.map((asset,index)=>{
+    if(asset.index!==index||typeof asset.sha256!=='string'||!/^[0-9a-f]{64}$/.test(asset.sha256))throw Error('Invalid stored media checksum or index');
+    if(![asset.width,asset.height].every(v=>Number.isSafeInteger(v)&&v>0)||asset.width>=asset.height||Math.abs(asset.width*5-asset.height*4)>2)throw Error('Invalid stored media dimensions');
+    if(!(kind==='carousel'?['image/png','image/jpeg']:['video/mp4']).includes(asset.mimeType))throw Error('Invalid stored MIME type');
+    const entry={index,mimeType:asset.mimeType,width:asset.width,height:asset.height,sha256:asset.sha256};
+    if(kind==='reel'){
+      if(!Number.isSafeInteger(asset.durationMs)||asset.durationMs<1||asset.durationMs>180000)throw Error('Invalid stored duration');
+      entry.durationMs=asset.durationMs;
+    }else if(asset.durationMs!=null)throw Error('Image duration is invalid');
+    return entry;
+  });
+  if(new Set(media.map(a=>a.sha256)).size!==media.length)throw Error('Duplicate stored media');
+  return contentHash({headline:row.headline,caption:row.caption,claims:row.claims,sources:row.evidence_sources,platforms:row.platforms,format:kind,media});
 }
