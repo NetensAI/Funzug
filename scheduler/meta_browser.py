@@ -485,6 +485,10 @@ class MetaBrowser:
             identifier = re.fullmatch(r'ID: ([0-9]+)', detail.inner_text())
             if not identifier:
                 raise NativeFailure('planner_identifier_not_visible')
+            if packet.get('format', 'image') != 'image':
+                # Mixed receipts require inspecting the actual scheduled media,
+                # not copying a reviewed hash onto a caption-only match.
+                raise NativeFailure('mixed_planner_media_not_verified')
             # The exact caption, platform and slot were read from the planner
             # card in the verified date column before opening this detail.
             results[platform] = {'platform': platform, 'schedule_id': identifier.group(1), 'scheduled_at': slot.isoformat(), 'content_hash': packet['contentHash'], 'planner_url': self.planner.url, 'checked_at': dt.datetime.now(IST).isoformat()}
@@ -496,6 +500,8 @@ class MetaBrowser:
 
     def inspect_publication(self, packet: dict) -> dict:
         """Read published evidence only. Never interact with delivery controls."""
+        if packet.get('format', 'image') != 'image':
+            raise NativeFailure('mixed_publication_media_not_verified')
         handoff=packet.get('nativeHandoff',{})
         if handoff.get('state')!='scheduled':
             raise NativeFailure('publication_requires_scheduled_receipts')
