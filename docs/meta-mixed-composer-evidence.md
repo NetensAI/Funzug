@@ -10,6 +10,17 @@ description states that Instagram posts cannot exceed ten photos.
 `Add photo/video` opens a file chooser directly. Post-upload thumbnail order
 and count have not yet been observed, so this is not delivery proof.
 
+On 14 October, the owner authorized an unsaved upload test. Sequential uploads
+of the wood-frog and singing-sand originals produced two `Remove photo` controls
+in that order. Both displayed 1122 x 1402. The single-image `Edit photo` label
+changed to `Edit photos`. Each Remove control's fourth ancestor contained one
+thumbnail image with an empty alt attribute and a distinct Meta CDN URL. The
+visible screenshot confirmed frog first and dunes second. The Facebook preview
+is a side-by-side layout, not evidence of Instagram carousel behavior. No caption,
+schedule, Finish later, or Publish action was submitted. The unsaved composer is
+retained for continued testing. CDN identity/order can be captured after each
+sequential upload and checked again before submission; a count alone is insufficient.
+
 ## Reel entry
 
 Planner toolbar `Create` opens a menu with `Create reel`. This opens a separate
