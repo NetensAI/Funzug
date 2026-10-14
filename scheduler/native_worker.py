@@ -131,6 +131,9 @@ def verify_delivery_package(packet: dict, browser: Browser) -> bytes | list[byte
     supported = getattr(browser, 'supported_media_formats', ())
     if not isinstance(supported, (tuple, frozenset)) or media_format not in supported:
         raise NativeFailure('unsupported_native_media_format')
+    allowed = getattr(browser, 'mixed_item_allowed', None)
+    if allowed is not None and not allowed(packet.get('externalId')):
+        raise NativeFailure('unsupported_native_media_format')
     return verify_ordered_package(packet)
 
 

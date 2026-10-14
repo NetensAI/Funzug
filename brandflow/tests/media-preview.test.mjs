@@ -32,5 +32,5 @@ test('missing, gapped, wrong-ratio and wrong-MIME packages never use placeholder
 test('approval route refuses non-image approval even when called outside the UI',()=>{
  const source=fs.readFileSync(new URL('../app/api/social-drafts/[id]/review/route.ts',import.meta.url),'utf8');
  assert.match(source,/media_format='image' OR \(\$8 AND media_format IN \('carousel','reel'\)\)/);
- assert.match(source,/FUNZUG_NATIVE_MIXED_ENABLED==='1'/);
+ assert.match(source,/mixedDeliveryEnabled\(current.external_id,process.env\)/);
 });

@@ -24,7 +24,6 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts.reviewed_media import approval_fingerprint
-from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -136,6 +135,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
     kind = item.get('format')
     paths = item.get('media_paths') if kind == 'carousel' else [item.get('media_path')]
     if not isinstance(paths, list) or not (2 <= len(paths) <= 10 if kind == 'carousel' else len(paths) == 1):
@@ -186,12 +186,24 @@ def require_matching_approved_content(item: dict[str, Any], status: dict[str, An
         raise RuntimeError(f"{item['id']}: repository content does not match BrandFlow reviewed content; sync pending revisions before owner approval")
 
 
-def sync_pending(update_pending: bool = False) -> int:
+def acceptance_inbox():
+    inbox = pipeline.load_json(ROOT / 'drafts/tests/queue.json')
+    expected = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
+    items = inbox.get('items', [])
+    if len(items) != 2 or {item.get('id') for item in items} != expected or any(item.get('status') != 'draft' for item in items):
+        raise RuntimeError('Acceptance inbox must contain exactly the two authorized unapproved tests')
+    slots = {'carousel':'2026-10-16T20:00:00+05:30','reel':'2026-10-16T20:15:00+05:30'}
+    if any(item.get('scheduled_at') != slots.get(item.get('format')) or item.get('platforms') != ['facebook','instagram'] for item in items):
+        raise RuntimeError('Acceptance test platforms or owner-authorized IST slots changed')
+    return inbox
+
+
+def sync_pending(update_pending: bool = False, acceptance_tests: bool = False) -> int:
     token, base = secret(), api_url()
-    errors = pipeline.validate_draft_queue(pipeline.load_json(pipeline.DRAFT_QUEUE_PATH))
+    inbox = acceptance_inbox() if acceptance_tests else pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
+    errors = pipeline.validate_draft_queue(inbox)
     if errors:
         raise RuntimeError("draft validation failed:\n" + "\n".join(errors))
-    inbox = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
     known = api_status(base, token)
     sent = 0
     for item in inbox["items"]:
@@ -309,6 +321,12 @@ def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
+    acceptance_ids = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
+    if any(identifier in acceptance_ids and status.get('status') == 'approved' for identifier,status in statuses.items()):
+        tests = acceptance_inbox()
+        if any(item.get('id') in acceptance_ids for item in drafts.get('items', [])):
+            raise RuntimeError('Acceptance draft IDs conflict with the news inbox')
+        drafts = {**drafts, 'items':[*drafts.get('items', []), *tests['items']]}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     local = {item["id"]: item for item in drafts.get("items", [])}
     completed = 0
@@ -327,6 +345,10 @@ def process_approvals() -> int:
         if not isinstance(selected_schedule, str):
             raise RuntimeError(f"{item_id}: approved schedule is missing")
         local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
+        if item_id in acceptance_ids:
+            fixture = next(item for item in drafts['items'] if item['id'] == item_id)
+            if local_schedule != pipeline.parse_time(fixture['scheduled_at']).astimezone(SCHEDULE_TIMEZONE):
+                raise RuntimeError('Acceptance test approval changed the owner-authorized slot')
         dashboard_time = status.get("reviewedAt")
         existing = next((item for item in queue.get("items", []) if item.get("id") == item_id), None)
         # BrandFlow can lag behind publishing. Completed posts must not block
@@ -393,12 +415,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("sync", "process-approvals", "sync-results"))
     parser.add_argument("--update-pending", action="store_true", help="Update unreviewed existing drafts only; never approved or published content")
+    parser.add_argument('--acceptance-tests', action='store_true', help='Sync only the two owner-authorized mixed delivery test drafts')
     args = parser.parse_args()
     if args.update_pending and args.command != "sync":
         parser.error("--update-pending is valid only with sync")
+    if args.acceptance_tests and (args.command != 'sync' or args.update_pending):
+        parser.error('--acceptance-tests is valid only for sync without --update-pending')
     try:
         if args.command == "sync":
-            return sync_pending(update_pending=args.update_pending)
+            return sync_pending(update_pending=args.update_pending, acceptance_tests=args.acceptance_tests)
         if args.command == "sync-results":
             return sync_results()
         return process_approvals()

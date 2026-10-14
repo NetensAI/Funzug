@@ -10,6 +10,7 @@ import {mergeOutcomes,canRescheduleOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as rescheduleHelpers from '../lib/social-reschedule.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 import {draftContentHash} from '../lib/funzug-content-hash.mjs';
+import * as mixedPolicy from '../lib/mixed-delivery-policy.mjs';
 
 const require=createRequire(import.meta.url);
 const url=process.env.FUNZUG_TEST_DATABASE_URL;
@@ -56,7 +57,7 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   const reviewCompiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/social-drafts/[id]/review/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   function reviewHandler(userId='owner'){
    const target={exports:{}};
-   const reviewAdapters={...adapters,'@/lib/funzug-content-hash.mjs':{draftContentHash},'@/lib/auth':{getSession:async()=>({sub:userId,role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''}};
+   const reviewAdapters={...adapters,'@/lib/mixed-delivery-policy.mjs':mixedPolicy,'@/lib/funzug-content-hash.mjs':{draftContentHash},'@/lib/auth':{getSession:async()=>({sub:userId,role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''}};
    vm.runInNewContext(reviewCompiled,{process:{env:{}},module:target,exports:target.exports,Date,Intl,JSON,require(name){if(name in reviewAdapters)return reviewAdapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected review dependency');return require(name);}});
    return body=>target.exports.POST({json:async()=>body},{params:{id:'draft'}});
   }

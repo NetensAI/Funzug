@@ -92,3 +92,33 @@ Verified ordered content hashes are:
 
 The container must run as the staging owner (UID/GID 1000), rather than the
 dashboard image's app user. No production file permissions were changed.
+
+The hash-bound approval screen and review route passed a complete isolated
+Next.js 14.2.35 production build, including TypeScript checking and all 27 static
+page generation steps. Image tag: brandflow-pr67-check:review-hash. Image manifest
+list: sha256:69a336577fc2431082de4af24573667037f5907ebb4bb170819d9f9743f1f89a.
+This staging build did not restart production or apply database migrations.
+
+On 14 October, CI runs 38519004965 and 38519001232 completed successfully.
+Production migrations 013 and 014 were then applied in one PostgreSQL transaction
+after verifying a private custom-format backup at
+`/home/vatsal/apps/brandflow/.backups/pre-pr67-20261014-ordered-media.dump`.
+Backup permissions are 0600; directory permissions are 0700. The archive is
+35,815,035 bytes and passed pg_restore --list validation. The new ordered-media
+table exists and all 15 existing draft records remain format=image. No approval,
+schedule, publication, dashboard restart, or mixed-delivery activation occurred.
+
+PR #67 merged as 9aaf5d319a7fcfdfdc19bf11e0ab13539a284ddc after both checks passed.
+The verified review-hash dashboard image was then deployed with Compose
+--no-deps --no-build, replacing only the dashboard. Previous image
+sha256:854d7b744658a42f71fa319d58133c418290182b8d5bb359f2bdcd87a67236b0 is retained
+as brandflow-dashboard:pre-pr67-20261014. Mixed delivery was not enabled.
+The deployment initially reported running/health-starting; verify health before
+reporting operational readiness. Production source promotion is still pending,
+so do not rebuild the dashboard from its old source directory yet.
+
+Source promotion is now complete: 30 scoped files plus the mapped social-drafts
+page were copied after private backups. Credentials and unrelated application
+source were excluded. The production page matches the tested staging page at
+SHA-256 5f8d30a2edb1adcb4c00e3ff222d3db3fe1a6f0814bdaeaa5e7aaf19ec52635a.
+Docker now reports the dashboard running and healthy. Mixed delivery remains off.

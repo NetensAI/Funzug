@@ -4,6 +4,7 @@ import {db} from '@/lib/db';
 import {getSession} from '@/lib/auth';
 import {clientIp,sameOrigin} from '@/lib/security';
 import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
+import {mixedDeliveryEnabled} from '@/lib/mixed-delivery-policy.mjs';
 
 const schema=z.discriminatedUnion('action',[
  z.object({action:z.literal('approve'),approvalConfirmed:z.literal(true),proposedSchedule:z.string().datetime({offset:true}),reviewedContentHash:z.string().regex(/^[0-9a-f]{64}$/)}).strict(),
@@ -34,10 +35,11 @@ export async function POST(req:Request,{params}:{params:{id:string}}){
   await client.query('BEGIN');
   const {rows:[user]}=await client.query('SELECT username,active,role FROM users WHERE id=$1 FOR UPDATE',[session.sub]);if(!user?.active||user.role!=='admin')throw new Error('Administrator access required');
   const checks=approved?{approvalConfirmed:true}:{};
-  const mixedEnabled=process.env.FUNZUG_NATIVE_MIXED_ENABLED==='1';
+  let mixedEnabled=false;
   if(parsed.data.action==='approve'){
    const {rows:[current]}=await client.query("SELECT * FROM social_post_drafts WHERE id=$1 AND status='pending_review' FOR UPDATE",[params.id]);
    if(!current)throw new Error('Draft not found or already reviewed');
+   mixedEnabled=mixedDeliveryEnabled(current.external_id,process.env);
    if(current.media_format&&current.media_format!=='image'){
     if(!mixedEnabled)throw new Error('Mixed media delivery is not enabled');
     const {rows:assets}=await client.query('SELECT media_index,mime_type,width,height,duration_ms,sha256 FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[params.id]);
