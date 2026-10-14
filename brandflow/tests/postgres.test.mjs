@@ -37,8 +37,11 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
     ADD COLUMN review_checks jsonb, ADD COLUMN review_note text, ADD COLUMN reviewed_by text, ADD COLUMN reviewed_at timestamptz,
     ADD COLUMN headline text, ADD COLUMN caption text, ADD COLUMN claims jsonb, ADD COLUMN evidence_sources jsonb, ADD COLUMN image_bytes bytea, ADD COLUMN image_mime_type text,
     ADD COLUMN media_format text NOT NULL DEFAULT 'image';
-   CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);
-  await pool.query(fs.readFileSync(new URL('../db/migrations/012_funzug_native_handoff.sql',import.meta.url),'utf8'));
+   CREATE TABLE social_post_reschedules(draft_id text,old_proposed_schedule timestamptz,old_schedule_timezone text,new_proposed_schedule timestamptz,new_schedule_timezone text,previous_reviewed_by text,previous_reviewed_at timestamptz,previous_review_note text,rescheduled_by text,rescheduled_at timestamptz,reschedule_note text);`);  await pool.query(fs.readFileSync(new URL('../db/migrations/012_funzug_native_handoff.sql',import.meta.url),'utf8'));
+  await pool.query(`CREATE TABLE social_post_media_assets(
+   draft_id text NOT NULL REFERENCES social_post_drafts(id),media_index integer NOT NULL,mime_type text NOT NULL,
+   width integer NOT NULL,height integer NOT NULL,duration_ms integer,sha256 text NOT NULL,
+   PRIMARY KEY(draft_id,media_index));`);
   const compiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/integrations/funzug/outcomes/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   const module={exports:{}};
   const adapters={
