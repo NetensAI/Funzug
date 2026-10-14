@@ -8,6 +8,7 @@ import datetime as dt
 import hashlib
 import os
 import re
+import time
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs,urljoin
 
@@ -110,6 +111,15 @@ class MetaBrowser:
     def read_caption_editor(self, editor):
         return editor.evaluate("el => Array.from(el.querySelectorAll('[data-block]')).map(b=>b.textContent).join('\\n')")
 
+    def wait_until_enabled(self, locator, timeout_ms=90000):
+        deadline = time.monotonic() + timeout_ms / 1000
+        while True:
+            if locator.is_enabled():
+                return
+            if time.monotonic() >= deadline:
+                raise NativeFailure('reel_processing_unconfirmed')
+            self.page.wait_for_timeout(500)
+
     def upload_reviewed_reel(self, packet, assets):
         """Validate and upload one original MP4; never advance or submit it."""
         if packet.get('format') != 'reel':
@@ -148,9 +158,23 @@ class MetaBrowser:
         self.page.get_by_role('combobox').filter(has_text=re.compile('Funzug|funzugdotcom')).click()
         for platform, name in [('facebook', 'Funzug'), ('instagram', 'funzugdotcom')]:
             option = self.page.get_by_role('option', name=name, exact=True)
-            if option.count() != 1:
+            count = option.count()
+            if count == 0:
+                # Meta's current account menu exposes these rows inside a named
+                # list instead of assigning them the ARIA option role.
+                account_list = self.page.get_by_role('list', name='Post to', exact=True)
+                if account_list.count() != 1:
+                    raise NativeFailure('account_selector_changed')
+                option = account_list.get_by_text(name, exact=True)
+                count = option.count()
+            if count != 1:
                 raise NativeFailure('account_selector_changed')
-            checked = option.get_attribute('aria-selected') == 'true'
+            checked = option.get_attribute('aria-selected')
+            if checked is None:
+                checked = option.get_attribute('aria-checked')
+            if checked not in {'true', 'false'}:
+                raise NativeFailure('account_selection_unconfirmed')
+            checked = checked == 'true'
             if checked != (platform in platforms):
                 option.click()
         self.page.keyboard.press('Escape')
@@ -205,8 +229,7 @@ class MetaBrowser:
         if customize.count() != 1 or customize.is_checked():
             raise NativeFailure('unexpected_composer_option')
         next_button = self.page.get_by_role('button', name='Next', exact=True).last
-        if not next_button.is_enabled():
-            raise NativeFailure('reel_processing_unconfirmed')
+        self.wait_until_enabled(next_button)
         next_button.click()
         # Only move past the observed Edit stage, without touching its Audio,
         # Crop, Text or Optimizations controls.
@@ -248,8 +271,7 @@ class MetaBrowser:
         if customize.count() != 1 or customize.is_checked():
             raise NativeFailure('unexpected_composer_option')
         next_button = self.page.get_by_role('button', name='Next', exact=True).last
-        if not next_button.is_enabled():
-            raise NativeFailure('reel_processing_unconfirmed')
+        self.wait_until_enabled(next_button)
         next_button.click()
         self.page.get_by_role('heading', name='Scheduling options', exact=True).wait_for(state='visible', timeout=15000)
         self.verify_schedule_fields(packet, REEL_DATE)
