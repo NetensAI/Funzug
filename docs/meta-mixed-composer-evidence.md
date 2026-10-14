@@ -116,3 +116,9 @@ as brandflow-dashboard:pre-pr67-20261014. Mixed delivery was not enabled.
 The deployment initially reported running/health-starting; verify health before
 reporting operational readiness. Production source promotion is still pending,
 so do not rebuild the dashboard from its old source directory yet.
+
+Source promotion is now complete: 30 scoped files plus the mapped social-drafts
+page were copied after private backups. Credentials and unrelated application
+source were excluded. The production page matches the tested staging page at
+SHA-256 5f8d30a2edb1adcb4c00e3ff222d3db3fe1a6f0814bdaeaa5e7aaf19ec52635a.
+Docker now reports the dashboard running and healthy. Mixed delivery remains off.
