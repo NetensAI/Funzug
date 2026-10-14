@@ -71,6 +71,7 @@ class ReelPreparationTests(unittest.TestCase):
             control.is_checked.return_value=True
             with self.assertRaisesRegex(NativeFailure,'unexpected_composer_option'):
                 browser.prepared_reel(packet)
+            self.assertIsNone(browser.submission_format)
 
     def test_submit_refuses_unverified_composer(self):
         browser=MetaBrowser(MagicMock(),Path('.'))

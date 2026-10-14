@@ -216,6 +216,7 @@ class MetaBrowser:
         return self.prepared_reel(packet)
 
     def prepared_reel(self, packet):
+        self.submission_format = None
         self.visible(self.page, 'Create reel')
         if self.item_binding != binding(packet) or not self.reel_upload_binding:
             raise NativeFailure('composer_binding_changed')
@@ -360,6 +361,7 @@ class MetaBrowser:
             self.spinner(minutes.nth(i), slot.minute)
             self.spinner(periods.nth(i), int(slot.hour >= 12))
     def prepared(self, packet: dict) -> dict:
+        self.submission_format = None
         if packet.get('format') == 'reel':
             return self.prepared_reel(packet)
         self.visible(self.page, 'Create post')
