@@ -163,6 +163,8 @@ class MetaBrowser:
         self.media_hashes = None
         self.item_binding = None
         self.uploaded_thumbnail_urls = None
+        if packet.get('format') == 'reel':
+            return self.prepare_reel(packet, image)
         if packet.get('format', 'image') not in {'image', 'carousel'}:
             raise NativeFailure('unsupported_native_media_format')
         self.page.goto(COMPOSER, wait_until='domcontentloaded')
@@ -178,6 +180,37 @@ class MetaBrowser:
         self.set_post_schedule(packet)
         self.item_binding = binding(packet)
         return self.prepared(packet)
+
+    def prepare_reel(self, packet, assets):
+        """Prepare an unsent Reel; acceptance proof remains a separate boundary."""
+        self.reel_upload_binding = None
+        self.open_reel_composer(packet['platforms'])
+        self.upload_reviewed_reel(packet, assets)
+        editor = self.page.get_by_role('textbox', name=CAPTION, exact=True)
+        editor.fill(packet['caption'])
+        if editor.input_value() != packet['caption']:
+            raise NativeFailure('caption_entry_unconfirmed')
+        customize = self.page.get_by_role('switch', name='Customize post for Facebook and Instagram', exact=True)
+        if customize.count() != 1 or customize.is_checked():
+            raise NativeFailure('unexpected_composer_option')
+        next_button = self.page.get_by_role('button', name='Next', exact=True).last
+        if not next_button.is_enabled():
+            raise NativeFailure('reel_processing_unconfirmed')
+        next_button.click()
+        # Only move past the observed Edit stage, without touching its Audio,
+        # Crop, Text or Optimizations controls.
+        edit = self.page.get_by_role('button', name='Edit pending status', exact=True)
+        edit.wait_for(state='visible', timeout=15000)
+        next_button = self.page.get_by_role('button', name='Next', exact=True)
+        if next_button.count() != 1 or not next_button.is_enabled():
+            raise NativeFailure('reel_edit_stage_unconfirmed')
+        next_button.click()
+        self.set_reel_schedule(packet)
+        self.verify_schedule_fields(packet, REEL_DATE)
+        self.item_binding = binding(packet)
+        # Do not fabricate a final proof from stored upload metadata. The live
+        # Share-stage caption, media and option checks must be implemented first.
+        raise NativeFailure('reel_final_proof_not_implemented')
 
     def upload_reviewed_images(self, packet, assets):
         """Upload sequentially; this alone is not proof of visible slide order."""
