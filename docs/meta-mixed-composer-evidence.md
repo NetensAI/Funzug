@@ -92,3 +92,9 @@ Verified ordered content hashes are:
 
 The container must run as the staging owner (UID/GID 1000), rather than the
 dashboard image's app user. No production file permissions were changed.
+
+The hash-bound approval screen and review route passed a complete isolated
+Next.js 14.2.35 production build, including TypeScript checking and all 27 static
+page generation steps. Image tag: brandflow-pr67-check:review-hash. Image manifest
+list: sha256:69a336577fc2431082de4af24573667037f5907ebb4bb170819d9f9743f1f89a.
+This staging build did not restart production or apply database migrations.
