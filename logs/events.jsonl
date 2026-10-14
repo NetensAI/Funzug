@@ -71,3 +71,4 @@
 {"logged_at": "2026-10-14T07:11:16+00:00", "event": "approved", "item_id": "funzug-2026-10-13-octopus-three-hearts", "approved_by": "vatsal"}
 {"logged_at": "2026-10-14T07:11:16+00:00", "event": "approved", "item_id": "funzug-2026-10-13-singing-sand", "approved_by": "vatsal"}
 {"logged_at": "2026-10-14T07:11:16+00:00", "event": "approved", "item_id": "funzug-2026-10-13-fulgurite", "approved_by": "vatsal"}
+{"logged_at": "2026-10-14T07:12:31+00:00", "event": "native_handoff_reserve", "item_id": "funzug-2026-10-13-greenland-shark-longevity", "scheduled_at": "2026-10-17T16:30:00+05:30", "content_hash": "fbaa3b08b23da8d6402cbd826682fe4b553cc1f54670344ef56ed952c9d68c30", "state": "reserved"}
