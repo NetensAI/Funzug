@@ -496,7 +496,7 @@
     },
     {
       "id": "funzug-2026-10-11-hubble-white-dwarf-candidate",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Could A Dead Star Grow New Worlds?",
       "caption": "Could a planet form after its star dies? A new analysis of archival Hubble observations points to that possibility around the white dwarf HS 0209+0832.\n\nResearchers found an unusual abundance of niobium in the star’s atmosphere. The chemical pattern is consistent with material from a candidate planet that may have formed from matter expelled as the star evolved.\n\nThe team describes this as a second-generation planet candidate, not a directly photographed world. The result, published in Nature Astronomy, suggests planetary systems may have a more complicated afterlife than once assumed.\n\nDo you think a star’s planetary story can have a second chapter?\n\nAI-generated concept illustration, not an image of a confirmed planet.\n\n#Hubble #Exoplanets #WhiteDwarf #SpaceScience #Astronomy",
@@ -590,7 +590,22 @@
           }
         },
         "submission_started_at": "2026-10-12T20:47:38.958884+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-14T06:18:00+05:30",
+          "post_id": "1521192846712406",
+          "scheduled_post_id": "29192229233736586"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-14T06:18:00+05:30",
+          "post_id": "17911212324505646",
+          "scheduled_post_id": "2628410364274206"
+        }
+      },
+      "last_attempt_at": "2026-10-14T06:32:27.510357+05:30"
     },
     {
       "id": "funzug-2026-10-13-glassfrog-transparency",
