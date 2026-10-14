@@ -32,9 +32,20 @@ class CheckpointDispatcher:
         key = action + ':' + item_id + ':' + (receipt or {}).get('platform', '')
         jobs = self.state.setdefault('checkpoints', {})
         job = jobs.get(key)
+        attempts = []
+        if job is not None and job.get('phase') == 'failed':
+            # A completed failed reservation is safe to retry with a new
+            # correlation. Never replay ambiguous dispatches or other actions.
+            if action != 'reserve' or not job.get('correlation') or not job.get('run_id'):
+                raise NativeFailure('checkpoint_workflow_failed')
+            attempts = list(job.get('attempts', []))
+            attempts.append({field: job[field] for field in ('correlation', 'requested_at', 'run_id', 'phase') if field in job})
+            job = None
         if job is None:
             correlation = uuid.uuid4().hex
             job = {'correlation': correlation, 'requested_at': int(time.time()), 'phase': 'dispatch_intent'}
+            if attempts:
+                job['attempts'] = attempts
             jobs[key] = job
             self.persist(self.state)
             inputs = {'item_id': item_id, 'action': action, 'request_id': correlation}
