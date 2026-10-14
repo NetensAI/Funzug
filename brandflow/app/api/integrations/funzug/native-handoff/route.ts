@@ -16,7 +16,7 @@ export async function POST(req:Request){
  const data=parsed.data;const client=await db.connect();
  try{
   await client.query('BEGIN');
-  const {rows:[draft]}=await client.query(`SELECT d.* FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2 FOR UPDATE OF d`,[data.batchId,data.externalId]);
+  const {rows:[draft]}=await client.query("SELECT d.*, COALESCE((SELECT jsonb_agg(jsonb_build_object('index',a.media_index,'mimeType',a.mime_type,'width',a.width,'height',a.height,'durationMs',a.duration_ms,'sha256',a.sha256) ORDER BY a.media_index) FROM social_post_media_assets a WHERE a.draft_id=d.id),'[]'::jsonb) ordered_media FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2 FOR UPDATE OF d",[data.batchId,data.externalId]);
   if(!draft||draft.status!=='approved'||!draft.publication_authorized||draft.published_at||Object.keys(draft.platform_outcomes||{}).length)throw new Error('Draft is not an unpublished owner approval');
   if(draft.schedule_timezone!=='Asia/Kolkata'||new Date(draft.proposed_schedule).getTime()!==Date.parse(data.handoff.scheduled_at)||draftContentHash(draft)!==data.handoff.content_hash)throw new Error('Native handoff differs from reviewed content or IST slot');
   if(data.handoff.state==='reserved'&&Date.parse(data.handoff.scheduled_at)<=Date.now())throw new Error('Native slot has passed');
@@ -24,7 +24,7 @@ export async function POST(req:Request){
   const unchanged=nativeHandoffEqual(draft.native_handoff,merged);
   if(!unchanged){
    await client.query('UPDATE social_post_drafts SET native_handoff=$2::jsonb,updated_at=now() WHERE id=$1',[draft.id,JSON.stringify(merged)]);
-   await client.query(`INSERT INTO audit_logs(action,target_type,target_id,details) VALUES('social_draft.native_handoff','social_post_draft',$1,$2::jsonb)`,[draft.id,JSON.stringify({externalId:data.externalId,state:merged.state,scheduledAt:merged.scheduled_at})]);
+   await client.query("INSERT INTO audit_logs(action,target_type,target_id,details) VALUES('social_draft.native_handoff','social_post_draft',$1,$2::jsonb)",[draft.id,JSON.stringify({externalId:data.externalId,state:merged.state,scheduledAt:merged.scheduled_at})]);
   }
   await client.query('COMMIT');return NextResponse.json({externalId:data.externalId,state:merged.state,unchanged});
  }catch{await client.query('ROLLBACK');return NextResponse.json({error:'Native handoff requires reconciliation'},{status:409})}finally{client.release()}
