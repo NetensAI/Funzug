@@ -12,6 +12,7 @@ from urllib.parse import urlsplit,parse_qs,urljoin
 
 from scheduler.native_worker import IST, NativeFailure, binding, stamp
 from scheduler.publication_evidence import publication_time
+from scheduler.native_media_files import stage_reviewed_media
 
 PAGE_ID = '124454514239741'
 BUSINESS_ID = '327637346385766'
@@ -117,23 +118,16 @@ class MetaBrowser:
         self.page.goto(COMPOSER, wait_until='domcontentloaded')
         self.visible(self.page, 'Create post')
         self.select_platforms(packet['platforms'])
-        self.workdir.mkdir(parents=True, exist_ok=True)
-        suffix = '.png' if packet['image']['mimeType'] == 'image/png' else '.jpg'
-        media = self.workdir / ('reviewed' + suffix)
-        media.write_bytes(image)
-        media.chmod(0o600)
-        try:
+        with stage_reviewed_media(packet, image, self.workdir) as (paths, hashes):
             with self.page.expect_file_chooser(timeout=15000) as event:
                 self.page.get_by_role('button', name='Add photo/video', exact=True).click()
-            event.value.set_files(str(media))
+            event.value.set_files(str(paths[0]))
             self.page.get_by_role('button', name='Remove photo', exact=True).wait_for(timeout=45000)
             if self.page.get_by_role('button', name='Remove photo', exact=True).count() != 1:
                 raise NativeFailure('unexpected_uploaded_media_count')
             # Bind the only uploaded file to the verified original bytes. No edit
             # or crop controls are used after this point.
-            self.image_hash = hashlib.sha256(media.read_bytes()).hexdigest()
-        finally:
-            media.unlink(missing_ok=True)
+            self.image_hash = hashes[0]
         editor = self.page.get_by_role('combobox', name=CAPTION, exact=True)
         editor.click()
         self.page.keyboard.insert_text(packet['caption'])
