@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs,urljoin
 
-from scheduler.native_worker import IST, NativeFailure, binding, stamp
+from scheduler.native_worker import IST, NativeFailure, binding, stamp, verify_package, verify_ordered_package
 from scheduler.publication_evidence import publication_time
 from scheduler.native_media_files import stage_reviewed_media
 
@@ -118,20 +118,41 @@ class MetaBrowser:
         self.page.goto(COMPOSER, wait_until='domcontentloaded')
         self.visible(self.page, 'Create post')
         self.select_platforms(packet['platforms'])
-        with stage_reviewed_media(packet, image, self.workdir) as (paths, hashes):
-            with self.page.expect_file_chooser(timeout=15000) as event:
-                self.page.get_by_role('button', name='Add photo/video', exact=True).click()
-            event.value.set_files(str(paths[0]))
-            self.page.get_by_role('button', name='Remove photo', exact=True).wait_for(timeout=45000)
-            if self.page.get_by_role('button', name='Remove photo', exact=True).count() != 1:
-                raise NativeFailure('unexpected_uploaded_media_count')
-            # Bind the only uploaded file to the verified original bytes. No edit
-            # or crop controls are used after this point.
-            self.image_hash = hashes[0]
+        self.image_hash = self.upload_reviewed_images(packet, image)[0]
         editor = self.page.get_by_role('combobox', name=CAPTION, exact=True)
         editor.click()
         self.page.keyboard.insert_text(packet['caption'])
         self.page.get_by_role('switch', name='Set date and time', exact=True).check()
+        self.set_post_schedule(packet)
+        self.item_binding = binding(packet)
+        return self.prepared(packet)
+
+    def upload_reviewed_images(self, packet, assets):
+        """Upload sequentially; this alone is not proof of visible slide order."""
+        media_format = packet.get('format', 'image')
+        if media_format == 'image':
+            verified = verify_package(packet)
+        elif media_format == 'carousel':
+            verified = verify_ordered_package(packet)
+        else:
+            raise NativeFailure('unsupported_native_media_format')
+        if verified != assets:
+            raise NativeFailure('reviewed_media_file_changed')
+        remove = self.page.get_by_role('button', name='Remove photo', exact=True)
+        if remove.count() != 0:
+            raise NativeFailure('composer_not_empty')
+        with stage_reviewed_media(packet, assets, self.workdir) as (paths, hashes):
+            for index, path in enumerate(paths):
+                with self.page.expect_file_chooser(timeout=15000) as event:
+                    self.page.get_by_role('button', name='Add photo/video', exact=True).click()
+                event.value.set_files(str(path))
+                remove.nth(index).wait_for(state='visible', timeout=45000)
+                if remove.count() != index + 1:
+                    raise NativeFailure('unexpected_uploaded_media_count')
+            return hashes
+
+    def set_post_schedule(self, packet):
+        """Shared image-post time controls, not the separate Reel wizard."""
         slot = stamp(packet['proposedSchedule'])
         dates = self.page.get_by_role('textbox', name='Date picker', exact=True)
         dates.first.wait_for(state='visible', timeout=15000)
@@ -147,9 +168,6 @@ class MetaBrowser:
             self.spinner(hours.nth(i), slot.hour % 12 or 12)
             self.spinner(minutes.nth(i), slot.minute)
             self.spinner(periods.nth(i), int(slot.hour >= 12))
-        self.item_binding = binding(packet)
-        return self.prepared(packet)
-
     def prepared(self, packet: dict) -> dict:
         self.visible(self.page, 'Create post')
         if self.item_binding != binding(packet) or set(self.selected_platforms()) != set(packet['platforms']):
