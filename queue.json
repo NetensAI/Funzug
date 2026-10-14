@@ -1637,7 +1637,7 @@
         }
       },
       "native_handoff": {
-        "state": "submitting",
+        "state": "scheduled",
         "reserved_at": "2026-10-14T15:12:47.967476+05:30",
         "scheduled_at": "2026-10-19T20:10:00+05:30",
         "content_hash": "eac08021ec1cc03c0f0dc7d61454b59802062ba21becc8f8e16d0a6118878ca9",
@@ -1653,6 +1653,14 @@
             "content_hash": "eac08021ec1cc03c0f0dc7d61454b59802062ba21becc8f8e16d0a6118878ca9",
             "planner_url": "https://business.facebook.com/latest/content_calendar?business_id=327637346385766&asset_id=124454514239741&calendar_type=WEEK",
             "checked_at": "2026-10-14T15:35:30.730334+05:30"
+          },
+          "instagram": {
+            "platform": "instagram",
+            "schedule_id": "1057097610671187",
+            "scheduled_at": "2026-10-19T20:10:00+05:30",
+            "content_hash": "eac08021ec1cc03c0f0dc7d61454b59802062ba21becc8f8e16d0a6118878ca9",
+            "planner_url": "https://business.facebook.com/latest/content_calendar?business_id=327637346385766&asset_id=124454514239741&calendar_type=WEEK",
+            "checked_at": "2026-10-14T15:35:32.038240+05:30"
           }
         },
         "submission_started_at": "2026-10-14T15:23:13.312118+05:30"
