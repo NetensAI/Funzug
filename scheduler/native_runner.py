@@ -8,6 +8,7 @@ import os
 import re
 from pathlib import Path
 import time
+import traceback
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request
 
@@ -66,6 +67,20 @@ def publication_candidates(rows,now):
     return sorted(result,key=lambda row:stamp(row['proposedSchedule']))
 
 
+def safe_error_diagnostics(error):
+    allowed = {'Error', 'TimeoutError', 'AttributeError', 'TypeError',
+               'ValueError', 'KeyError', 'AssertionError', 'OSError'}
+    name = type(error).__name__
+    result = {'exception_type': name if name in allowed else 'Exception'}
+    filenames = {'meta_browser.py', 'native_worker.py', 'native_dispatch.py', 'native_runner.py'}
+    frames = [frame for frame in traceback.extract_tb(error.__traceback__)
+              if Path(frame.filename).name in filenames]
+    if frames:
+        frame = frames[-1]
+        result['code_location'] = Path(frame.filename).name + ':' + str(frame.lineno)
+    return result
+
+
 def error_backoff_seconds(local):
     # Pending reconciliation observes the same durable correlation. It is not
     # permission to dispatch again; the dispatcher retains that invariant.
@@ -122,14 +137,17 @@ def tick(config, state_path, context, enabled=False):
             else:
                 status=advance(packet,local,browser,dispatcher,lambda _:save(),refresh,now)
             local.pop('error',None)
+            local.pop('error_diagnostics',None)
             if status=='scheduled':local['last_verified_at']=int(time.time())
             local['status']=status
         except NativeFailure as error:
             # Only controller-defined codes are retained; never exception bodies
             # from HTTP, browser, authentication or package decoding libraries.
             local['error']=str(error)
-        except Exception:
+            local.pop('error_diagnostics',None)
+        except Exception as error:
             local['error']='native_worker_check_failed'
+            local['error_diagnostics']=safe_error_diagnostics(error)
         finally:
             if browser:
                 try:browser.close()

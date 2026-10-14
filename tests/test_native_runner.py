@@ -5,11 +5,22 @@ import tempfile
 import unittest
 from unittest.mock import patch,Mock
 
-from scheduler.native_runner import candidates,publication_candidates,read_api,tick,error_backoff_seconds
+from scheduler.native_runner import candidates,publication_candidates,read_api,tick,error_backoff_seconds,safe_error_diagnostics
 from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_error_diagnostics_never_include_exception_messages_or_paths(self):
+        secret = 'private-token-and-caption-must-not-be-logged'
+        try:
+            raise TimeoutError(secret)
+        except TimeoutError as error:
+            result = safe_error_diagnostics(error)
+        self.assertEqual(result, {'exception_type': 'TimeoutError'})
+        self.assertNotIn(secret, json.dumps(result))
+        custom = type('UntrustedSensitiveClassName', (Exception,), {})
+        self.assertEqual(safe_error_diagnostics(custom(secret)), {'exception_type': 'Exception'})
+
     def test_only_pending_correlated_runs_get_short_observation_backoff(self):
         for phase in ['accepted', 'dispatch_intent']:
             local = {'error': 'checkpoint_pending_reconciliation',
