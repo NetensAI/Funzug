@@ -1,3 +1,4 @@
+import json
 import unittest
 from unittest.mock import Mock, patch
 
@@ -31,6 +32,35 @@ class DispatchTests(unittest.TestCase):
             with self.assertRaisesRegex(NativeFailure,'workflow_failed'):CheckpointDispatcher('fake',state,Mock())('begin','item')
         send.assert_not_called()
         self.assertEqual(state['checkpoints']['begin:item:']['phase'],'failed')
+
+    def test_confirmed_failed_reservation_retries_with_new_correlation_and_history(self):
+        state={'checkpoints':{'reserve:item:':{'correlation':'old','requested_at':1,'run_id':8,'phase':'failed'}}}
+        rows=[{'id':10,'display_title':'Native Meta reserve item new','actor':{'login':'funzug-automation-netensai[bot]'},'status':'completed','conclusion':'success'}]
+        opener=Mock()
+        opener.open.return_value.__enter__=Mock(return_value=Mock(status=204))
+        opener.open.return_value.__exit__=Mock(return_value=False)
+        with patch('scheduler.native_dispatch.uuid.uuid4',return_value=Mock(hex='new')),patch('scheduler.native_dispatch.build_opener',return_value=opener),patch('scheduler.native_dispatch.github',return_value={'workflow_runs':rows}):
+            CheckpointDispatcher('fake',state,Mock())('reserve','item')
+        job=state['checkpoints']['reserve:item:']
+        self.assertEqual(job['phase'],'success')
+        self.assertEqual(job['run_id'],10)
+        self.assertEqual(job['attempts'],[{'correlation':'old','requested_at':1,'run_id':8,'phase':'failed'}])
+        payload=json.loads(opener.open.call_args.args[0].data)
+        self.assertEqual(payload['inputs']['request_id'],'new')
+
+    def test_failed_non_reservation_checkpoint_is_not_replayed(self):
+        state={'checkpoints':{'begin:item:':{'correlation':'old','requested_at':1,'run_id':8,'phase':'failed'}}}
+        with patch('scheduler.native_dispatch.build_opener') as send:
+            with self.assertRaisesRegex(NativeFailure,'checkpoint_workflow_failed'):
+                CheckpointDispatcher('fake',state,Mock())('begin','item')
+        send.assert_not_called()
+
+    def test_failed_reservation_without_confirmed_run_is_not_replayed(self):
+        state={'checkpoints':{'reserve:item:':{'correlation':'old','phase':'failed'}}}
+        with patch('scheduler.native_dispatch.build_opener') as send:
+            with self.assertRaisesRegex(NativeFailure,'checkpoint_workflow_failed'):
+                CheckpointDispatcher('fake',state,Mock())('reserve','item')
+        send.assert_not_called()
 
     def test_dispatch_intent_is_saved_before_transmission_and_timeout_is_not_replayed(self):
         state={};seen=[]
