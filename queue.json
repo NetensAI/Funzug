@@ -1528,7 +1528,7 @@
         ],
         "visual_note": "Original editorial illustration, not documentary photography."
       },
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "40d3994006a6f0325f5a17565cd31fdc280f050c759cb4af4dc8b67f0783d37e",
       "approval": {
         "status": "approved",
@@ -1538,6 +1538,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-14T15:11:49.380812+05:30",
+        "scheduled_at": "2026-10-19T16:30:00+05:30",
+        "content_hash": "40d3994006a6f0325f5a17565cd31fdc280f050c759cb4af4dc8b67f0783d37e",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
