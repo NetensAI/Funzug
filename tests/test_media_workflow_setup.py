@@ -8,6 +8,7 @@ class MediaWorkflowSetupTests(unittest.TestCase):
         rules=(root/'brandflow/.dockerignore').read_text().splitlines()
         self.assertIn('.env',rules)
         self.assertIn('.backups',rules)
+        self.assertIn('deploy-native-*/',rules)
 
     def test_delivery_and_review_workflows_install_media_runtime(self):
         root=Path(__file__).resolve().parents[1]
