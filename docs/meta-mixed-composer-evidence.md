@@ -58,3 +58,13 @@ cannot yet be used as acceptance proof for this fixture. Do not infer a playable
 or identity-verified video from the upload filename, dimensions, or copyright
 message. Test a conventional non-fragmented MP4 fixture and inspect the visible
 preview again before implementing final Reel preparation proof.
+
+The conventional replacement fixture (H.264/yuv420p plus AAC, faststart, five
+seconds, 720 x 900) reached 100% upload and displayed `Reels · 5 seconds`, rather
+than Loading. Its blue suggested thumbnails were visible and copyright checks
+passed. The preview rendered through canvas: there were two canvas elements, no
+iframe, and no HTML video element. A screenshot showed the preview surface black
+at that instant, so this is not proof of successful visual playback. Duration
+readback must use the visible preview label, not nonexistent HTML video metadata.
+The first synthetic test was discarded without saving. The replacement remains
+unsaved for further inspection; no final submission was performed.
