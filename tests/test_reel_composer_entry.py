@@ -21,6 +21,7 @@ class ReelComposerEntryTests(unittest.TestCase):
                 locator.count.return_value = 1
                 locator.is_enabled.return_value = False
                 locator.input_value.return_value = ''
+                locator.evaluate.return_value = ''
                 self.controls[key] = locator
             return self.controls[key]
 

@@ -17,6 +17,7 @@ class ReelPreparationTests(unittest.TestCase):
             if name not in self.controls:
                 locator=MagicMock();locator.count.return_value=1
                 locator.input_value.return_value=self.packet['caption']
+                locator.evaluate.return_value=self.packet['caption']
                 locator.is_checked.return_value=False
                 locator.is_enabled.return_value=True
                 locator.last.is_enabled.return_value=True
@@ -36,7 +37,7 @@ class ReelPreparationTests(unittest.TestCase):
         self.assertNotIn('Schedule',self.controls)
 
     def test_changed_caption_cannot_advance_wizard(self):
-        self.browser.page.get_by_role('textbox',name='Write into the dialogue box to include text with your post.',exact=True).input_value.return_value='Changed'
+        self.browser.page.get_by_role('textbox',name='Write into the dialogue box to include text with your post.',exact=True).evaluate.return_value='Changed'
         with self.assertRaisesRegex(NativeFailure,'caption_entry_unconfirmed'):
             self.browser.prepare_reel(self.packet,[b'original'])
         self.browser.set_reel_schedule.assert_not_called()

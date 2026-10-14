@@ -97,8 +97,11 @@ class MetaBrowser:
         if next_button.count() != 1 or next_button.is_enabled():
             raise NativeFailure('reel_composer_not_empty')
         caption = self.page.get_by_role('textbox', name=CAPTION, exact=True)
-        if caption.count() != 1 or caption.input_value():
+        if caption.count() != 1 or self.read_caption_editor(caption):
             raise NativeFailure('reel_composer_not_empty')
+
+    def read_caption_editor(self, editor):
+        return editor.evaluate("el => Array.from(el.querySelectorAll('[data-block]')).map(b=>b.textContent).join('\\n')")
 
     def upload_reviewed_reel(self, packet, assets):
         """Validate and upload one original MP4; never advance or submit it."""
@@ -188,7 +191,7 @@ class MetaBrowser:
         self.upload_reviewed_reel(packet, assets)
         editor = self.page.get_by_role('textbox', name=CAPTION, exact=True)
         editor.fill(packet['caption'])
-        if editor.input_value() != packet['caption']:
+        if self.read_caption_editor(editor) != packet['caption']:
             raise NativeFailure('caption_entry_unconfirmed')
         customize = self.page.get_by_role('switch', name='Customize post for Facebook and Instagram', exact=True)
         if customize.count() != 1 or customize.is_checked():
@@ -334,7 +337,7 @@ class MetaBrowser:
         else:
             raise NativeFailure('unsupported_native_media_format')
         editor = self.page.get_by_role('combobox', name=CAPTION, exact=True)
-        caption = editor.evaluate("el => Array.from(el.querySelectorAll('[data-block]')).map(b=>b.textContent).join('\\n')")
+        caption = self.read_caption_editor(editor)
         if caption != packet['caption']:
             raise NativeFailure('caption_entry_unconfirmed')
         self.verify_schedule_fields(packet, 'Date picker')

@@ -75,3 +75,9 @@ aria-pressed attribute. The Share-stage accessibility snapshot did not expose
 the test caption even though it was entered into Create. Final proof must read
 the Create caption afresh and then verify the preserved Share scheduling fields;
 stored Python caption data alone must not stand in for a live read.
+
+Live round-trip verification confirmed that Share Back returns to Create when
+Edit is skipped. The caption editor is a DIV with contenteditable=true and
+data-block children, not an input. Reading its value/input_value is incorrect.
+The test caption remained intact. The bottom Next returned directly to Share;
+both date inputs and all time spinbutton values were preserved unchanged.
