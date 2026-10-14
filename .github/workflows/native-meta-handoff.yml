@@ -51,6 +51,8 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
       - name: Stage existing owner approval before native reservation
         if: inputs.action == 'reserve'
         env:
@@ -68,6 +70,7 @@ jobs:
           NATIVE_OUTCOME_JSON: ${{ inputs.outcome_json }}
           FUNZUG_DRAFT_INGEST_SECRET: ${{ secrets.FUNZUG_DRAFT_INGEST_SECRET }}
           FUNZUG_BRANDFLOW_DRAFTS_URL: ${{ vars.FUNZUG_BRANDFLOW_DRAFTS_URL }}
+          FUNZUG_NATIVE_ACCEPTANCE_ENABLED: ${{ vars.FUNZUG_NATIVE_ACCEPTANCE_ENABLED || '0' }}
         run: python -m scripts.native_meta_handoff --id "$ITEM_ID" --action "$HANDOFF_ACTION"
       - name: Persist reservation before any browser submission
         run: |

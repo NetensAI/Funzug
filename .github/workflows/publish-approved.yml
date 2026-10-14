@@ -32,7 +32,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Validate queue
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
+      - name: Validate queue after decoder setup
         run: python funzug_pipeline.py validate
 
       - name: Check whether an approved post is due
@@ -63,6 +65,8 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
       - name: Publish due, approved posts
         env:
           FUNZUG_META_APP_SECRET: ${{ secrets.FUNZUG_META_APP_SECRET }}

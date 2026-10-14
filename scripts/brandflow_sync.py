@@ -24,7 +24,6 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts.reviewed_media import approval_fingerprint
-from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
 
 
 DEFAULT_API = "https://funzug.netens.top/api/integrations/funzug/drafts"
@@ -136,6 +135,7 @@ def payload_for(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def ordered_payload_for(item: dict[str, Any]) -> dict[str, Any]:
+    from scripts.validate_ordered_media import validate_ordered_media, probe_video_asset
     kind = item.get('format')
     paths = item.get('media_paths') if kind == 'carousel' else [item.get('media_path')]
     if not isinstance(paths, list) or not (2 <= len(paths) <= 10 if kind == 'carousel' else len(paths) == 1):
