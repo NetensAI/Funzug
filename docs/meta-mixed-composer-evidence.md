@@ -81,3 +81,14 @@ Edit is skipped. The caption editor is a DIV with contenteditable=true and
 data-block children, not an input. Reading its value/input_value is incorrect.
 The test caption remained intact. The bottom Next returned directly to Share;
 both date inputs and all time spinbutton values were preserved unchanged.
+
+Both isolated acceptance drafts passed draft validation and schema-v2 payload
+decoding in the Mini PC FFmpeg/Pillow container, with networking disabled and
+the staging directory mounted read-only. The fixture inbox remains unapproved.
+Verified ordered content hashes are:
+
+- Carousel: 03f4fbfbb65f1df0c5c0485391110ed05947d0d7378a74405065819dae46b8ff
+- Reel: 55c1d20d240846903058ff2a7c27f31f2dfa583ce8b5f732063cfa06f13199c7
+
+The container must run as the staging owner (UID/GID 1000), rather than the
+dashboard image's app user. No production file permissions were changed.
