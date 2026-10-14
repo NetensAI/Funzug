@@ -302,6 +302,368 @@
         {"id": "nps-fulgurites", "title": "Fulgurites: The Power of Lightning", "publisher": "National Park Service", "url": "https://www.nps.gov/articles/grsa-fulgurites.htm", "published_at": null, "checked_at": "2026-10-13T17:51:57+05:30"},
         {"id": "canada-fulgurites", "title": "Lightning: fulgurites", "publisher": "Environment and Climate Change Canada", "url": "https://www.canada.ca/en/environment-climate-change/services/lightning/learn-more/fulgurites.html", "published_at": null, "checked_at": "2026-10-13T17:56:00+05:30"}
       ]
+    },
+    {
+      "id": "funzug-2026-10-14-ocean-bioluminescence",
+      "status": "draft",
+      "format": "image",
+      "headline": "The Ocean Can Glow With Living Light",
+      "caption": "Some shorelines can sparkle after dark, and the light comes from living organisms.\n\nIn Puerto Rico's Mosquito Bay, tiny dinoflagellates produce flashes of blue light when the water is disturbed. The effect can make waves and paddles glow.\n\nBioluminescence is a chemical process used by many kinds of organisms. The illustration shows a possible glowing shoreline, not a photograph of a specific bay.\n\nWould you visit a beach that lights up at night?\n\n#Bioluminescence #OceanScience #PuertoRico #Nature #Science",
+      "topic_key": "mosquito-bay-dinoflagellate-bioluminescence",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T06:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-ocean-bioluminescence.png",
+      "claims": [
+        {
+          "text": "Dinoflagellates in Puerto Rico's Mosquito Bay produce blue light when disturbed.",
+          "source_ids": [
+            "noaa-mosquito-bay"
+          ],
+          "support_note": "NOAA's educational page identifies the glowing organisms in Mosquito Bay as dinoflagellates and explains that disturbance triggers their light."
+        },
+        {
+          "text": "Bioluminescence is light produced by living organisms through a chemical reaction.",
+          "source_ids": [
+            "noaa-bioluminescence"
+          ],
+          "support_note": "NOAA describes bioluminescence as organism-produced light from a chemical reaction."
+        }
+      ],
+      "sources": [
+        {
+          "id": "noaa-mosquito-bay",
+          "title": "The Ocean is Glowing with Microorganisms",
+          "publisher": "NOAA Science On a Sphere",
+          "url": "https://sos.noaa.gov/education/phenomenon-based-learning/the-ocean-is-glowing/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        },
+        {
+          "id": "noaa-bioluminescence",
+          "title": "Bioluminescence",
+          "publisher": "NOAA Ocean Exploration",
+          "url": "https://oceanexplorer.noaa.gov/ocean-fact/bioluminescence/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-sea-otters-resting",
+      "status": "draft",
+      "format": "image",
+      "headline": "Sea Otters Sometimes Hold Paws While Resting",
+      "caption": "A quiet moment on the water can help keep a sea otter close to its group.\n\nSea otters sometimes hold paws while resting in rafts. They may also wrap themselves in kelp, which helps keep them from drifting apart.\n\nIt is a behavior seen in some situations, not a rule for every otter. The image is an illustration of the behavior, not a wildlife photograph.\n\nWhat animal behavior would you love to see in the wild?\n\n#SeaOtters #MarineLife #OceanAnimals #Wildlife #NatureFacts",
+      "topic_key": "sea-otter-raft-resting-paw-holding",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T09:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-sea-otters-resting.png",
+      "claims": [
+        {
+          "text": "Sea otters sometimes hold paws while sleeping or resting in groups.",
+          "source_ids": [
+            "mba-sea-otter-rafts"
+          ],
+          "support_note": "Monterey Bay Aquarium describes otters holding hands while sleeping and forming rafts; the caption uses qualified wording."
+        },
+        {
+          "text": "Sea otters may use kelp to keep from drifting away while resting.",
+          "source_ids": [
+            "mba-sea-otter-rafts"
+          ],
+          "support_note": "The aquarium's post notes that otters wrap themselves in kelp while resting."
+        }
+      ],
+      "sources": [
+        {
+          "id": "mba-sea-otter-rafts",
+          "title": "Sea otters hold hands while they sleep",
+          "publisher": "Monterey Bay Aquarium",
+          "url": "https://bsky.app/profile/montereybayaquarium.org/post/3li5w33lzg22v",
+          "published_at": "2025-02-14T00:00:00Z",
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-havasupai-mule-mail",
+      "status": "draft",
+      "format": "image",
+      "headline": "This US Community Gets Its Mail By Mule",
+      "caption": "Deep inside the Grand Canyon, a mule train carries more than hikers' supplies.\n\nThe U.S. Postal Service says mules have delivered mail and goods to the Havasupai community since the 1930s. The route descends about eight miles to Supai, where the post office serves the community.\n\nThe delivery system reflects the canyon's remote terrain. This artwork is an illustration, not a photograph of a specific mail run.\n\nWhat would you find most surprising to receive by mule?\n\n#USPS #GrandCanyon #Arizona #Community #AmericanStories",
+      "topic_key": "usps-havasupai-mule-mail-delivery",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T12:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-havasupai-mule-mail.png",
+      "claims": [
+        {
+          "text": "Mules have carried mail and goods to the Havasupai community inside the Grand Canyon since the 1930s.",
+          "source_ids": [
+            "usps-havasupai-mule-mail"
+          ],
+          "support_note": "USPS Postal Facts dates mule delivery to the 1930s and describes mail and goods service to Havasupai."
+        },
+        {
+          "text": "The mule route descends about eight miles to Supai and its post office.",
+          "source_ids": [
+            "usps-havasupai-mule-mail"
+          ],
+          "support_note": "The USPS feature describes the eight-mile route and the Supai Post Office destination."
+        }
+      ],
+      "sources": [
+        {
+          "id": "usps-havasupai-mule-mail",
+          "title": "8-Mile Mule Train Delivery",
+          "publisher": "USPS Postal Facts",
+          "url": "https://facts.usps.com/8-mile-mule-train-delivery/",
+          "published_at": "2026-05-15T00:00:00Z",
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-jbj-soul-kitchen",
+      "status": "draft",
+      "format": "image",
+      "headline": "A Community Restaurant Welcomes Those Unable To Pay",
+      "caption": "At one New Jersey restaurant, a meal is not out of reach when someone cannot pay.\n\nJBJ Soul Kitchen uses a suggested donation model. Guests who cannot contribute are still welcomed to eat and can learn about volunteer opportunities.\n\nThe nonprofit operates community restaurants in New Jersey. Check its current site for locations and hours before visiting.\n\nHow can a local restaurant strengthen its community?\n\n#CommunityKitchen #NewJersey #FoodAccess #CommunitySupport #LocalStories",
+      "topic_key": "jbj-soul-kitchen-suggested-donation-meals",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T15:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-jbj-soul-kitchen.png",
+      "claims": [
+        {
+          "text": "JBJ Soul Kitchen does not set meal prices, uses suggested donations, and welcomes guests unable to donate.",
+          "source_ids": [
+            "jbj-soul-kitchen-official"
+          ],
+          "support_note": "The nonprofit's official site explains the suggested-donation model and says guests unable to donate are welcomed to eat and may volunteer."
+        },
+        {
+          "text": "JBJ Soul Kitchen operates community restaurants in New Jersey.",
+          "source_ids": [
+            "jbj-soul-kitchen-official"
+          ],
+          "support_note": "The official site lists its New Jersey locations."
+        }
+      ],
+      "sources": [
+        {
+          "id": "jbj-soul-kitchen-official",
+          "title": "JBJ Soul Kitchen",
+          "publisher": "JBJ Soul Kitchen",
+          "url": "https://jbjsoulkitchen.org/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-chesapeake-bridge-tunnel",
+      "status": "draft",
+      "format": "image",
+      "headline": "This US Crossing Goes Above And Below Water",
+      "caption": "A highway across the mouth of Chesapeake Bay disappears underwater, then rises again.\n\nThe Chesapeake Bay Bridge-Tunnel spans about 17.6 miles and combines bridges, causeways, man-made islands, and two one-mile tunnels.\n\nThe tunnels let ships pass through the busy shipping channel. The image is a stylized scene, not an engineering diagram.\n\nWould you take this route on a road trip?\n\n#ChesapeakeBay #Virginia #RoadTrip #Engineering #USLandmarks",
+      "topic_key": "chesapeake-bay-bridge-tunnel-crossing",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T18:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-chesapeake-bridge-tunnel.png",
+      "claims": [
+        {
+          "text": "The Chesapeake Bay Bridge-Tunnel is about 17.6 miles long and includes bridges, causeways, islands, and two one-mile tunnels.",
+          "source_ids": [
+            "cbbt-history"
+          ],
+          "support_note": "The CBBT's official history page gives the shore-to-shore length and describes the bridges, causeways, four man-made islands, and two one-mile tunnels."
+        },
+        {
+          "text": "The tunnels allow ships to pass through the shipping channel.",
+          "source_ids": [
+            "cbbt-history"
+          ],
+          "support_note": "The CBBT explains that the tunnels carry traffic beneath the shipping channels so maritime traffic can continue."
+        }
+      ],
+      "sources": [
+        {
+          "id": "cbbt-history",
+          "title": "History of the Chesapeake Bay Bridge-Tunnel",
+          "publisher": "Chesapeake Bay Bridge-Tunnel",
+          "url": "https://www.cbbt.com/history/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-dolly-imagination-library",
+      "status": "draft",
+      "format": "image",
+      "headline": "Dolly Parton's Program Mails Free Books To Kids",
+      "caption": "A book can arrive in the mail before a child can read the words inside it.\n\nDolly Parton's Imagination Library offers a free, age-appropriate book each month to enrolled children from birth to age five. The books are delivered by mail, with local partners helping fund and run programs.\n\nAvailability depends on whether a local program serves the child's area. Families can check the program's official site to see if registration is open nearby.\n\nWhat book made you love reading as a child?\n\n#DollyParton #ImaginationLibrary #ChildrensBooks #EarlyLearning #Reading",
+      "topic_key": "dolly-parton-imagination-library-free-books",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T21:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-dolly-imagination-library.png",
+      "claims": [
+        {
+          "text": "The Imagination Library offers enrolled children from birth to age five one free book each month by mail.",
+          "source_ids": [
+            "dolly-imagination-library"
+          ],
+          "support_note": "The official program describes monthly books by mail for registered children from birth to age five."
+        },
+        {
+          "text": "Local partners help fund the program and local availability varies.",
+          "source_ids": [
+            "dolly-imagination-library"
+          ],
+          "support_note": "The official site describes shared funding with local partners and provides location-based availability lookup."
+        }
+      ],
+      "sources": [
+        {
+          "id": "dolly-imagination-library",
+          "title": "Dolly Parton's Imagination Library",
+          "publisher": "Dolly Parton's Imagination Library",
+          "url": "https://imaginationlibrary.com/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
+    },
+    {
+      "id": "funzug-2026-10-14-popcorn-turns-inside-out",
+      "status": "draft",
+      "format": "image",
+      "headline": "Why Popcorn Turns Itself Inside Out",
+      "caption": "A popcorn kernel does more than burst. It flips as it becomes the fluffy snack.\n\nHeat turns moisture inside the kernel into steam. Pressure builds beneath the tough outer hull until the kernel pops, and expanding starch pushes outward.\n\nThe U.S. Department of Agriculture's National Agricultural Library describes the popped kernel as turning inside out. Nebraska Extension explains that steam pressure drives the process.\n\nDid you know the kernel flips as it pops?\n\n#Popcorn #FoodScience #USDA #EverydayScience #Curiosity",
+      "topic_key": "popcorn-kernel-flips-inside-out-science",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-20T00:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-14-popcorn-inside-out.png",
+      "claims": [
+        {
+          "text": "A popcorn kernel's internal moisture becomes steam and builds pressure until the hull bursts.",
+          "source_ids": [
+            "usda-popcorn-science",
+            "nebraska-popcorn"
+          ],
+          "support_note": "USDA's National Agricultural Library and Nebraska Extension explain steam pressure inside the kernel and rupture of the hull."
+        },
+        {
+          "text": "As it pops, the kernel's starch expands and the kernel turns inside out.",
+          "source_ids": [
+            "usda-popcorn-science",
+            "acs-popcorn-science"
+          ],
+          "support_note": "USDA describes the inflated starch and inside-out result; ACS explains that the kernel flips as the remaining water and starch expand."
+        }
+      ],
+      "sources": [
+        {
+          "id": "usda-popcorn-science",
+          "title": "How does popcorn pop?",
+          "publisher": "USDA National Agricultural Library",
+          "url": "https://www.nal.usda.gov/exhibits/speccoll/exhibits/show/popcorn/how-does-popcorn-pop-",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        },
+        {
+          "id": "nebraska-popcorn",
+          "title": "Curing and Storing Popcorn",
+          "publisher": "Nebraska Extension",
+          "url": "https://lancaster.unl.edu/curing-and-storing-popcorn/",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        },
+        {
+          "id": "acs-popcorn-science",
+          "title": "The Secret Science of Popcorn",
+          "publisher": "American Chemical Society",
+          "url": "https://www.acs.org/content/dam/acsorg/education/whatischemistry/adventuresinchemistry/secretscience/popcorn/secretscience-popcorn.pdf",
+          "published_at": null,
+          "checked_at": "2026-10-14T14:31:24+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography."
+      }
     }
   ]
 }
