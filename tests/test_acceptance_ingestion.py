@@ -23,3 +23,16 @@ class AcceptanceIngestionTests(unittest.TestCase):
             sync.sync_pending(acceptance_tests=True)
         read_news.assert_not_called()
         self.assertEqual(send.call_count,2)
+
+    def test_only_dashboard_approved_acceptance_item_is_consumed(self):
+        inbox=self.fixture();item=inbox['items'][0]
+        news={'items':[{'id':'news-pending','status':'draft'}]};before=copy.deepcopy(news)
+        row={'status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','proposedSchedule':item['scheduled_at'],'reviewedBy':'owner','reviewedAt':'2026-10-14T11:00:00+05:30','reviewNote':'Authorized test','contentHash':'a'*64}
+        with patch.dict('os.environ',{'FUNZUG_DELIVERY_MODE':'meta_native'}),patch.object(sync,'secret',return_value='fixture'),patch.object(sync,'api_url',return_value='https://funzug.netens.top/api/integrations/funzug/drafts'),patch.object(sync,'api_status',return_value={item['id']:row}),patch.object(sync,'acceptance_inbox',return_value=inbox),patch.object(sync.pipeline,'load_json',side_effect=[news,{'items':[]},{'items':[]}]),patch.object(sync,'require_matching_approved_content') as match,patch.object(sync,'approve_native_draft') as approve,patch.object(sync.pipeline,'host_and_approve_draft') as public_upload:
+            sync.process_approvals()
+        self.assertEqual(news,before)
+        match.assert_called_once()
+        self.assertEqual(approve.call_count,1)
+        self.assertEqual(approve.call_args.args[2],item['id'])
+        self.assertEqual(approve.call_args.args[-1],row['contentHash'])
+        public_upload.assert_not_called()

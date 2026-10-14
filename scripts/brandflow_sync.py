@@ -321,6 +321,12 @@ def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
+    acceptance_ids = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
+    if any(identifier in acceptance_ids and status.get('status') == 'approved' for identifier,status in statuses.items()):
+        tests = acceptance_inbox()
+        if any(item.get('id') in acceptance_ids for item in drafts.get('items', [])):
+            raise RuntimeError('Acceptance draft IDs conflict with the news inbox')
+        drafts = {**drafts, 'items':[*drafts.get('items', []), *tests['items']]}
     queue = pipeline.load_json(pipeline.QUEUE_PATH)
     local = {item["id"]: item for item in drafts.get("items", [])}
     completed = 0
@@ -339,6 +345,10 @@ def process_approvals() -> int:
         if not isinstance(selected_schedule, str):
             raise RuntimeError(f"{item_id}: approved schedule is missing")
         local_schedule = pipeline.parse_time(selected_schedule).astimezone(SCHEDULE_TIMEZONE)
+        if item_id in acceptance_ids:
+            fixture = next(item for item in drafts['items'] if item['id'] == item_id)
+            if local_schedule != pipeline.parse_time(fixture['scheduled_at']).astimezone(SCHEDULE_TIMEZONE):
+                raise RuntimeError('Acceptance test approval changed the owner-authorized slot')
         dashboard_time = status.get("reviewedAt")
         existing = next((item for item in queue.get("items", []) if item.get("id") == item_id), None)
         # BrandFlow can lag behind publishing. Completed posts must not block
