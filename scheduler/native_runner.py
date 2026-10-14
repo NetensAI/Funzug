@@ -66,6 +66,17 @@ def publication_candidates(rows,now):
     return sorted(result,key=lambda row:stamp(row['proposedSchedule']))
 
 
+def error_backoff_seconds(local):
+    # Pending reconciliation observes the same durable correlation. It is not
+    # permission to dispatch again; the dispatcher retains that invariant.
+    if local.get('error') == 'checkpoint_pending_reconciliation':
+        checkpoints = local.get('checkpoints', {})
+        if any(job.get('phase') in {'dispatch_intent', 'accepted'}
+               for job in checkpoints.values() if isinstance(job, dict)):
+            return 60
+    return 300
+
+
 def tick(config, state_path, context, enabled=False):
     now=dt.datetime.now(IST)
     rows=read_api(config,'drafts',{'batchId':BATCH}).get('drafts')
@@ -93,7 +104,7 @@ def tick(config, state_path, context, enabled=False):
         local=state['items'].setdefault(identifier,{})
         if local.get('last_verified_at',0)>time.time()-900:
             continue
-        if local.get('error') and local.get('last_attempt_at',0)>time.time()-300:
+        if local.get('error') and local.get('last_attempt_at',0)>time.time()-error_backoff_seconds(local):
             continue
         local['last_attempt_at']=int(time.time())
         browser=None

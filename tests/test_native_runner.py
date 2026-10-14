@@ -5,11 +5,25 @@ import tempfile
 import unittest
 from unittest.mock import patch,Mock
 
-from scheduler.native_runner import candidates,publication_candidates,read_api,tick
+from scheduler.native_runner import candidates,publication_candidates,read_api,tick,error_backoff_seconds
 from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_only_pending_correlated_runs_get_short_observation_backoff(self):
+        for phase in ['accepted', 'dispatch_intent']:
+            local = {'error': 'checkpoint_pending_reconciliation',
+                     'checkpoints': {'reserve:item:': {'phase': phase}}}
+            self.assertEqual(error_backoff_seconds(local), 60)
+            self.assertEqual(local['checkpoints']['reserve:item:']['phase'], phase)
+        for local in [
+            {'error': 'checkpoint_workflow_failed', 'checkpoints': {'x': {'phase': 'failed'}}},
+            {'error': 'checkpoint_pending_reconciliation', 'checkpoints': {}},
+            {'error': 'browser_login_required', 'checkpoints': {'x': {'phase': 'accepted'}}},
+            {'error': 'checkpoint_pending_reconciliation', 'checkpoints': {'x': {'phase': 'failed'}}},
+        ]:
+            self.assertEqual(error_backoff_seconds(local), 300)
+
     def test_only_due_approved_native_schedules_are_reconciled(self):
         now=dt.datetime.now(IST)
         row={'externalId':'post','status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','nativeHandoff':{'state':'scheduled'},'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()}
