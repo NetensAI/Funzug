@@ -287,6 +287,16 @@ class MetaBrowser:
             raise NativeFailure('reel_schedule_option_unconfirmed')
         self.set_schedule_fields(packet, REEL_DATE)
 
+    def reel_submit_control(self):
+        """Resolve the observed final button, excluding the scheduling toggle."""
+        option = self.page.get_by_role('button', name='Schedule', exact=True).and_(self.page.locator('[aria-pressed]'))
+        if option.count() != 1 or option.get_attribute('aria-pressed') != 'true':
+            raise NativeFailure('reel_schedule_option_unconfirmed')
+        final = self.page.get_by_role('button', name='Schedule', exact=True).and_(self.page.locator(':not([aria-pressed])'))
+        if final.count() != 1 or not final.is_enabled():
+            raise NativeFailure('schedule_button_unavailable')
+        return final
+
     def set_schedule_fields(self, packet, date_name):
         self.timezone(self.page)
         if packet.get('scheduleTimezone') != 'Asia/Kolkata':

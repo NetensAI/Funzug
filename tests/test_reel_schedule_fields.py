@@ -53,3 +53,11 @@ class ReelScheduleFieldsTests(unittest.TestCase):
         controls['minutes'].nth.return_value.get_attribute.return_value='31'
         with self.assertRaisesRegex(NativeFailure,'time_entry_unconfirmed'):
             self.browser.verify_schedule_fields(packet,REEL_DATE)
+
+    def test_final_schedule_control_excludes_toggle_and_does_not_click(self):
+        option=MagicMock();option.count.return_value=1;option.get_attribute.return_value='true'
+        final=MagicMock();final.count.return_value=1;final.is_enabled.return_value=True
+        self.browser.page.get_by_role.return_value.and_.side_effect=[option,final]
+        self.assertIs(self.browser.reel_submit_control(),final)
+        final.click.assert_not_called()
+        option.click.assert_not_called()

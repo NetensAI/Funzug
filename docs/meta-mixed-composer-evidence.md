@@ -68,3 +68,10 @@ at that instant, so this is not proof of successful visual playback. Duration
 readback must use the visible preview label, not nonexistent HTML video metadata.
 The first synthetic test was discarded without saving. The replacement remains
 unsaved for further inspection; no final submission was performed.
+
+The conventional test's Share stage has two Schedule buttons after selecting
+scheduling. The option has aria-pressed=true; the final submission button has no
+aria-pressed attribute. The Share-stage accessibility snapshot did not expose
+the test caption even though it was entered into Create. Final proof must read
+the Create caption afresh and then verify the preserved Share scheduling fields;
+stored Python caption data alone must not stand in for a live read.
