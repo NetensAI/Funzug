@@ -844,7 +844,7 @@
           "checked_at": "2026-10-11T08:20:12Z"
         }
       ],
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "877a164814b4849089a40fe88f17311ba9a43bd32ab2481f5cf9c3c8dae77d71",
       "approval": {
         "status": "approved",
@@ -854,6 +854,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-14T12:58:27.123014+05:30",
+        "scheduled_at": "2026-10-18T16:30:00+05:30",
+        "content_hash": "877a164814b4849089a40fe88f17311ba9a43bd32ab2481f5cf9c3c8dae77d71",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
