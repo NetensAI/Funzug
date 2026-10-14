@@ -1892,7 +1892,16 @@
           "facebook",
           "instagram"
         ],
-        "receipts": {},
+        "receipts": {
+          "facebook": {
+            "platform": "facebook",
+            "schedule_id": "2302910117175257",
+            "scheduled_at": "2026-10-20T20:31:00+05:30",
+            "content_hash": "5fffd8957a769137275550af0173d3e3df698372163e5f70c7b5725c5779026b",
+            "planner_url": "https://business.facebook.com/latest/content_calendar?business_id=327637346385766&asset_id=124454514239741&calendar_type=WEEK",
+            "checked_at": "2026-10-14T15:39:27.512539+05:30"
+          }
+        },
         "submission_started_at": "2026-10-14T15:29:11.226203+05:30"
       }
     },
