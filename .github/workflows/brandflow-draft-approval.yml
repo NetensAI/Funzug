@@ -31,6 +31,8 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
       - name: Validate drafts and publishing queue
         run: |
           python funzug_pipeline.py validate-drafts

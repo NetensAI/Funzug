@@ -32,6 +32,8 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
       - name: Validate queue
         run: python funzug_pipeline.py validate
 
@@ -63,6 +65,8 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up reviewed media validation
+        uses: ./.github/actions/setup-media-validator
       - name: Publish due, approved posts
         env:
           FUNZUG_META_APP_SECRET: ${{ secrets.FUNZUG_META_APP_SECRET }}
