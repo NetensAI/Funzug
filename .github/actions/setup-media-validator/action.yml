@@ -1,14 +1,15 @@
 name: Set up reviewed media validation
-description: Install the pinned image decoder and ensure real video decoders exist
+description: Install pinned image validation and verify video decoder availability
 runs:
   using: composite
   steps:
     - shell: bash
       run: |
-        python -m pip install --requirement media-host/requirements.txt
+        python -m pip install --disable-pip-version-check -r media-host/requirements.txt
         if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
         fi
+        python -c 'from PIL import Image; print("Image validator available")'
         ffmpeg -version >/dev/null
         ffprobe -version >/dev/null

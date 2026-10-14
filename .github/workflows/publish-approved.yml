@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Check out the approved queue
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -34,7 +36,7 @@ jobs:
 
       - name: Set up reviewed media validation
         uses: ./.github/actions/setup-media-validator
-      - name: Validate queue after decoder setup
+      - name: Validate queue
         run: python funzug_pipeline.py validate
 
       - name: Check whether an approved post is due
@@ -59,6 +61,8 @@ jobs:
     steps:
       - name: Check out the approved queue
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
