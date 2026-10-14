@@ -788,6 +788,416 @@
         },
         "submission_started_at": "2026-10-13T22:04:12.348744+05:30"
       }
+    },
+    {
+      "id": "funzug-2026-10-11-noaa-ocean-carbon-data",
+      "status": "approved",
+      "format": "image",
+      "headline": "44 Million Ocean Carbon Clues",
+      "caption": "A new NOAA data release brings together about 44 million measurements of carbon dioxide at the ocean surface. The observations span 1957 through 2025.\n\nThe Surface Ocean CO₂ Atlas is built from measurements collected by an international network, including instruments on cargo ships, cruise liners, and research vessels. The data are quality controlled before being added to the atlas.\n\nResearchers use these measurements to study how carbon moves between ocean and atmosphere and to track changes in the global carbon cycle. This is a large observation archive, not a single snapshot of every part of the ocean.\n\nWhat other hidden patterns might decades of ocean readings reveal?\n\nThe glowing lines represent data, not visible carbon dioxide.\n\n#OceanScience #NOAA #ClimateData #CarbonCycle #MarineScience",
+      "topic_key": "noaa-socat-2026-ocean-carbon-observations",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-18T16:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-noaa-ocean-carbon-small-brand.png",
+      "claims": [
+        {
+          "text": "The 2026 Surface Ocean CO2 Atlas release includes about 44 million quality-controlled observations collected from 1957 through 2025.",
+          "source_ids": [
+            "noaa-socat-2026-release",
+            "noaa-socat-2026-data"
+          ],
+          "support_note": "NOAA AOML gives the approximate count and date range; NOAA's data service identifies the 2026 SOCAT collection."
+        },
+        {
+          "text": "NOAA researchers and international collaborators collect surface ocean CO2 readings using instruments on ships and other platforms, then quality-control the data.",
+          "source_ids": [
+            "noaa-socat-2026-release"
+          ],
+          "support_note": "NOAA AOML describes ship-based underway instruments and international quality-control work for SOCAT."
+        },
+        {
+          "text": "The dataset supports research on ocean-atmosphere carbon exchange and ocean change.",
+          "source_ids": [
+            "noaa-socat-2026-release"
+          ],
+          "support_note": "NOAA says the data products help monitor global biogeochemical cycles and measure surface-ocean carbon dioxide."
+        }
+      ],
+      "sources": [
+        {
+          "id": "noaa-socat-2026-release",
+          "title": "Celebrating the release of major data products to monitor global carbon cycle",
+          "publisher": "NOAA Atlantic Oceanographic and Meteorological Laboratory",
+          "url": "https://www.aoml.noaa.gov/celebrating-the-release-of-major-data-products-to-monitor-global-carbon-cycle/",
+          "published_at": "2026-10-05T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        },
+        {
+          "id": "noaa-socat-2026-data",
+          "title": "Surface Ocean CO2 Atlas Database Version 2026",
+          "publisher": "NOAA National Centers for Environmental Information",
+          "url": "https://data.pmel.noaa.gov/socat/erddap/tabledap/socat_v2026_fulldata.html",
+          "published_at": "2026-06-16T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "877a164814b4849089a40fe88f17311ba9a43bd32ab2481f5cf9c3c8dae77d71",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:50:52.684Z",
+        "note": "Approved for scheduled publishing at 18 Oct 2026, 4:30 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-11-nasa-sunrise-mission",
+      "status": "approved",
+      "format": "image",
+      "headline": "Six Tiny Satellites, One Giant Eye",
+      "caption": "NASA’s SunRISE mission is designed to make six small satellites work together as one giant radio telescope. Each spacecraft is about the size of a toaster oven.\n\nFlying in formation above geosynchronous orbit, the satellites will track radio bursts from the Sun’s corona. Those bursts can be linked to energetic particles that may pose hazards to spacecraft and astronauts.\n\nThe mission is planned to launch no earlier than mid-2027. It is not in orbit yet; the concept is to combine the satellites’ observations into a much larger virtual instrument.\n\nWhat questions about the Sun could a formation of tiny spacecraft help answer?\n\nSpacecraft positions and sizes are not to scale.\n\n#NASA #SunRISE #SolarScience #SpaceTechnology #Astronomy",
+      "topic_key": "nasa-sunrise-six-satellite-radio-telescope",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T08:18:00+05:30",
+      "media_path": "drafts/assets/2026-10-11-nasa-sunrise-mission-small-brand.png",
+      "claims": [
+        {
+          "text": "NASA's SunRISE mission consists of six small satellites intended to operate together as one large radio telescope.",
+          "source_ids": [
+            "nasa-sunrise-jpl-2026"
+          ],
+          "support_note": "NASA JPL states the satellite count, small spacecraft size, and virtual-radio-telescope operation."
+        },
+        {
+          "text": "The spacecraft will study solar radio bursts from the Sun's corona that are generated by energetic particle events and may pose hazards to satellites and astronauts.",
+          "source_ids": [
+            "nasa-sunrise-jpl-2026"
+          ],
+          "support_note": "NASA JPL describes the target radio bursts, their location, and their potential relevance to spacecraft and astronaut safety."
+        },
+        {
+          "text": "The mission is not planned to launch before mid-2027.",
+          "source_ids": [
+            "nasa-sunrise-jpl-2026"
+          ],
+          "support_note": "NASA JPL lists the launch target as no earlier than mid-2027."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-sunrise-jpl-2026",
+          "title": "NASA’s SunRISE Mission Targets No Earlier Than Mid-2027 Launch",
+          "publisher": "NASA Jet Propulsion Laboratory",
+          "url": "https://www.jpl.nasa.gov/news/nasas-sunrise-mission-targets-no-earlier-than-mid-2027-launch/",
+          "published_at": "2026-10-06T00:00:00Z",
+          "checked_at": "2026-10-11T08:20:12Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "49fd4abee6eeefdf27260a151fd9519cf4f1a03c95cad9c7db82f9b25358ee3b",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:51:38.547Z",
+        "note": "Approved for scheduled publishing at 19 Oct 2026, 8:18 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-13-wood-frog-winter",
+      "status": "approved",
+      "format": "image",
+      "headline": "This Frog Survives A Frozen Winter",
+      "caption": "For a wood frog, freezing is not necessarily the end.\n\nThese frogs can survive winter with ice forming outside their cells. Their livers release glucose that helps protect the cells from freezing and dehydration.\n\nDuring this dormant state, breathing and heartbeat can stop. As conditions warm in spring, the frog thaws and activity resumes. It has survived freezing, not returned from death.\n\nWhich winter survival strategy surprises you most?\n\n#WoodFrog #WinterWildlife #AnimalAdaptations #NatureScience #Biology",
+      "topic_key": "wood-frog-freeze-tolerance-winter",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-20T08:13:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-wood-frog-winter-small-brand.png",
+      "claims": [
+        {
+          "text": "Wood frogs can survive winter freezing with ice outside their cells.",
+          "source_ids": [
+            "nps-wood-frog"
+          ],
+          "support_note": "NPS describes extracellular ice and winter survival, supporting the headline."
+        },
+        {
+          "text": "Liver-produced glucose helps protect cells against freezing and dehydration.",
+          "source_ids": [
+            "nps-wood-frog"
+          ],
+          "support_note": "NPS explains the protective glucose response."
+        },
+        {
+          "text": "Breathing and heartbeat stop during frozen dormancy and resume during spring thaw.",
+          "source_ids": [
+            "nps-wood-frog"
+          ],
+          "support_note": "NPS describes dormancy and the thaw sequence, not death and resurrection."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nps-wood-frog",
+          "title": "Biological Miracle",
+          "publisher": "National Park Service, Gates of the Arctic",
+          "url": "https://www.nps.gov/gaar/learn/nature/wood-frog-page-2.htm",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "9f48af68c6c300707a68c9e9a47ad73d166ef79d0919aba49ceb4644195635a2",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:52:21.541Z",
+        "note": "Approved for scheduled publishing at 20 Oct 2026, 8:13 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-13-greenland-shark-longevity",
+      "status": "approved",
+      "format": "image",
+      "headline": "This Shark Can Live For Centuries",
+      "caption": "A Greenland shark's lifetime can span centuries. Its exact age is much harder to pin down.\n\nScientists estimate ages using radiocarbon measurements from proteins in the eye lens. One large female in a study was estimated to be between 272 and 512 years old.\n\nThat wide range matters. It does not mean every Greenland shark lives 500 years, or that a shark in a viral photograph has a confirmed birth year.\n\nWould you rather explore the deep ocean or outer space?\n\n#GreenlandShark #OceanScience #MarineLife #AnimalFacts #DeepSea",
+      "topic_key": "greenland-shark-radiocarbon-longevity-estimates",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-17T16:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-greenland-shark-longevity-small-brand.png",
+      "claims": [
+        {
+          "text": "Greenland sharks can live for centuries, based on scientific age estimates.",
+          "source_ids": [
+            "noaa-greenland-shark"
+          ],
+          "support_note": "NOAA describes estimated multi-century longevity, supporting the conditional headline."
+        },
+        {
+          "text": "Researchers date eye-lens proteins; one large female was estimated at 272 to 512 years old.",
+          "source_ids": [
+            "noaa-greenland-shark"
+          ],
+          "support_note": "NOAA explains the method and uncertainty interval, not an exact birthday."
+        }
+      ],
+      "sources": [
+        {
+          "id": "noaa-greenland-shark",
+          "title": "How long do Greenland sharks live?",
+          "publisher": "NOAA National Ocean Service",
+          "url": "https://oceanservice.noaa.gov/facts/greenland-shark.html",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "fbaa3b08b23da8d6402cbd826682fe4b553cc1f54670344ef56ed952c9d68c30",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:49:41.682Z",
+        "note": "Approved for scheduled publishing at 17 Oct 2026, 4:30 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-13-octopus-three-hearts",
+      "status": "approved",
+      "format": "image",
+      "headline": "Three Hearts Keep This Octopus Alive",
+      "caption": "An octopus has three hearts, but they do not all do the same job.\n\nTwo pump blood through the gills. The third sends oxygenated blood around the body.\n\nIts oxygen-carrying chemistry is different from ours too. Octopuses use copper-based hemocyanin, which gives their blood a blue color, rather than our iron-based hemoglobin.\n\nWhich is more surprising: three hearts or blue blood?\n\n#Octopus #MarineBiology #OceanLife #AnimalScience #NatureFacts",
+      "topic_key": "octopus-three-hearts-hemocyanin",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-19T12:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-octopus-three-hearts-small-brand.png",
+      "claims": [
+        {
+          "text": "Octopuses have two gill-associated hearts and one systemic heart.",
+          "source_ids": [
+            "smithsonian-cephalopods"
+          ],
+          "support_note": "Smithsonian's circulatory-system section describes three hearts and their distinct roles, supporting the headline."
+        },
+        {
+          "text": "Their copper-based oxygen carrier hemocyanin gives their blood a blue color.",
+          "source_ids": [
+            "smithsonian-cephalopods"
+          ],
+          "support_note": "The same section contrasts cephalopod hemocyanin with human iron-based hemoglobin."
+        }
+      ],
+      "sources": [
+        {
+          "id": "smithsonian-cephalopods",
+          "title": "Cephalopods: Octopus, Squid, Cuttlefish, and Nautilus",
+          "publisher": "Smithsonian Ocean",
+          "url": "https://ocean.si.edu/ocean-life/invertebrates/octopuses-squids-and-relatives",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "b385a774d65ce76c61f5d6fad30cd48793b7f8e33778c7a4b0ca443e933b506c",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:52:00.470Z",
+        "note": "Approved for scheduled publishing at 19 Oct 2026, 12:30 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-13-singing-sand",
+      "status": "approved",
+      "format": "image",
+      "headline": "These Sand Dunes Can Actually Sing",
+      "caption": "A desert can have a bass note of its own.\n\nAt Colorado's Great Sand Dunes, moving sand can produce a low humming or booming sound. The National Park Service has recorded this unusual phenomenon.\n\nThe sound can accompany sand tumbling down a dune face during an avalanche. Calling it singing is a nickname, not a claim that the dunes make music like an instrument.\n\nWould you recognize that sound without seeing where it came from?\n\n#GreatSandDunes #SingingSand #Geology #NationalParks #NatureScience",
+      "topic_key": "great-sand-dunes-singing-sand",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-17T20:18:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-singing-sand-small-brand.png",
+      "claims": [
+        {
+          "text": "Great Sand Dunes National Park has recorded low humming or booming sounds from sand.",
+          "source_ids": [
+            "nps-singing-sands"
+          ],
+          "support_note": "NPS identifies the park and recorded sound, supporting the figurative image headline."
+        },
+        {
+          "text": "The sound can occur while sand tumbles during an avalanche.",
+          "source_ids": [
+            "nps-singing-sand-video"
+          ],
+          "support_note": "The NPS video description links the sound to avalanching sand."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nps-singing-sands",
+          "title": "Sound Library: Singing Sands",
+          "publisher": "National Park Service",
+          "url": "https://www.nps.gov/subjects/sound/singing-sands.htm",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        },
+        {
+          "id": "nps-singing-sand-video",
+          "title": "Singing Sand Phenomenon",
+          "publisher": "National Park Service, Great Sand Dunes",
+          "url": "https://www.nps.gov/media/video/view.htm?id=899DBB31-8EC7-42BA-A719-A880E58D823B",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:56:00+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "4c5f51550f84c2fe1eacb6c4b63e4f63f558f6907a2c588f110fca3a1b8758e0",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:49:56.373Z",
+        "note": "Approved for scheduled publishing at 17 Oct 2026, 8:18 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-13-fulgurite",
+      "status": "approved",
+      "format": "image",
+      "headline": "Lightning Can Turn Sand Into Glass",
+      "caption": "Some lightning strikes leave a glass record in the ground.\n\nWhen lightning heats suitable sandy material, it can melt and fuse surrounding grains into a natural glass structure called a fulgurite. Some form rough, hollow tubes.\n\nThe result is not usually a perfect crystal or a smooth sculpture. At Great Sand Dunes, the National Park Service describes dark glass tubes formed by lightning.\n\nWould you have recognized this as evidence of a storm?\n\n#Fulgurite #Lightning #Geology #NaturalGlass #EarthScience",
+      "topic_key": "lightning-sand-glass-fulgurite",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-18T12:30:00+05:30",
+      "media_path": "drafts/assets/2026-10-13-fulgurite-small-brand.png",
+      "claims": [
+        {
+          "text": "Lightning can melt sand into natural glass structures called fulgurites.",
+          "source_ids": [
+            "nps-fulgurites"
+          ],
+          "support_note": "NPS describes lightning melting surrounding sand into dark glass, supporting the headline."
+        },
+        {
+          "text": "Fulgurites at Great Sand Dunes include dark glass tubes.",
+          "source_ids": [
+            "nps-fulgurites"
+          ],
+          "support_note": "NPS identifies blackish tubular specimens, rather than smooth manufactured sculptures."
+        },
+        {
+          "text": "Some sandy fulgurites are thin, hollow tubes formed by melted and fused particles.",
+          "source_ids": [
+            "canada-fulgurites"
+          ],
+          "support_note": "Environment Canada's explanation specifies hollow tubes and fused sand particles."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nps-fulgurites",
+          "title": "Fulgurites: The Power of Lightning",
+          "publisher": "National Park Service",
+          "url": "https://www.nps.gov/articles/grsa-fulgurites.htm",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        },
+        {
+          "id": "canada-fulgurites",
+          "title": "Lightning: fulgurites",
+          "publisher": "Environment and Climate Change Canada",
+          "url": "https://www.canada.ca/en/environment-climate-change/services/lightning/learn-more/fulgurites.html",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:56:00+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "fd8a3e2f228a8752d1612fa16652ae334a9009f0a321e93a477f2e5676056ad8",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T06:50:24.319Z",
+        "note": "Approved for scheduled publishing at 18 Oct 2026, 12:30 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
