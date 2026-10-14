@@ -98,3 +98,12 @@ Next.js 14.2.35 production build, including TypeScript checking and all 27 stati
 page generation steps. Image tag: brandflow-pr67-check:review-hash. Image manifest
 list: sha256:69a336577fc2431082de4af24573667037f5907ebb4bb170819d9f9743f1f89a.
 This staging build did not restart production or apply database migrations.
+
+On 14 October, CI runs 38519004965 and 38519001232 completed successfully.
+Production migrations 013 and 014 were then applied in one PostgreSQL transaction
+after verifying a private custom-format backup at
+`/home/vatsal/apps/brandflow/.backups/pre-pr67-20261014-ordered-media.dump`.
+Backup permissions are 0600; directory permissions are 0700. The archive is
+35,815,035 bytes and passed pg_restore --list validation. The new ordered-media
+table exists and all 15 existing draft records remain format=image. No approval,
+schedule, publication, dashboard restart, or mixed-delivery activation occurred.
