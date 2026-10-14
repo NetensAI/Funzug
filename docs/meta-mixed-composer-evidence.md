@@ -50,3 +50,11 @@ explicit reviewed policy rather than silently changing the original video.
 No final Share, Schedule, or Save as draft action was clicked. The final schedule
 button, video identity verification, and resulting planner details still require
 implementation and verification. Mixed delivery and approval remain disabled.
+
+Follow-up inspection of the retained Share-stage test found no HTML video
+elements. The preview still reported `Reels · Loading...`, despite the copyright
+check succeeding. Therefore HTML videoWidth, videoHeight, duration, and currentSrc
+cannot yet be used as acceptance proof for this fixture. Do not infer a playable
+or identity-verified video from the upload filename, dimensions, or copyright
+message. Test a conventional non-fragmented MP4 fixture and inspect the visible
+preview again before implementing final Reel preparation proof.
