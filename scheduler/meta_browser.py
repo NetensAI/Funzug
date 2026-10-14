@@ -478,8 +478,11 @@ class MetaBrowser:
             if len(matching) != 1:
                 raise NativeFailure('duplicate_planner_candidates')
             matching[0].click()
-            self.planner.get_by_role('heading', name='Post details', exact=True).wait_for(timeout=15000)
-            detail = self.planner.get_by_text(re.compile(r'^ID: [0-9]+$'))
+            dialog = self.planner.get_by_role('dialog', name='Post details', exact=True)
+            dialog.wait_for(state='visible', timeout=15000)
+            if dialog.count() != 1:
+                raise NativeFailure('planner_detail_not_unique')
+            detail = dialog.get_by_text(re.compile(r'^ID: [0-9]+$'))
             if detail.count() != 1:
                 raise NativeFailure('planner_identifier_not_visible')
             identifier = re.fullmatch(r'ID: ([0-9]+)', detail.inner_text())
@@ -492,7 +495,7 @@ class MetaBrowser:
             # The exact caption, platform and slot were read from the planner
             # card in the verified date column before opening this detail.
             results[platform] = {'platform': platform, 'schedule_id': identifier.group(1), 'scheduled_at': slot.isoformat(), 'content_hash': packet['contentHash'], 'planner_url': self.planner.url, 'checked_at': dt.datetime.now(IST).isoformat()}
-            closes = self.planner.get_by_role('button', name='Close', exact=True)
+            closes = dialog.get_by_role('button', name='Close', exact=True)
             if closes.count() != 1:
                 raise NativeFailure('planner_detail_close_changed')
             closes.click()
