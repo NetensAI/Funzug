@@ -145,6 +145,10 @@ class MetaBrowser:
         raise NativeFailure('time_entry_unconfirmed')
 
     def prepare(self, packet: dict, image: bytes | list[bytes]) -> dict:
+        self.image_hash = None
+        self.media_hashes = None
+        self.item_binding = None
+        self.uploaded_thumbnail_urls = None
         if packet.get('format', 'image') not in {'image', 'carousel'}:
             raise NativeFailure('unsupported_native_media_format')
         self.page.goto(COMPOSER, wait_until='domcontentloaded')
@@ -276,9 +280,26 @@ class MetaBrowser:
         caption = editor.evaluate("el => Array.from(el.querySelectorAll('[data-block]')).map(b=>b.textContent).join('\\n')")
         if caption != packet['caption']:
             raise NativeFailure('caption_entry_unconfirmed')
+        self.verify_schedule_fields(packet, 'Date picker')
+        for name in ('Boost', 'Share to Facebook Story', 'Customize post for Facebook and Instagram'):
+            control = self.page.get_by_role('switch', name=name, exact=True)
+            if control.count() != 1 or control.is_checked():
+                raise NativeFailure('unexpected_composer_option')
+        schedule = self.page.get_by_role('button', name='Schedule', exact=True)
+        if schedule.count() != 1 or not schedule.is_enabled():
+            raise NativeFailure('schedule_button_unavailable')
+        return {**binding(packet), 'caption': caption, **media_proof, 'timezone': 'Asia/Kolkata', 'story': False, 'boost': False}
+
+    def verify_schedule_fields(self, packet, date_name):
+        self.timezone(self.page)
+        if packet.get('scheduleTimezone') != 'Asia/Kolkata':
+            raise NativeFailure('invalid_timezone')
+        dates = self.page.get_by_role('textbox', name=date_name, exact=True)
+        if dates.count() != len(packet['platforms']) or any(self.page.get_by_role('spinbutton', name=name, exact=True).count() != len(packet['platforms']) for name in ('hours','minutes','meridiem')):
+            raise NativeFailure('platform_time_controls_changed')
         slot = stamp(packet['proposedSchedule'])
         for i in range(len(packet['platforms'])):
-            date = self.page.get_by_role('textbox', name='Date picker', exact=True).nth(i).input_value()
+            date = dates.nth(i).input_value()
             try:
                 parsed = dt.datetime.strptime(date, '%b %d, %Y').date()
             except ValueError:
@@ -291,14 +312,6 @@ class MetaBrowser:
             for name, expected in [('hours', slot.hour % 12 or 12), ('minutes', slot.minute), ('meridiem', int(slot.hour >= 12))]:
                 if self.page.get_by_role('spinbutton', name=name, exact=True).nth(i).get_attribute('aria-valuenow') != str(expected):
                     raise NativeFailure('time_entry_unconfirmed')
-        for name in ('Boost', 'Share to Facebook Story', 'Customize post for Facebook and Instagram'):
-            control = self.page.get_by_role('switch', name=name, exact=True)
-            if control.count() != 1 or control.is_checked():
-                raise NativeFailure('unexpected_composer_option')
-        schedule = self.page.get_by_role('button', name='Schedule', exact=True)
-        if schedule.count() != 1 or not schedule.is_enabled():
-            raise NativeFailure('schedule_button_unavailable')
-        return {**binding(packet), 'caption': caption, **media_proof, 'timezone': 'Asia/Kolkata', 'story': False, 'boost': False}
 
     def submit(self):
         self.page.get_by_role('button', name='Schedule', exact=True).click(timeout=15000)
