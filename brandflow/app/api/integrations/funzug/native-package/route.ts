@@ -1,4 +1,5 @@
 import {NextResponse} from 'next/server';
+import {mixedDeliveryEnabled} from '@/lib/mixed-delivery-policy.mjs';
 import {db} from '@/lib/db';
 import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
 import {decodeAndVerifyImage,validBearer} from '@/lib/funzug-drafts';
@@ -19,7 +20,7 @@ export async function GET(req:Request){
   FROM social_post_drafts d JOIN brands b ON b.id=d.brand_id
   WHERE b.slug='funzug' AND d.batch_id=$1 AND d.external_id=$2`,[batchId,externalId]);
  if(!draft)return NextResponse.json({error:'Approved Funzug draft not found'},{status:404});
- if(draft.media_format&&draft.media_format!=='image'&&process.env.FUNZUG_NATIVE_MIXED_ENABLED!=='1')return NextResponse.json({error:'Mixed-format native delivery is not enabled'},{status:409});
+ if(draft.media_format&&draft.media_format!=='image'&&!mixedDeliveryEnabled(draft.external_id,process.env))return NextResponse.json({error:'Mixed-format native delivery is not enabled'},{status:409});
  if(draft.status!=='approved'||draft.publication_authorized!==true||!draft.reviewed_by||!draft.reviewed_at||draft.published_at||Object.keys(draft.platform_outcomes||{}).length||draft.schedule_timezone!=='Asia/Kolkata')return NextResponse.json({error:'Owner approval is unavailable for native scheduling'},{status:409});
  const checks=draft.review_checks||{};
  const confirmed=checks.approvalConfirmed===true||['claims','sources','caption','images','platforms','schedule'].every(key=>checks[key]===true);

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import os
 import re
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs,urljoin
@@ -13,6 +14,7 @@ from urllib.parse import urlsplit,parse_qs,urljoin
 from scheduler.native_worker import IST, NativeFailure, binding, stamp, verify_package, verify_ordered_package
 from scheduler.publication_evidence import publication_time
 from scheduler.native_media_files import stage_reviewed_media
+from scripts.mixed_delivery_policy import mixed_delivery_enabled
 
 PAGE_ID = '124454514239741'
 BUSINESS_ID = '327637346385766'
@@ -41,6 +43,7 @@ def verify_reel_duration_label(label, duration_ms):
 
 class MetaBrowser:
     def __init__(self, context, workdir: Path):
+        self.supported_media_formats = ('carousel','reel') if any(os.environ.get(name)=='1' for name in ('FUNZUG_NATIVE_MIXED_ENABLED','FUNZUG_NATIVE_ACCEPTANCE_ENABLED')) else ()
         self.context = context
         self.workdir = workdir
         self.page = context.new_page()
@@ -51,6 +54,9 @@ class MetaBrowser:
         self.reel_upload_binding = None
         self.submission_format = None
         self.item_binding = None
+
+    def mixed_item_allowed(self, identifier):
+        return mixed_delivery_enabled(identifier, os.environ)
 
     def close(self):
         # Close worker-owned tabs only. Keep the persistent login browser alive.

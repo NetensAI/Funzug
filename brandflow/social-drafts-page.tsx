@@ -5,6 +5,7 @@ import SocialDraftMedia from '@/components/SocialDraftMedia';
 import {db} from '@/lib/db';
 import {getSession} from '@/lib/auth';
 import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
+import {mixedDeliveryEnabled} from '@/lib/mixed-delivery-policy.mjs';
 
 export default async function Page({searchParams}:{searchParams:{brand?:string,status?:string}}){
  const {rows:brands}=await db.query("SELECT * FROM brands WHERE status<>'archived' ORDER BY created_at");
@@ -27,7 +28,7 @@ export default async function Page({searchParams}:{searchParams:{brand?:string,s
    const sources=new Map((d.evidence_sources||[]).map((s:any)=>[s.id,s]));
    const published=Boolean(d.published_at);
    const reviewedContentHash=draftContentHash(d);
-   const reviewEnabled=(!d.media_format||d.media_format==='image'||process.env.FUNZUG_NATIVE_MIXED_ENABLED==='1')&&Boolean(reviewedContentHash);
+   const reviewEnabled=(!d.media_format||d.media_format==='image'||mixedDeliveryEnabled(d.external_id,process.env))&&Boolean(reviewedContentHash);
    return <article className="card draft" key={d.id}>
     <div><SocialDraftMedia id={d.id} headline={d.headline} format={d.media_format} assets={d.media_assets||[]}/></div>
     <div className="stack">

@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
 
 import funzug_pipeline as pipeline
 from scripts import brandflow_sync as sync
+from scripts.mixed_delivery_policy import mixed_delivery_enabled
 
 
 def reserve(item: dict[str, Any], reviewed: dict[str, Any], now: dt.datetime) -> bool:
@@ -35,7 +36,7 @@ def reserve(item: dict[str, Any], reviewed: dict[str, Any], now: dt.datetime) ->
     media_format = item.get('format')
     if media_format not in {'image','carousel','reel'}:
         raise RuntimeError('Unsupported native media format')
-    if media_format != 'image' and os.environ.get('FUNZUG_NATIVE_MIXED_ENABLED') != '1':
+    if media_format != 'image' and not mixed_delivery_enabled(item.get('id'), os.environ):
         raise RuntimeError('Mixed native delivery is not enabled')
     platforms = item.get('platforms')
     if not isinstance(platforms,list) or not platforms or any(not isinstance(p,str) for p in platforms) or len(set(platforms)) != len(platforms) or not set(platforms) <= {'facebook','instagram'}:
