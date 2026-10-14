@@ -16,6 +16,8 @@ class NativeImageUploadTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             browser=MetaBrowser(MagicMock(),Path(root))
             remove=MagicMock();remove.count.side_effect=[0,1,2]
+            urls=['https://scontent.example.fbcdn.net/first.jpg','https://scontent.example.fbcdn.net/second.jpg']
+            remove.evaluate_all.side_effect=[urls[:1],urls]
             add=MagicMock()
             browser.page.get_by_role.side_effect=lambda role,name,exact: remove if name=='Remove photo' else add
             chooser=MagicMock();browser.page.expect_file_chooser.return_value.__enter__.return_value.value=chooser
@@ -27,6 +29,7 @@ class NativeImageUploadTests(unittest.TestCase):
             self.assertEqual(uploaded,assets)
             self.assertEqual(hashes,[hashlib.sha256(asset).hexdigest() for asset in assets])
             self.assertEqual(add.click.call_count,2)
+            self.assertEqual(browser.uploaded_thumbnail_urls,tuple(urls))
             self.assertTrue(all(not p.exists() for p in paths))
             self.assertEqual(list(Path(root).iterdir()),[])
 
@@ -44,3 +47,21 @@ class NativeImageUploadTests(unittest.TestCase):
         with self.assertRaisesRegex(NativeFailure,'composer_not_empty'):
             browser.upload_reviewed_images(packet,verify_ordered_package(packet))
         browser.page.expect_file_chooser.assert_not_called()
+
+    def test_reordered_thumbnail_cannot_pass_pre_submit_check(self):
+        browser=MetaBrowser(MagicMock(),Path('.'))
+        urls=['https://scontent.example.fbcdn.net/first.jpg','https://scontent.example.fbcdn.net/second.jpg']
+        browser.uploaded_thumbnail_urls=tuple(urls)
+        locator=browser.page.get_by_role.return_value
+        locator.evaluate_all.return_value=urls
+        browser.verify_carousel_upload_order(2)
+        locator.evaluate_all.return_value=list(reversed(urls))
+        with self.assertRaisesRegex(NativeFailure,'uploaded_media_order_changed'):
+            browser.verify_carousel_upload_order(2)
+
+    def test_untrusted_or_ambiguous_thumbnail_sources_fail_closed(self):
+        browser=MetaBrowser(MagicMock(),Path('.'))
+        for urls in ([None],['https://other.example/a.jpg'],['https://fbcdn.net.attacker.example/a.jpg'],['https://scontent.example.fbcdn.net/a.jpg']*2,[]):
+            browser.page.get_by_role.return_value.evaluate_all.return_value=urls
+            with self.assertRaisesRegex(NativeFailure,'carousel_thumbnails_unconfirmed'):
+                browser.carousel_thumbnail_urls()

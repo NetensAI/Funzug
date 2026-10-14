@@ -36,6 +36,8 @@ class MetaBrowser:
         self.page = context.new_page()
         self.planner = context.new_page()
         self.image_hash = None
+        self.uploaded_thumbnail_urls = None
+        self.media_hashes = None
         self.item_binding = None
 
     def close(self):
@@ -114,11 +116,15 @@ class MetaBrowser:
             locator.press('ArrowUp' if current < desired else 'ArrowDown')
         raise NativeFailure('time_entry_unconfirmed')
 
-    def prepare(self, packet: dict, image: bytes) -> dict:
+    def prepare(self, packet: dict, image: bytes | list[bytes]) -> dict:
+        if packet.get('format', 'image') not in {'image', 'carousel'}:
+            raise NativeFailure('unsupported_native_media_format')
         self.page.goto(COMPOSER, wait_until='domcontentloaded')
         self.visible(self.page, 'Create post')
         self.select_platforms(packet['platforms'])
-        self.image_hash = self.upload_reviewed_images(packet, image)[0]
+        hashes = self.upload_reviewed_images(packet, image)
+        self.image_hash = hashes[0] if packet.get('format', 'image') == 'image' else None
+        self.media_hashes = hashes if packet.get('format') == 'carousel' else None
         editor = self.page.get_by_role('combobox', name=CAPTION, exact=True)
         editor.click()
         self.page.keyboard.insert_text(packet['caption'])
@@ -141,6 +147,8 @@ class MetaBrowser:
         remove = self.page.get_by_role('button', name='Remove photo', exact=True)
         if remove.count() != 0:
             raise NativeFailure('composer_not_empty')
+        self.uploaded_thumbnail_urls = None
+        thumbnails = []
         with stage_reviewed_media(packet, assets, self.workdir) as (paths, hashes):
             for index, path in enumerate(paths):
                 with self.page.expect_file_chooser(timeout=15000) as event:
@@ -149,7 +157,39 @@ class MetaBrowser:
                 remove.nth(index).wait_for(state='visible', timeout=45000)
                 if remove.count() != index + 1:
                     raise NativeFailure('unexpected_uploaded_media_count')
+                if media_format == 'carousel':
+                    observed = self.carousel_thumbnail_urls()
+                    if observed[:-1] != thumbnails or observed[-1] in thumbnails:
+                        raise NativeFailure('uploaded_media_order_changed')
+                    thumbnails = observed
+            if media_format == 'carousel':
+                self.uploaded_thumbnail_urls = tuple(thumbnails)
             return hashes
+
+    def carousel_thumbnail_urls(self):
+        """Read the observed per-slide thumbnail boundary, never broad page images."""
+        urls = self.page.get_by_role('button', name='Remove photo', exact=True).evaluate_all("""elements => elements.map(el => {
+            let parent = el;
+            for (let depth = 0; depth < 4; depth++) parent = parent && parent.parentElement;
+            if (!parent) return null;
+            const images = parent.querySelectorAll('img');
+            return images.length === 1 ? images[0].getAttribute('src') : null;
+        })""")
+        if not isinstance(urls, list) or not 1 <= len(urls) <= 10:
+            raise NativeFailure('carousel_thumbnails_unconfirmed')
+        for url in urls:
+            if not isinstance(url, str):
+                raise NativeFailure('carousel_thumbnails_unconfirmed')
+            parsed = urlsplit(url)
+            if parsed.scheme != 'https' or not parsed.hostname or not parsed.hostname.endswith('.fbcdn.net') or parsed.username or parsed.password or parsed.port not in {None,443}:
+                raise NativeFailure('carousel_thumbnails_unconfirmed')
+        if len(set(urls)) != len(urls):
+            raise NativeFailure('carousel_thumbnails_unconfirmed')
+        return urls
+
+    def verify_carousel_upload_order(self, count):
+        if not self.uploaded_thumbnail_urls or len(self.uploaded_thumbnail_urls) != count or tuple(self.carousel_thumbnail_urls()) != self.uploaded_thumbnail_urls:
+            raise NativeFailure('uploaded_media_order_changed')
 
     def set_post_schedule(self, packet):
         """Shared image-post time controls, not the separate Reel wizard."""
@@ -172,8 +212,19 @@ class MetaBrowser:
         self.visible(self.page, 'Create post')
         if self.item_binding != binding(packet) or set(self.selected_platforms()) != set(packet['platforms']):
             raise NativeFailure('composer_binding_changed')
-        if self.page.get_by_role('button', name='Remove photo', exact=True).count() != 1 or not self.image_hash:
-            raise NativeFailure('reviewed_media_missing')
+        media_format = packet.get('format', 'image')
+        if media_format == 'carousel':
+            self.verify_carousel_upload_order(len(packet.get('media', [])))
+            assets = verify_ordered_package(packet)
+            if self.media_hashes != [hashlib.sha256(asset).hexdigest() for asset in assets]:
+                raise NativeFailure('reviewed_media_missing')
+            media_proof = {'format':'carousel', 'media_sha256':list(self.media_hashes)}
+        elif media_format == 'image':
+            if self.page.get_by_role('button', name='Remove photo', exact=True).count() != 1 or not self.image_hash:
+                raise NativeFailure('reviewed_media_missing')
+            media_proof = {'image_sha256':self.image_hash}
+        else:
+            raise NativeFailure('unsupported_native_media_format')
         editor = self.page.get_by_role('combobox', name=CAPTION, exact=True)
         caption = editor.evaluate("el => Array.from(el.querySelectorAll('[data-block]')).map(b=>b.textContent).join('\\n')")
         if caption != packet['caption']:
@@ -200,7 +251,7 @@ class MetaBrowser:
         schedule = self.page.get_by_role('button', name='Schedule', exact=True)
         if schedule.count() != 1 or not schedule.is_enabled():
             raise NativeFailure('schedule_button_unavailable')
-        return {**binding(packet), 'caption': caption, 'image_sha256': self.image_hash, 'timezone': 'Asia/Kolkata', 'story': False, 'boost': False}
+        return {**binding(packet), 'caption': caption, **media_proof, 'timezone': 'Asia/Kolkata', 'story': False, 'boost': False}
 
     def submit(self):
         self.page.get_by_role('button', name='Schedule', exact=True).click(timeout=15000)
