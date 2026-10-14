@@ -144,6 +144,10 @@ def validate_item(
     required_size: tuple[int, int],
     require_public_media_url: bool = True,
 ) -> list[str]:
+    # Native delivery uploads reviewed private bytes through the browser. It
+    # never needs a public media URL and must remain excluded from API delivery.
+    native_delivery = item.get('delivery_mode') in {'meta_native_pending', 'meta_native'}
+    require_public_media_url = require_public_media_url and not native_delivery
     errors: list[str] = []
     item_id = item.get("id", "<missing id>")
     if not isinstance(item_id, str) or not item_id.strip():

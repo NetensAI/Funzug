@@ -148,6 +148,7 @@ class BrandFlowPayloadTests(unittest.TestCase):
     def test_native_approval_is_staged_with_api_delivery_disabled(self):
         item={'id':'native-fixture','status':'draft'}
         status={'status':'approved','publicationAuthorized':True,
+                'contentHash':'a'*64,
                 'scheduleTimezone':'Asia/Kolkata','proposedSchedule':'2999-01-01T19:15:00+05:30',
                 'reviewedBy':'vatsal','reviewNote':'Approved','reviewChecks':{'approvalConfirmed':True}}
         with (
@@ -157,12 +158,28 @@ class BrandFlowPayloadTests(unittest.TestCase):
             patch.object(sync,'api_status',return_value={item['id']:status}),
             patch.object(sync.pipeline,'load_json',side_effect=[{'items':[item]},{'items':[]},{'items':[]}]),
             patch.object(sync,'require_matching_approved_content'),
-            patch.object(sync.pipeline,'host_and_approve_draft') as process,
+            patch.object(sync,'approve_native_draft') as process,
+            patch.object(sync.pipeline,'host_and_approve_draft') as public_upload,
         ):
             sync.process_approvals()
         staged=process.call_args.args[0]['items'][0]
         self.assertEqual(staged['delivery_mode'],'meta_native_pending')
         self.assertFalse(sync.pipeline.workflow_delivery_allowed(staged))
+        public_upload.assert_not_called()
+
+    def test_private_native_staging_keeps_reviewed_hash_and_never_uploads(self):
+        candidate={'id':'native-fixture','status':'draft','format':'carousel'}
+        with patch.object(sync,'approval_content_hash',return_value='a'*64),patch.object(sync.pipeline,'validate_draft_queue',return_value=[]),patch.object(sync.pipeline,'approve') as approve:
+            sync.approve_native_draft({'items':[candidate]},{'items':[]},candidate['id'],'vatsal','Approved','2026-10-14T11:00:00+05:30','a'*64)
+        staged=approve.call_args.args[0]['items'][0]
+        self.assertEqual(staged['reviewed_content_hash'],'a'*64)
+        self.assertEqual(staged['delivery_mode'],'meta_native_pending')
+        self.assertFalse(sync.pipeline.workflow_delivery_allowed(staged))
+        self.assertNotIn('delivery_mode',candidate)
+        with patch.object(sync,'approval_content_hash',return_value='b'*64),patch.object(sync.pipeline,'approve') as approve:
+            with self.assertRaisesRegex(RuntimeError,'Reviewed native media changed'):
+                sync.approve_native_draft({'items':[candidate]},{'items':[]},candidate['id'],'vatsal','Approved',None,'a'*64)
+        approve.assert_not_called()
 
     def test_published_item_does_not_block_later_approvals(self):
         published = {"id": "already-posted", "status": "published"}

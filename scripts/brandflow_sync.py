@@ -286,6 +286,25 @@ def reschedule_approved_item(queue: dict[str, Any], item_id: str, scheduled_at: 
     raise RuntimeError(f"{item_id}: approved post is absent from the publishing queue")
 
 
+def approve_native_draft(drafts, queue, item_id, reviewer, note, approved_at, content_hash):
+    """Stage privately decoded media only after matching explicit dashboard review."""
+    candidate = next((item for item in drafts.get('items', []) if item.get('id') == item_id), None)
+    if not candidate or candidate.get('status') != 'draft':
+        raise RuntimeError('Native approval requires an existing unapproved draft')
+    if any(item.get('id') == item_id for item in queue.get('items', [])):
+        raise RuntimeError('Native item is already in the publish queue')
+    if approval_content_hash(candidate) != content_hash:
+        raise RuntimeError('Reviewed native media changed')
+    errors = pipeline.validate_draft_queue(drafts)
+    if errors:
+        raise RuntimeError('Native draft validation failed: ' + '\n'.join(errors))
+    item = json.loads(json.dumps(candidate))
+    item['delivery_mode'] = 'meta_native_pending'
+    item['reviewed_content_hash'] = content_hash
+    staged = {**queue, 'items':[*queue.get('items', []), item]}
+    pipeline.approve(staged, item_id, reviewer, note, {'approvalConfirmed':True}, approved_at)
+
+
 def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
@@ -353,6 +372,10 @@ def process_approvals() -> int:
             # stage_draft copies this marker before recording approval. The
             # due-time API publisher must not race the native browser worker.
             item['delivery_mode']='meta_native_pending'
+            approve_native_draft(drafts, queue, item_id, reviewer, note, dashboard_time, status['contentHash'])
+            queue = pipeline.load_json(pipeline.QUEUE_PATH)
+            completed += 1
+            continue
         checklist = {"approvalConfirmed": True}
         pipeline.host_and_approve_draft(
             drafts, queue, item_id, reviewer, note, checklist,
