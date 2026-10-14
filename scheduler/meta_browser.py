@@ -49,6 +49,7 @@ class MetaBrowser:
         self.uploaded_thumbnail_urls = None
         self.media_hashes = None
         self.reel_upload_binding = None
+        self.submission_format = None
         self.item_binding = None
 
     def close(self):
@@ -162,6 +163,7 @@ class MetaBrowser:
         raise NativeFailure('time_entry_unconfirmed')
 
     def prepare(self, packet: dict, image: bytes | list[bytes]) -> dict:
+        self.submission_format = None
         self.image_hash = None
         self.media_hashes = None
         self.item_binding = None
@@ -211,9 +213,47 @@ class MetaBrowser:
         self.set_reel_schedule(packet)
         self.verify_schedule_fields(packet, REEL_DATE)
         self.item_binding = binding(packet)
-        # Do not fabricate a final proof from stored upload metadata. The live
-        # Share-stage caption, media and option checks must be implemented first.
-        raise NativeFailure('reel_final_proof_not_implemented')
+        return self.prepared_reel(packet)
+
+    def prepared_reel(self, packet):
+        self.visible(self.page, 'Create reel')
+        if self.item_binding != binding(packet) or not self.reel_upload_binding:
+            raise NativeFailure('composer_binding_changed')
+        assets = verify_ordered_package(packet)
+        asset = packet['media'][0]
+        upload = self.reel_upload_binding
+        if any(upload.get(key) != value for key,value in binding(packet).items()) or upload.get('sha256') != hashlib.sha256(assets[0]).hexdigest():
+            raise NativeFailure('reviewed_media_missing')
+        self.reel_submit_control()
+        self.page.get_by_role('button', name='Back', exact=True).click()
+        editor = self.page.get_by_role('textbox', name=CAPTION, exact=True)
+        editor.wait_for(state='visible', timeout=15000)
+        caption = self.read_caption_editor(editor)
+        if caption != packet['caption'] or set(self.selected_platforms()) != set(packet['platforms']):
+            raise NativeFailure('caption_entry_unconfirmed')
+        if self.page.get_by_text(upload['filename'], exact=True).count() != 1 or self.page.get_by_text(f"{asset['width']} x {asset['height']}", exact=True).count() != 1 or self.page.get_by_role('button', name='Delete', exact=True).count() != 1:
+            raise NativeFailure('reviewed_media_missing')
+        duration = self.page.get_by_text(re.compile(r'^Reels\s*·\s*[1-9][0-9]{0,2} seconds\s*·?$'))
+        if duration.count() != 1:
+            raise NativeFailure('reel_duration_unconfirmed')
+        verify_reel_duration_label(duration.inner_text(), asset['durationMs'])
+        customize = self.page.get_by_role('switch', name='Customize post for Facebook and Instagram', exact=True)
+        if customize.count() != 1 or customize.is_checked():
+            raise NativeFailure('unexpected_composer_option')
+        next_button = self.page.get_by_role('button', name='Next', exact=True).last
+        if not next_button.is_enabled():
+            raise NativeFailure('reel_processing_unconfirmed')
+        next_button.click()
+        self.page.get_by_role('heading', name='Scheduling options', exact=True).wait_for(state='visible', timeout=15000)
+        self.verify_schedule_fields(packet, REEL_DATE)
+        for name in ('Share to Facebook Story','Add to playlist','Add a poll','Tracking'):
+            control = self.page.get_by_role('switch', name=name, exact=True)
+            if control.count() != 1 or control.is_checked():
+                raise NativeFailure('unexpected_composer_option')
+        self.reel_submit_control()
+        self.submission_format = 'reel'
+        return {**binding(packet),'caption':caption,'format':'reel','media_sha256':[upload['sha256']],
+                'timezone':'Asia/Kolkata','story':False,'boost':False}
 
     def upload_reviewed_images(self, packet, assets):
         """Upload sequentially; this alone is not proof of visible slide order."""
@@ -320,6 +360,8 @@ class MetaBrowser:
             self.spinner(minutes.nth(i), slot.minute)
             self.spinner(periods.nth(i), int(slot.hour >= 12))
     def prepared(self, packet: dict) -> dict:
+        if packet.get('format') == 'reel':
+            return self.prepared_reel(packet)
         self.visible(self.page, 'Create post')
         if self.item_binding != binding(packet) or set(self.selected_platforms()) != set(packet['platforms']):
             raise NativeFailure('composer_binding_changed')
@@ -348,6 +390,7 @@ class MetaBrowser:
         schedule = self.page.get_by_role('button', name='Schedule', exact=True)
         if schedule.count() != 1 or not schedule.is_enabled():
             raise NativeFailure('schedule_button_unavailable')
+        self.submission_format = media_format
         return {**binding(packet), 'caption': caption, **media_proof, 'timezone': 'Asia/Kolkata', 'story': False, 'boost': False}
 
     def verify_schedule_fields(self, packet, date_name):
@@ -374,7 +417,12 @@ class MetaBrowser:
                     raise NativeFailure('time_entry_unconfirmed')
 
     def submit(self):
-        self.page.get_by_role('button', name='Schedule', exact=True).click(timeout=15000)
+        if self.submission_format == 'reel':
+            self.reel_submit_control().click(timeout=15000)
+        elif self.submission_format in {'image','carousel'}:
+            self.page.get_by_role('button', name='Schedule', exact=True).click(timeout=15000)
+        else:
+            raise NativeFailure('composer_not_verified')
         # Any timeout returns to controller reconciliation, never click again.
 
     def planner_cards(self, packet: dict, allow_past=False):
