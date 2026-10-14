@@ -17,6 +17,8 @@ class NativeReelUploadTests(unittest.TestCase):
         packet=self.fixture();assets=[b'original MP4 fixture bytes']
         with tempfile.TemporaryDirectory() as root:
             browser=MetaBrowser(MagicMock(),Path(root));browser.visible=MagicMock()
+            browser.page.get_by_text.return_value.count.return_value=1
+            browser.page.get_by_text.return_value.inner_text.return_value='Reels · 3 seconds ·'
             delete=MagicMock();delete.count.side_effect=[0,1]
             add=MagicMock()
             browser.page.get_by_role.side_effect=lambda role,name,exact:delete if name=='Delete' else add

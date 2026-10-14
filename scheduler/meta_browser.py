@@ -30,6 +30,15 @@ def time_label(slot: dt.datetime) -> str:
     return str(slot.hour % 12 or 12) + slot.strftime(':%M %p')
 
 
+def verify_reel_duration_label(label, duration_ms):
+    """Meta's visible whole-second label is not original-byte identity proof."""
+    if isinstance(duration_ms, bool) or not isinstance(duration_ms, int) or not 1000 <= duration_ms <= 180000 or not isinstance(label, str):
+        raise NativeFailure('reel_duration_unconfirmed')
+    match = re.fullmatch(r'Reels\s*·\s*([1-9][0-9]{0,2}) seconds\s*·?', label.strip())
+    if not match or abs(int(match.group(1)) * 1000 - duration_ms) >= 1000:
+        raise NativeFailure('reel_duration_unconfirmed')
+
+
 class MetaBrowser:
     def __init__(self, context, workdir: Path):
         self.context = context
@@ -112,6 +121,11 @@ class MetaBrowser:
             delete = self.page.get_by_role('button', name='Delete', exact=True)
             if delete.count() != 1:
                 raise NativeFailure('unexpected_uploaded_media_count')
+            duration = self.page.get_by_text(re.compile(r'^Reels\s*·\s*[1-9][0-9]{0,2} seconds\s*·?$'))
+            duration.wait_for(state='visible', timeout=90000)
+            if duration.count() != 1:
+                raise NativeFailure('reel_duration_unconfirmed')
+            verify_reel_duration_label(duration.inner_text(), asset['durationMs'])
             self.reel_upload_binding = {**binding(packet), 'filename':paths[0].name,
                                         'sha256':hashes[0], 'width':asset['width'],
                                         'height':asset['height'], 'durationMs':asset['durationMs']}
