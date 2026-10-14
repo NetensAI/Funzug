@@ -2043,6 +2043,112 @@
         },
         "submission_started_at": "2026-10-14T15:41:31.748229+05:30"
       }
+    },
+    {
+      "id": "funzug-test-2026-10-16-carousel",
+      "status": "approved",
+      "format": "carousel",
+      "headline": "Funzug workflow test: Carousel",
+      "caption": "Funzug delivery workflow test. This test is scheduled for verification and will be cancelled before publication.",
+      "topic_key": "acceptance-test-carousel-20261016",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-16T20:00:00+05:30",
+      "media_paths": [
+        "drafts/assets/2026-10-13-wood-frog-winter-small-brand.png",
+        "drafts/assets/2026-10-13-singing-sand-small-brand.png"
+      ],
+      "claims": [
+        {
+          "text": "Wood frogs can survive winter freezing.",
+          "source_ids": [
+            "nps-wood-frog"
+          ],
+          "support_note": "The existing verified NPS evidence supports the unchanged first slide headline. The pending news draft is not modified or re-verified."
+        },
+        {
+          "text": "Sand dunes can produce humming or booming sounds.",
+          "source_ids": [
+            "nps-singing-sands"
+          ],
+          "support_note": "The existing verified NPS evidence supports the unchanged second slide headline. This is a labeled workflow test, not a new news submission."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nps-wood-frog",
+          "title": "Biological Miracle",
+          "publisher": "National Park Service",
+          "url": "https://www.nps.gov/gaar/learn/nature/wood-frog-page-2.htm",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        },
+        {
+          "id": "nps-singing-sands",
+          "title": "Sound Library: Singing Sands",
+          "publisher": "National Park Service",
+          "url": "https://www.nps.gov/subjects/sound/singing-sands.htm",
+          "published_at": null,
+          "checked_at": "2026-10-13T17:51:57+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "03f4fbfbb65f1df0c5c0485391110ed05947d0d7378a74405065819dae46b8ff",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T11:21:38.403Z",
+        "note": "Approved for scheduled publishing at 16 Oct 2026, 8:00 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-test-2026-10-16-reel",
+      "status": "approved",
+      "format": "reel",
+      "headline": "Funzug workflow test: Reel",
+      "caption": "Funzug delivery workflow test. This synthetic blue clip will be cancelled before publication.",
+      "topic_key": "acceptance-test-reel-20261016",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-16T20:15:00+05:30",
+      "media_path": "drafts/tests/reel-standard.mp4",
+      "claims": [
+        {
+          "text": "The test clip is a synthetic blue video, not news footage.",
+          "source_ids": [
+            "fixture-generator"
+          ],
+          "support_note": "The project-owned FFmpeg generator creates a blue color source and silent AAC audio. The owner explicitly authorized this workflow test."
+        }
+      ],
+      "sources": [
+        {
+          "id": "fixture-generator",
+          "title": "Synthetic native Reel acceptance fixture generator",
+          "publisher": "Funzug project",
+          "url": "https://github.com/NetensAI/Funzug/blob/codex/private-ordered-media-storage/scripts/create_native_reel_fixture.sh",
+          "published_at": "2026-10-14T11:07:32+05:30",
+          "checked_at": "2026-10-14T11:07:32+05:30"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "55c1d20d240846903058ff2a7c27f31f2dfa583ce8b5f732063cfa06f13199c7",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-14T11:22:08.990Z",
+        "note": "Approved for scheduled publishing at 16 Oct 2026, 8:15 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
