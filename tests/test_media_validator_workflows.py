@@ -3,6 +3,16 @@ from pathlib import Path
 
 
 class MediaValidatorWorkflowTests(unittest.TestCase):
+    def test_queue_writers_checkout_current_main_after_serialization(self):
+        root = Path(__file__).resolve().parents[1]
+        for filename in ['native-meta-handoff.yml', 'brandflow-draft-approval.yml',
+                         'approve-scheduled-post.yml', 'publish-approved.yml']:
+            content = (root / '.github/workflows' / filename).read_text()
+            self.assertIn('group: funzug-queue-writes', content)
+            for block in content.split('uses: actions/checkout@')[1:]:
+                with self.subTest(workflow=filename):
+                    self.assertIn('ref: main', block.split('- name:', 1)[0])
+
     def test_affected_jobs_install_validator_before_use(self):
         root = Path(__file__).resolve().parents[1]
         cases = {
