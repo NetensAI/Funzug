@@ -10,6 +10,7 @@ import {mergeOutcomes} from '../lib/funzug-outcomes.mjs';
 import * as nativeHelpers from '../lib/funzug-native-handoff.mjs';
 import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
 import {createHash} from 'node:crypto';
+import * as hashHelpers from '../lib/funzug-content-hash.mjs';
 const require=createRequire(import.meta.url);
 test('ordered ingestion authenticates and decodes before storage, and rolls back audit failure',async()=>{
  const draft={format:'carousel',media:[]};
@@ -114,22 +115,31 @@ test('native checkpoint audit failure rolls back, and replay does not write',asy
  const failed=nativeRouteFixture({auditFailure:true});assert.equal((await failed.send()).status,409);assert.equal(failed.calls.at(-1).sql,'ROLLBACK');assert.ok(!failed.calls.some(x=>x.sql==='COMMIT'));
  const original=nativeRouteFixture();const replay=nativeRouteFixture({draftOverrides:{native_handoff:original.handoff}});assert.equal((await replay.send()).status,200);assert.ok(!replay.calls.some(x=>x.sql.startsWith('UPDATE')||x.sql.startsWith('INSERT')));
 });
-function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true}={}){
+function reviewFixture({session={sub:'owner',role:'admin'},user={username:'owner',active:true,role:'admin'},origin=true,auditFailure=false,found=true,currentHash='a'.repeat(64)}={}){
  const calls=[];
  const handler=load('../app/api/social-drafts/[id]/review/route.ts',{
   'next/server':{NextResponse:{json:(body,opts)=>({body,status:opts?.status||200})}},
   '@/lib/auth':{getSession:async()=>session},'@/lib/security':{sameOrigin:()=>origin,clientIp:()=>''},
+  '@/lib/funzug-content-hash.mjs':{draftContentHash:()=>currentHash},
   '@/lib/db':{db:{connect:async()=>({release(){},query:async(sql,args)=>{calls.push({sql,args});if(sql.startsWith('SELECT'))return {rows:user?[user]:[]};if(sql.startsWith('UPDATE'))return {rows:found?[{id:'fixture',brand_id:'brand',status:args[1],proposed_schedule:args[6],schedule_timezone:'Asia/Kolkata'}]:[]};if(sql.startsWith('INSERT')&&auditFailure)throw Error('fixture audit failure');return {rows:[]};}})}},
  }).POST;
  return {calls,send:body=>handler({json:async()=>body},{params:{id:'fixture'}})};
 }
 const futureIst='2099-10-13T19:30:00+05:30';
+test('approval rejects content changed after the review screen loaded',async()=>{
+ const r=reviewFixture({currentHash:'b'.repeat(64)});
+ const result=await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst,reviewedContentHash:'a'.repeat(64)});
+ assert.equal(result.status,409);assert.match(result.body.error,/changed since review/);
+ assert.ok(r.calls.some(x=>x.sql.includes('FOR UPDATE')));
+ assert.ok(!r.calls.some(x=>x.sql.startsWith('UPDATE')||x.sql.startsWith('INSERT')));
+ assert.equal(r.calls.at(-1).sql,'ROLLBACK');
+});
 test('review rejects invalid origin and missing admin session before database access',async()=>{
  for(const options of [{origin:false},{session:null},{session:{sub:'owner',role:'viewer'}}]){const r=reviewFixture(options);assert.equal((await r.send({action:'reject'})).status,403);assert.equal(r.calls.length,0);}
 });
 test('review requires one confirmation and a future IST slot without authorization text',async()=>{
  for(const body of [{action:'approve',proposedSchedule:futureIst},{action:'approve',approvalConfirmed:false,proposedSchedule:futureIst},{action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T14:00:00Z'},{action:'approve',approvalConfirmed:true,proposedSchedule:'2000-01-01T19:30:00+05:30'}]){const r=reviewFixture();assert.equal((await r.send(body)).status,400);assert.equal(r.calls.length,0);}
- const r=reviewFixture();assert.equal((await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst})).status,200);
+ const r=reviewFixture();assert.equal((await r.send({action:'approve',approvalConfirmed:true,proposedSchedule:futureIst,reviewedContentHash:'a'.repeat(64)})).status,200);
  const update=r.calls.find(x=>x.sql.startsWith('UPDATE'));assert.equal(update.args[1],'approved');assert.equal(update.args[5],true);assert.equal(JSON.parse(update.args[2]).approvalConfirmed,true);assert.match(update.sql,/status='pending_review'/);assert.equal(r.calls.at(-1).sql,'COMMIT');
 });
 test('reject does not require a checkbox or schedule and removes publication authorization',async()=>{
@@ -173,7 +183,7 @@ function load(file, overrides, globals={}){
  const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
  const module={exports:{}};
- vm.runInNewContext(compiled,{...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
+ vm.runInNewContext(compiled,{process:{env:{}},...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
  return module.exports;
 }
 test('actual reschedule component releases busy state after network and non-JSON errors',async()=>{
@@ -235,6 +245,7 @@ test('actual dashboard renders partial failure, preserves post ID, and hides res
  const Page=load('../social-drafts-page.tsx',{
   '@/components/AppPage':{__esModule:true,default:({children})=>children()},
   '@/components/SocialDraftReview':{__esModule:true,default:()=>React.createElement('button',null,'Fixture approval control')},
+  '@/lib/funzug-content-hash.mjs':hashHelpers,
   '@/components/SocialDraftReschedule':{__esModule:true,default:()=>React.createElement('button',null,'Fixture reschedule control')},
   '@/components/SocialDraftMedia':load('../components/SocialDraftMedia.tsx',{}, {React}),
   '@/lib/db':{db:{async query(sql){return {rows:sql.startsWith('SELECT * FROM brands')?[{id:'fixture-brand',slug:'funzug',name:'Funzug'}]:[draft]};}}},

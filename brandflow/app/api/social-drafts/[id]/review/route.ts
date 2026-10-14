@@ -3,9 +3,10 @@ import {z} from 'zod';
 import {db} from '@/lib/db';
 import {getSession} from '@/lib/auth';
 import {clientIp,sameOrigin} from '@/lib/security';
+import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
 
 const schema=z.discriminatedUnion('action',[
- z.object({action:z.literal('approve'),approvalConfirmed:z.literal(true),proposedSchedule:z.string().datetime({offset:true})}).strict(),
+ z.object({action:z.literal('approve'),approvalConfirmed:z.literal(true),proposedSchedule:z.string().datetime({offset:true}),reviewedContentHash:z.string().regex(/^[0-9a-f]{64}$/)}).strict(),
  z.object({action:z.literal('reject')}).strict()
 ]);
 
@@ -33,7 +34,18 @@ export async function POST(req:Request,{params}:{params:{id:string}}){
   await client.query('BEGIN');
   const {rows:[user]}=await client.query('SELECT username,active,role FROM users WHERE id=$1 FOR UPDATE',[session.sub]);if(!user?.active||user.role!=='admin')throw new Error('Administrator access required');
   const checks=approved?{approvalConfirmed:true}:{};
-  const {rows:[draft]}=await client.query(`UPDATE social_post_drafts SET status=$2,proposed_schedule=COALESCE($7,proposed_schedule),schedule_timezone=CASE WHEN $6 THEN 'Asia/Kolkata' ELSE schedule_timezone END,review_checks=$3::jsonb,review_note=$4,reviewed_by=$5,reviewed_at=now(),publication_authorized=$6,updated_at=now() WHERE id=$1 AND status='pending_review' AND (NOT $6 OR media_format='image') RETURNING id,brand_id,status,proposed_schedule,schedule_timezone`,[params.id,approved?'approved':'rejected',JSON.stringify(checks),note,session.sub,approved,schedule]);
+  const mixedEnabled=process.env.FUNZUG_NATIVE_MIXED_ENABLED==='1';
+  if(parsed.data.action==='approve'){
+   const {rows:[current]}=await client.query("SELECT * FROM social_post_drafts WHERE id=$1 AND status='pending_review' FOR UPDATE",[params.id]);
+   if(!current)throw new Error('Draft not found or already reviewed');
+   if(current.media_format&&current.media_format!=='image'){
+    if(!mixedEnabled)throw new Error('Mixed media delivery is not enabled');
+    const {rows:assets}=await client.query('SELECT media_index,mime_type,width,height,duration_ms,sha256 FROM social_post_media_assets WHERE draft_id=$1 ORDER BY media_index',[params.id]);
+    current.ordered_media=assets.map(a=>({index:a.media_index,mimeType:a.mime_type,width:a.width,height:a.height,durationMs:a.duration_ms,sha256:a.sha256}));
+   }
+   if(draftContentHash(current)!==parsed.data.reviewedContentHash)throw new Error('Draft changed since review. Reload and review it again.');
+  }
+  const {rows:[draft]}=await client.query(`UPDATE social_post_drafts SET status=$2,proposed_schedule=COALESCE($7,proposed_schedule),schedule_timezone=CASE WHEN $6 THEN 'Asia/Kolkata' ELSE schedule_timezone END,review_checks=$3::jsonb,review_note=$4,reviewed_by=$5,reviewed_at=now(),publication_authorized=$6,updated_at=now() WHERE id=$1 AND status='pending_review' AND (NOT $6 OR media_format='image' OR ($8 AND media_format IN ('carousel','reel'))) RETURNING id,brand_id,status,proposed_schedule,schedule_timezone`,[params.id,approved?'approved':'rejected',JSON.stringify(checks),note,session.sub,approved,schedule,mixedEnabled]);
   if(!draft)throw new Error('Draft not found or already reviewed');
   await client.query('INSERT INTO audit_logs(actor_user_id,actor_username,action,target_type,target_id,details,ip_address) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7)',[session.sub,user.username,approved?'social_draft.approved':'social_draft.rejected','social_post_draft',draft.id,JSON.stringify({brandId:draft.brand_id,reviewNote:note,approvalConfirmed:approved,proposedSchedule:draft.proposed_schedule,scheduleTimezone:draft.schedule_timezone,publicationAuthorized:approved}),clientIp(req)]);
   await client.query('COMMIT');return NextResponse.json({ok:true,status:draft.status,publicationAuthorized:approved,proposedSchedule:draft.proposed_schedule,scheduleTimezone:draft.schedule_timezone});

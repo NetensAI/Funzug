@@ -49,17 +49,18 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   const reset=async(status='approved',authorized=true)=>{
    await pool.query('TRUNCATE audit_logs,social_post_drafts');
    await pool.query("INSERT INTO social_post_drafts(id,brand_id,batch_id,external_id,status,publication_authorized,platforms) VALUES('draft','brand','fixture','fixture',$1,$2,'[\"facebook\",\"instagram\"]')",[status,authorized]);
+   await pool.query("UPDATE social_post_drafts SET headline='Reviewed',caption='Reviewed',claims='[]',evidence_sources='[]',image_bytes=$1,image_mime_type='image/png'",[Buffer.from('fixture')]);
   };
   const row=async()=>(await pool.query('SELECT platform_outcomes,published_at FROM social_post_drafts')).rows[0];
   const success=id=>({status:'published',postId:id,publishedAt:'2026-10-12T12:30:00+05:30'});
   const reviewCompiled=ts.transpileModule(fs.readFileSync(new URL('../app/api/social-drafts/[id]/review/route.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   function reviewHandler(userId='owner'){
    const target={exports:{}};
-   const reviewAdapters={...adapters,'@/lib/auth':{getSession:async()=>({sub:userId,role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''}};
-   vm.runInNewContext(reviewCompiled,{module:target,exports:target.exports,Date,Intl,JSON,require(name){if(name in reviewAdapters)return reviewAdapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected review dependency');return require(name);}});
+   const reviewAdapters={...adapters,'@/lib/funzug-content-hash.mjs':{draftContentHash},'@/lib/auth':{getSession:async()=>({sub:userId,role:'admin'})},'@/lib/security':{sameOrigin:()=>true,clientIp:()=>''}};
+   vm.runInNewContext(reviewCompiled,{process:{env:{}},module:target,exports:target.exports,Date,Intl,JSON,require(name){if(name in reviewAdapters)return reviewAdapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected review dependency');return require(name);}});
    return body=>target.exports.POST({json:async()=>body},{params:{id:'draft'}});
   }
-  const approve={action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T19:30:00+05:30'};
+  const approve={action:'approve',approvalConfirmed:true,proposedSchedule:'2099-10-13T19:30:00+05:30',reviewedContentHash:draftContentHash({headline:'Reviewed',caption:'Reviewed',claims:[],evidence_sources:[],platforms:['facebook','instagram'],image_bytes:Buffer.from('fixture'),image_mime_type:'image/png'})};
   const reviewRow=async()=>(await pool.query('SELECT status,publication_authorized,proposed_schedule,schedule_timezone,review_checks,reviewed_by FROM social_post_drafts')).rows[0];
   await t.test('single-confirmation approval persists IST slot and authorization with audit',async()=>{
    await reset('pending_review',false);assert.equal((await reviewHandler()(approve)).status,200);
