@@ -39,6 +39,7 @@ class MetaBrowser:
         self.image_hash = None
         self.uploaded_thumbnail_urls = None
         self.media_hashes = None
+        self.reel_upload_binding = None
         self.item_binding = None
 
     def close(self):
@@ -89,6 +90,32 @@ class MetaBrowser:
         caption = self.page.get_by_role('textbox', name=CAPTION, exact=True)
         if caption.count() != 1 or caption.input_value():
             raise NativeFailure('reel_composer_not_empty')
+
+    def upload_reviewed_reel(self, packet, assets):
+        """Validate and upload one original MP4; never advance or submit it."""
+        if packet.get('format') != 'reel':
+            raise NativeFailure('unsupported_native_media_format')
+        verified = verify_ordered_package(packet)
+        if verified != assets:
+            raise NativeFailure('reviewed_media_file_changed')
+        self.visible(self.page, 'Create reel')
+        if self.page.get_by_role('button', name='Delete', exact=True).count():
+            raise NativeFailure('composer_not_empty')
+        self.reel_upload_binding = None
+        asset = packet['media'][0]
+        with stage_reviewed_media(packet, assets, self.workdir) as (paths, hashes):
+            with self.page.expect_file_chooser(timeout=15000) as event:
+                self.page.get_by_role('button', name='Add Video', exact=True).click()
+            event.value.set_files(str(paths[0]))
+            self.page.get_by_text(paths[0].name, exact=True).wait_for(state='visible', timeout=45000)
+            self.page.get_by_text(f"{asset['width']} x {asset['height']}", exact=True).wait_for(state='visible', timeout=45000)
+            delete = self.page.get_by_role('button', name='Delete', exact=True)
+            if delete.count() != 1:
+                raise NativeFailure('unexpected_uploaded_media_count')
+            self.reel_upload_binding = {**binding(packet), 'filename':paths[0].name,
+                                        'sha256':hashes[0], 'width':asset['width'],
+                                        'height':asset['height'], 'durationMs':asset['durationMs']}
+        return dict(self.reel_upload_binding)
 
     def select_platforms(self, platforms):
         selected = self.selected_platforms()
