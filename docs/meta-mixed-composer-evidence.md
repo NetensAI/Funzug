@@ -107,3 +107,12 @@ Backup permissions are 0600; directory permissions are 0700. The archive is
 35,815,035 bytes and passed pg_restore --list validation. The new ordered-media
 table exists and all 15 existing draft records remain format=image. No approval,
 schedule, publication, dashboard restart, or mixed-delivery activation occurred.
+
+PR #67 merged as 9aaf5d319a7fcfdfdc19bf11e0ab13539a284ddc after both checks passed.
+The verified review-hash dashboard image was then deployed with Compose
+--no-deps --no-build, replacing only the dashboard. Previous image
+sha256:854d7b744658a42f71fa319d58133c418290182b8d5bb359f2bdcd87a67236b0 is retained
+as brandflow-dashboard:pre-pr67-20261014. Mixed delivery was not enabled.
+The deployment initially reported running/health-starting; verify health before
+reporting operational readiness. Production source promotion is still pending,
+so do not rebuild the dashboard from its old source directory yet.
