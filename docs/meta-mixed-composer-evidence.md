@@ -30,7 +30,23 @@ disabled initially. The account combobox reads `Post to Funzug and funzugdotcom`
 `Write into the dialogue box to include text with your post.`
 `Next` is disabled until media is present. `Cancel` is available.
 
-The image composer's Schedule controls must not be assumed to exist in this
-wizard. Edit, Share, video processing, scheduling, and final planner verification
-still require observation with explicitly authorized content. Mixed delivery
-and mixed approval remain disabled until those stages are implemented and tested.
+On 14 October the authorized unsaved synthetic MP4 test displayed its filename
+and actual 320 x 400 dimensions. Processing exposes suggested thumbnails and a
+copyright check. The bottom Next differs from the thumbnail strip's Next.
+Edit shows Audio, Crop, Text and Optimizations. Advancing without edits reaches
+Share. Its Scheduling options contains Share now (initially pressed), Schedule
+and disabled Save as draft. The separate final action initially says Share.
+
+Selecting the scheduling option (not submitting) displays independent Facebook
+and Instagram fields. Each date textbox is named
+`Select a future date and time to publish your reel at. Date picker`; time
+spinbuttons are hours, minutes and meridiem. Both show Asia/Kolkata.
+Scheduling changes the Edit stage to skipped, so the adapter must not assume the
+Edit-stage state persists. Optional switches include Add to playlist, Share to
+Facebook Story, Add a poll and Tracking. Auto-generated closed captions are on;
+translated audio and Meta AI voice translation are off. These options need
+explicit reviewed policy rather than silently changing the original video.
+
+No final Share, Schedule, or Save as draft action was clicked. The final schedule
+button, video identity verification, and resulting planner details still require
+implementation and verification. Mixed delivery and approval remain disabled.
