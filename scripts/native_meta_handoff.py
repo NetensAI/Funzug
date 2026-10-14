@@ -32,8 +32,14 @@ def reserve(item: dict[str, Any], reviewed: dict[str, Any], now: dt.datetime) ->
     approval = item.get("approval", {})
     if approval.get("status") != "approved" or not pipeline.valid_review_checklist(approval.get("review_checklist")):
         raise RuntimeError("native handoff requires the persisted approval confirmation")
-    if item.get("format") != "image" or not item.get("platforms") or not set(item["platforms"]) <= {"facebook", "instagram"}:
-        raise RuntimeError("native handoff currently supports reviewed single images only")
+    media_format = item.get('format')
+    if media_format not in {'image','carousel','reel'}:
+        raise RuntimeError('Unsupported native media format')
+    if media_format != 'image' and os.environ.get('FUNZUG_NATIVE_MIXED_ENABLED') != '1':
+        raise RuntimeError('Mixed native delivery is not enabled')
+    platforms = item.get('platforms')
+    if not isinstance(platforms,list) or not platforms or any(not isinstance(p,str) for p in platforms) or len(set(platforms)) != len(platforms) or not set(platforms) <= {'facebook','instagram'}:
+        raise RuntimeError('Native handoff requires unique approved platforms')
     if item.get("platform_results"):
         raise RuntimeError("recorded platform outcomes require platform-specific reconciliation")
     slot = pipeline.parse_schedule_time(item["scheduled_at"])
