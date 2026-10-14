@@ -137,3 +137,4 @@
 {"logged_at": "2026-10-14T11:22:35+00:00", "event": "approved", "item_id": "funzug-test-2026-10-16-carousel", "approved_by": "vatsal"}
 {"logged_at": "2026-10-14T11:22:36+00:00", "event": "approved", "item_id": "funzug-test-2026-10-16-reel", "approved_by": "vatsal"}
 {"logged_at": "2026-10-14T11:23:49+00:00", "event": "native_handoff_reserve", "item_id": "funzug-test-2026-10-16-carousel", "scheduled_at": "2026-10-16T20:00:00+05:30", "content_hash": "03f4fbfbb65f1df0c5c0485391110ed05947d0d7378a74405065819dae46b8ff", "state": "reserved"}
+{"logged_at": "2026-10-14T11:24:30+00:00", "event": "native_handoff_reserve", "item_id": "funzug-test-2026-10-16-reel", "scheduled_at": "2026-10-16T20:15:00+05:30", "content_hash": "55c1d20d240846903058ff2a7c27f31f2dfa583ce8b5f732063cfa06f13199c7", "state": "reserved"}
