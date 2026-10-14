@@ -3,6 +3,12 @@ import unittest
 
 
 class MediaWorkflowSetupTests(unittest.TestCase):
+    def test_dashboard_docker_context_excludes_private_backups(self):
+        root=Path(__file__).resolve().parents[1]
+        rules=(root/'brandflow/.dockerignore').read_text().splitlines()
+        self.assertIn('.env',rules)
+        self.assertIn('.backups',rules)
+
     def test_delivery_and_review_workflows_install_media_runtime(self):
         root=Path(__file__).resolve().parents[1]
         for name in ('native-meta-handoff','brandflow-draft-approval','approve-scheduled-post','refresh-pending-drafts','publish-approved'):
