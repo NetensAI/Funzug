@@ -609,7 +609,7 @@
     },
     {
       "id": "funzug-2026-10-13-glassfrog-transparency",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "The Frog That Hides Its Blood",
       "caption": "A glassfrog can become harder to see by hiding many of its red blood cells while it rests.\n\nResearchers studying northern glassfrogs found that sleeping animals stored nearly 90% of their circulating red blood cells in the liver. Moving those light-absorbing cells out of circulation helps the body become more transparent.\n\nIt is a camouflage strategy, not an animal turning invisible. The eyes and internal organs can still be visible.\n\nWhich animal adaptation would you most like to see explained next?\n\n#Glassfrog #WildlifeScience #AnimalAdaptations #NatureFacts #Biology",
@@ -692,7 +692,22 @@
           }
         },
         "submission_started_at": "2026-10-13T22:01:47.595973+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-14T10:06:00+05:30",
+          "post_id": "1521342386697452",
+          "scheduled_post_id": "2058676084834582"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-14T10:06:00+05:30",
+          "post_id": "18148124143524226",
+          "scheduled_post_id": "1413496347564031"
+        }
+      },
+      "last_attempt_at": "2026-10-14T10:09:36.895706+05:30"
     },
     {
       "id": "funzug-2026-10-13-brine-pools",
