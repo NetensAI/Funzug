@@ -19,6 +19,7 @@ BUSINESS_ID = '327637346385766'
 PLANNER = f'https://business.facebook.com/latest/content_calendar?asset_id={PAGE_ID}&business_id={BUSINESS_ID}'
 COMPOSER = f'https://business.facebook.com/latest/composer/?asset_id={PAGE_ID}&business_id={BUSINESS_ID}'
 CAPTION = 'Write into the dialogue box to include text with your post.'
+REEL_DATE = 'Select a future date and time to publish your reel at. Date picker'
 
 
 def calendar_label(slot: dt.datetime) -> str:
@@ -193,8 +194,27 @@ class MetaBrowser:
 
     def set_post_schedule(self, packet):
         """Shared image-post time controls, not the separate Reel wizard."""
+        self.set_schedule_fields(packet, 'Date picker')
+
+    def set_reel_schedule(self, packet):
+        """Select the scheduling option only; never click the final submit action."""
+        self.visible(self.page, 'Create reel')
+        self.page.get_by_role('heading', name='Scheduling options', exact=True).wait_for(state='visible', timeout=15000)
+        option = self.page.get_by_role('button', name='Schedule', exact=True).and_(self.page.locator('[aria-pressed]'))
+        if option.count() != 1:
+            raise NativeFailure('reel_schedule_option_ambiguous')
+        if option.get_attribute('aria-pressed') != 'true':
+            option.click()
+        if option.get_attribute('aria-pressed') != 'true':
+            raise NativeFailure('reel_schedule_option_unconfirmed')
+        self.set_schedule_fields(packet, REEL_DATE)
+
+    def set_schedule_fields(self, packet, date_name):
+        self.timezone(self.page)
+        if packet.get('scheduleTimezone') != 'Asia/Kolkata':
+            raise NativeFailure('invalid_timezone')
         slot = stamp(packet['proposedSchedule'])
-        dates = self.page.get_by_role('textbox', name='Date picker', exact=True)
+        dates = self.page.get_by_role('textbox', name=date_name, exact=True)
         dates.first.wait_for(state='visible', timeout=15000)
         hours = self.page.get_by_role('spinbutton', name='hours', exact=True)
         minutes = self.page.get_by_role('spinbutton', name='minutes', exact=True)
