@@ -51,7 +51,7 @@ test('actual outcome handler against disposable PostgreSQL', {skip:!url}, async 
   vm.runInNewContext(compiled,{module,exports:module.exports,Buffer,JSON,require(name){if(name in adapters)return adapters[name];if(name.startsWith('@/')||name.startsWith('next/'))throw Error('Unexpected app dependency');return require(name);}});
   const send=platformResults=>module.exports.POST({headers:new Headers(),text:async()=>JSON.stringify({batchId:'fixture',externalId:'fixture',platformResults})});
   const reset=async(status='approved',authorized=true)=>{
-   await pool.query('TRUNCATE audit_logs,social_post_drafts');
+   await pool.query('TRUNCATE audit_logs,social_post_media_assets,social_post_drafts');
    await pool.query("INSERT INTO social_post_drafts(id,brand_id,batch_id,external_id,status,publication_authorized,platforms) VALUES('draft','brand','fixture','fixture',$1,$2,'[\"facebook\",\"instagram\"]')",[status,authorized]);
    await pool.query("UPDATE social_post_drafts SET headline='Reviewed',caption='Reviewed',claims='[]',evidence_sources='[]',image_bytes=$1,image_mime_type='image/png'",[Buffer.from('fixture')]);
   };
