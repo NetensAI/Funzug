@@ -5,11 +5,34 @@ import tempfile
 import unittest
 from unittest.mock import patch,Mock
 
-from scheduler.native_runner import candidates,publication_candidates,read_api,tick,error_backoff_seconds,safe_error_diagnostics
+from scheduler.native_runner import candidates,publication_candidates,read_api,tick,error_backoff_seconds,safe_error_diagnostics,defer_browser,recently_verified
 from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_browser_block_survives_restart_without_browser_or_workflow_activity(self):
+        state = {'items':{},'enabled':True}
+        defer_browser(state, 'meta_temporarily_blocked', 1000)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'state.json'
+            path.write_text(json.dumps(state))
+            with patch('scheduler.native_runner.time.time',return_value=1100),patch('scheduler.native_runner.read_api',return_value={'drafts':[]}),patch('scheduler.native_runner.auth') as auth,patch('scheduler.native_runner.write_state') as save,patch('scheduler.meta_browser.MetaBrowser') as browser:
+                tick({},path,None,True)
+        auth.assert_not_called()
+        browser.assert_not_called()
+        self.assertEqual(save.call_args.args[1]['browser_block_reason'],'meta_temporarily_blocked')
+        self.assertEqual(save.call_args.args[1]['browser_retry_after'],4600)
+
+    def test_verified_schedule_cache_is_invalidated_by_reschedule_or_content_change(self):
+        row = {'contentHash':'reviewed','proposedSchedule':'2026-10-20T16:30:00+05:30'}
+        local = {'status':'scheduled','last_verified_at':10000,
+                 'binding':{'content_hash':'reviewed','scheduled_at':row['proposedSchedule']}}
+        self.assertTrue(recently_verified(row,local,11000))
+        self.assertFalse(recently_verified({**row,'contentHash':'changed'},local,11000))
+        self.assertFalse(recently_verified({**row,'proposedSchedule':'2026-10-20T17:00:00+05:30'},local,11000))
+        self.assertFalse(recently_verified(row,{**local,'error':'stored_schedule_not_visible_in_planner'},11000))
+        self.assertFalse(recently_verified(row,local,40000))
+
     def test_error_diagnostics_never_include_exception_messages_or_paths(self):
         secret = 'private-token-and-caption-must-not-be-logged'
         try:
@@ -46,6 +69,33 @@ class NativeRunnerTests(unittest.TestCase):
         approved={'externalId':'item','status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','proposedSchedule':(now+dt.timedelta(days=1)).isoformat()}
         rows=[approved,{**approved,'status':'pending_review'},{**approved,'publicationAuthorized':False},{**approved,'publishedAt':now.isoformat()},{**approved,'proposedSchedule':(now-dt.timedelta(minutes=1)).isoformat()}]
         self.assertEqual(candidates(rows,now),[approved])
+
+    def test_disabled_mixed_and_cancelled_tests_never_enter_active_work(self):
+        now = dt.datetime.now(IST)
+        image = {'externalId':'image','status':'approved','publicationAuthorized':True,
+                 'scheduleTimezone':'Asia/Kolkata','proposedSchedule':(now+dt.timedelta(days=1)).isoformat()}
+        carousel = {**image,'externalId':'funzug-test-2026-10-16-carousel','media_format':'carousel'}
+        reel = {**image,'externalId':'funzug-test-2026-10-16-reel','media_format':'reel'}
+        with patch.dict('os.environ', {}, clear=True):
+            self.assertEqual(candidates([image,carousel,reel],now),[image])
+        with patch.dict('os.environ', {'FUNZUG_NATIVE_ACCEPTANCE_ENABLED':'1'}, clear=True):
+            self.assertEqual(candidates([image,carousel,reel],now),[image,carousel])
+        due = [{**row,'nativeHandoff':{'state':'scheduled'},
+                'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()} for row in [image,carousel,reel]]
+        with patch.dict('os.environ', {'FUNZUG_NATIVE_MIXED_ENABLED':'1'}, clear=True):
+            self.assertEqual(publication_candidates(due,now),due[:2])
+            self.assertEqual(candidates([{**reel,'media_format':'image'}],now),[])
+
+    def test_disabled_mixed_poll_never_reads_packages_opens_browser_or_dispatches(self):
+        row={'externalId':'news-carousel','media_format':'carousel','status':'approved',
+             'publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata',
+             'proposedSchedule':(dt.datetime.now(IST)+dt.timedelta(days=1)).isoformat()}
+        with patch.dict('os.environ', {}, clear=True),patch('scheduler.native_runner.read_api',return_value={'drafts':[row]}) as read,patch('scheduler.native_runner.auth') as authenticate,patch('scheduler.native_runner.write_state') as save,patch('scheduler.meta_browser.MetaBrowser') as browser:
+            tick({},Path('nonexistent-native-fixture-state.json'),None,True)
+        self.assertEqual(read.call_count,1)
+        authenticate.assert_not_called()
+        browser.assert_not_called()
+        self.assertEqual(save.call_args.args[1]['active_item_ids'],[])
 
     def test_disabled_worker_cannot_open_browser_or_dispatch(self):
         state=Path('nonexistent-native-fixture-state.json')

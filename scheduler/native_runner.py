@@ -17,9 +17,28 @@ from scheduler.native_dispatch import CheckpointDispatcher
 from scheduler.native_worker import IST, NativeFailure, advance, stamp, verify_delivery_package
 from scheduler.runner import write_state
 from scripts.renew_instagram_credential import installation_token
+from scripts.mixed_delivery_policy import CANCELLED_IDS, mixed_delivery_enabled
 
 BATCH = 'funzug-draft-inbox-v1'
 DEFAULT_API = 'https://funzug.netens.top/api/integrations/funzug'
+SCHEDULE_REVERIFY_SECONDS = 6 * 60 * 60
+BROWSER_COOLDOWN_SECONDS = 60 * 60
+
+
+def defer_browser(state, reason, now):
+    if reason not in {'meta_temporarily_blocked', 'meta_planner_unavailable'}:
+        raise NativeFailure('invalid_browser_deferral')
+    state['browser_block_reason'] = reason
+    state['browser_retry_after'] = int(now) + BROWSER_COOLDOWN_SECONDS
+    state['browser_blocked_at'] = int(now)
+
+
+def recently_verified(row, local, now):
+    expected = local.get('binding', {})
+    return (not local.get('error') and local.get('status') == 'scheduled'
+            and expected.get('content_hash') == row.get('contentHash')
+            and expected.get('scheduled_at') == stamp(row.get('proposedSchedule')).isoformat()
+            and local.get('last_verified_at', 0) > now - SCHEDULE_REVERIFY_SECONDS)
 
 
 def read_api(config, route, query):
@@ -39,10 +58,20 @@ def auth(config):
         os.environ.pop('FUNZUG_GH_APP_PRIVATE_KEY', None)
 
 
+def delivery_allowed(row):
+    identifier = row.get('externalId')
+    if isinstance(identifier, str) and identifier in CANCELLED_IDS:
+        return False
+    media_format = row.get('media_format', row.get('format', 'image'))
+    return media_format not in {'carousel', 'reel'} or mixed_delivery_enabled(identifier, os.environ)
+
+
 def candidates(rows, now):
     result=[]
     for row in rows:
         if not isinstance(row,dict) or row.get('status')!='approved' or row.get('publicationAuthorized') is not True or row.get('publishedAt'):
+            continue
+        if not delivery_allowed(row):
             continue
         if row.get('scheduleTimezone')!='Asia/Kolkata':
             raise NativeFailure('invalid_timezone')
@@ -57,6 +86,8 @@ def publication_candidates(rows,now):
     result=[]
     for row in rows:
         if not isinstance(row,dict) or row.get('status')!='approved' or row.get('publicationAuthorized') is not True or row.get('publishedAt'):
+            continue
+        if not delivery_allowed(row):
             continue
         if (row.get('nativeHandoff') or {}).get('state')!='scheduled':
             continue
@@ -110,6 +141,9 @@ def tick(config, state_path, context, enabled=False):
     if not enabled:
         save()
         return
+    if state.get('browser_retry_after', 0) > time.time():
+        save()
+        return
     from scheduler.meta_browser import MetaBrowser
     token=None
     for row in selected:
@@ -117,7 +151,7 @@ def tick(config, state_path, context, enabled=False):
         if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}',identifier):
             raise NativeFailure('invalid_item')
         local=state['items'].setdefault(identifier,{})
-        if local.get('last_verified_at',0)>time.time()-900:
+        if row not in due and not state.get('browser_block_reason') and recently_verified(row,local,time.time()):
             continue
         if local.get('error') and local.get('last_attempt_at',0)>time.time()-error_backoff_seconds(local):
             continue
@@ -140,19 +174,32 @@ def tick(config, state_path, context, enabled=False):
             local.pop('error_diagnostics',None)
             if status=='scheduled':local['last_verified_at']=int(time.time())
             local['status']=status
+            if status in {'scheduled', 'published'}:
+                state.pop('browser_retry_after', None)
+                state.pop('browser_block_reason', None)
+                state['browser_failure_streak'] = 0
         except NativeFailure as error:
             # Only controller-defined codes are retained; never exception bodies
             # from HTTP, browser, authentication or package decoding libraries.
             local['error']=str(error)
             local.pop('error_diagnostics',None)
+            if str(error) == 'meta_temporarily_blocked':
+                defer_browser(state, str(error), time.time())
         except Exception as error:
             local['error']='native_worker_check_failed'
             local['error_diagnostics']=safe_error_diagnostics(error)
+            diagnostics = local['error_diagnostics']
+            if diagnostics.get('exception_type') == 'TimeoutError' and diagnostics.get('code_location', '').startswith('meta_browser.py:'):
+                state['browser_failure_streak'] = state.get('browser_failure_streak', 0) + 1
+                if state['browser_failure_streak'] >= 2:
+                    defer_browser(state, 'meta_planner_unavailable', time.time())
         finally:
             if browser:
                 try:browser.close()
                 except Exception:pass
             save()
+        if state.get('browser_retry_after', 0) > time.time():
+            break
 
     # A quiet poll still proves liveness when all schedules were recently
     # verified or there are no upcoming approvals.

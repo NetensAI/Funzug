@@ -7,6 +7,8 @@ from pathlib import Path
 def healthy(state, now):
     if not isinstance(state, dict) or state.get('enabled') is not True:
         return False
+    if state.get('browser_block_reason'):
+        return False
     checked=state.get('last_checked_at')
     if not isinstance(checked,(int,float)) or not 0<=now-checked<=300:
         return False

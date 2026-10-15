@@ -1,5 +1,9 @@
 # Funzug readiness, 13 October 2026
 
+## Latest runtime audit, 15 October 2026
+
+See [the current runtime audit](docs/runtime-audit-2026-10-15.md) before using the historical notes below. All 14 approved future image posts are visible on Facebook and Instagram in the live Planner at their selected IST slots, and BrandFlow records agree. SSH access was restored by starting the existing Windows agent. The dedicated Mini PC browser has a visible Meta temporary-block notice and stalled Facebook cards. The corrected worker is running with a persisted cooldown through 15 October at 4:44:38 PM IST; recovery has not yet been verified. Mixed-format delivery remains gated. The full goal is incomplete.
+
 ## Current deployment update
 
 At the latest 13 October check, Mars completed native publication on both platforms at 6:26 PM IST. Successful workflow `38401439937` reconciled the published IDs with the original schedule receipts, and BrandFlow has its published timestamp. Hubble remains visible on both live planner entries for 14 October at 6:18 AM IST. This closes the previously open unattended publication-and-dashboard outcome gate for image posts.
