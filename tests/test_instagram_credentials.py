@@ -1,5 +1,6 @@
 import json
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 import instagram_credentials as credentials
@@ -60,6 +61,16 @@ class InstagramCredentialTests(unittest.TestCase):
             self.assertEqual(renewal.main(), 1)
         save.assert_not_called()
         activate.assert_not_called()
+
+    def test_scheduled_mode_gate_runs_after_environment_is_attached(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/renew-instagram-credential.yml").read_text()
+        job_condition = next(line.strip() for line in workflow.splitlines() if line.strip().startswith("if: github.ref"))
+        self.assertNotIn("vars.FUNZUG_INSTAGRAM_API_MODE", job_condition)
+        self.assertIn("github.event_name == 'schedule'", job_condition)
+        self.assertIn("environment: funzug-publish", workflow)
+        self.assertIn("id: renewal-gate", workflow)
+        self.assertIn("FUNZUG_INSTAGRAM_API_MODE: ${{ vars.FUNZUG_INSTAGRAM_API_MODE }}", workflow)
+        self.assertIn("if: steps.renewal-gate.outputs.run == 'true'", workflow)
 
 
 if __name__ == "__main__":
