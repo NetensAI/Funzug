@@ -322,7 +322,9 @@ def process_approvals() -> int:
     statuses = api_status(base, token)
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
     acceptance_ids = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
-    if any(identifier in acceptance_ids and status.get('status') == 'approved' for identifier,status in statuses.items()):
+    cancelled_acceptance_ids = {'funzug-test-2026-10-16-reel'}
+    active_acceptance_ids = acceptance_ids - cancelled_acceptance_ids
+    if any(identifier in active_acceptance_ids and status.get('status') == 'approved' for identifier,status in statuses.items()):
         tests = acceptance_inbox()
         if any(item.get('id') in acceptance_ids for item in drafts.get('items', [])):
             raise RuntimeError('Acceptance draft IDs conflict with the news inbox')
@@ -331,6 +333,9 @@ def process_approvals() -> int:
     local = {item["id"]: item for item in drafts.get("items", [])}
     completed = 0
     for item_id, status in statuses.items():
+        if item_id in cancelled_acceptance_ids:
+            print(f"{item_id}: cancelled acceptance test; approval ignored")
+            continue
         if status.get("status") != "approved":
             continue
         if status.get("publicationAuthorized") is not True:

@@ -36,3 +36,12 @@ class AcceptanceIngestionTests(unittest.TestCase):
         self.assertEqual(approve.call_args.args[2],item['id'])
         self.assertEqual(approve.call_args.args[-1],row['contentHash'])
         public_upload.assert_not_called()
+
+    def test_cancelled_test_reel_approval_is_ignored(self):
+        reel='funzug-test-2026-10-16-reel'
+        row={'status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','proposedSchedule':'2026-10-16T20:15:00+05:30'}
+        news={'items':[{'id':'news-pending','status':'draft'}]}
+        with patch.object(sync,'secret',return_value='fixture'),patch.object(sync,'api_url',return_value='https://funzug.netens.top/api/integrations/funzug/drafts'),patch.object(sync,'api_status',return_value={reel:row}),patch.object(sync.pipeline,'load_json',return_value=news),patch.object(sync,'approve_native_draft') as approve,patch.object(sync.pipeline,'host_and_approve_draft') as public_upload:
+            sync.process_approvals()
+        approve.assert_not_called()
+        public_upload.assert_not_called()
