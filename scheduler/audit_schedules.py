@@ -6,9 +6,10 @@ import datetime as dt
 import json
 from pathlib import Path
 import re
+import signal
 import time
 
-from scheduler.native_runner import BATCH, candidates, read_api, safe_error_diagnostics
+from scheduler.native_runner import BATCH, candidates, read_api, safe_error_diagnostics, shutdown_requested
 from scheduler.native_worker import IST, NativeFailure, verify_package, verify_receipts
 
 
@@ -33,6 +34,7 @@ def main():
     parser.add_argument('--config', default='/run/secrets/config.json')
     parser.add_argument('--state', default='/state/native-worker.json')
     args = parser.parse_args()
+    signal.signal(signal.SIGTERM, shutdown_requested)
     import fcntl
     from playwright.sync_api import sync_playwright
     from scheduler.meta_browser import MetaBrowser
@@ -90,3 +92,6 @@ if __name__ == '__main__':
     except BlockingIOError:
         print(json.dumps({'status':'failed','error':'native_worker_owns_browser_lock'}), flush=True)
         raise SystemExit(1)
+    except KeyboardInterrupt:
+        print(json.dumps({'status':'stopped'}), flush=True)
+        raise SystemExit(0)

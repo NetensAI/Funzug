@@ -32,7 +32,7 @@ All times below are IST. This audit does not establish full workflow readiness.
 
 The dedicated browser rendered Instagram cards while Facebook cards remained empty loading spinners, even after scrolling and a bounded wait. A retained Facebook tab displayed **You're Temporarily Blocked**, explaining that the feature had been used too fast. This is evidence of a restriction in that browser session, not evidence that the saved Facebook schedules are missing. Do not switch browsers to submit around the restriction.
 
-The replacement native worker runs image `funzug-native-worker:planner-audit-20261015`, image ID `sha256:ffe318c9862795063f155435e137731806753c85c403234a0c56ef592c4c8f70`. Its previous stopped container remains `funzug-native-worker-pre-audit-20261015` for rollback. Its state was backed up as `scheduler/native-state/native-worker.pre-planner-audit-20261015.json` before deployment. Existing private mounts and container restrictions were retained.
+The replacement native worker runs image `funzug-native-worker:pr83-20261015`, image ID `sha256:647cc0472e503be7d05aead1484b2bb9f9d4d0254f4135454ce4511377266035`. Its previous stopped containers remain `funzug-native-worker-pre-audit-20261015` and `funzug-native-worker-pre-tab-cleanup-20261015` for rollback. Its state was backed up as `scheduler/native-state/native-worker.pre-planner-audit-20261015.json` before deployment. Existing private mounts and container restrictions were retained.
 
 The worker is running with a persisted browser cooldown through **15 October at 4:44:38 PM**. Its health probe deliberately reports failure while a browser restriction remains unresolved. Its live active list contains exactly the 14 image posts, excluding both mixed-format tests. Acceptance and production mixed-format flags are off. The credential scheduler remains independent and running.
 
@@ -43,6 +43,7 @@ Changes in this deployment:
 - Account selection uses the named `Post to` control, so captions containing “Funzug” cannot become a second account-selector candidate.
 - The Planner reader waits for date/card/platform hydration, scrolls matching cards into view, refreshes column bounds after scrolling, waits for detail IDs and waits for dialogs to close.
 - `python -m scheduler.audit_schedules` is a read-only receipt audit. It shares the worker lock, respects the cooldown, verifies reviewed image packages, and has no approval, upload or submission path.
+- At the owner's request, 18 blank/duplicate/empty tabs were closed. One Planner and one unidentified composer were preserved. The worker and audit now unwind their owned-tab cleanup on Docker shutdown, and a failed first tab close cannot prevent closing the second. The existing retained Planner has rendered Facebook and Instagram cards; its already-loaded content is not proof that a fresh Mini PC audit has recovered.
 
 The read-only Mini PC audit exposed the loading failures and did not pass. Do not report recovery until the worker independently observes matching receipts after the restriction clears. A configured cooldown or a running container is not recovery proof.
 
@@ -50,7 +51,7 @@ The read-only Mini PC audit exposed the loading failures and did not pass. Do no
 
 - GitHub run [38354327182](https://github.com/NetensAI/Funzug/actions/runs/38354327182) completed the Instagram Login renewal successfully on 13 October at 11:30 AM. The next persisted renewal is 20 October at 11:31 AM. No early refresh was forced during this audit.
 - Live GitHub environment variables were read as `FUNZUG_INSTAGRAM_API_MODE=instagram_login` and `FUNZUG_DELIVERY_MODE=meta_native`. Secret values were neither printed nor changed.
-- Current-main CI [38708853144](https://github.com/NetensAI/Funzug/actions/runs/38708853144) succeeded. The local suite with these fixes passed 254 tests, with two FFmpeg-dependent tests skipped locally. Draft validation passed for 22 inbox items. Pending content was preserved and not fact-checked again.
+- Current-main CI [38708853144](https://github.com/NetensAI/Funzug/actions/runs/38708853144) succeeded. The local suite with these fixes passed 257 tests, with two FFmpeg-dependent tests skipped locally. Draft validation passed for 22 inbox items. Pending content was preserved and not fact-checked again.
 
 ## Remaining acceptance
 

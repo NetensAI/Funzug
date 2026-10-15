@@ -48,7 +48,11 @@ class MetaBrowser:
         self.context = context
         self.workdir = workdir
         self.page = context.new_page()
-        self.planner = context.new_page()
+        try:
+            self.planner = context.new_page()
+        except BaseException:
+            self.page.close()
+            raise
         self.image_hash = None
         self.uploaded_thumbnail_urls = None
         self.media_hashes = None
@@ -61,8 +65,10 @@ class MetaBrowser:
 
     def close(self):
         # Close worker-owned tabs only. Keep the persistent login browser alive.
-        self.page.close()
-        self.planner.close()
+        try:
+            self.page.close()
+        finally:
+            self.planner.close()
 
     def timezone(self, page):
         zone = page.evaluate('Intl.DateTimeFormat().resolvedOptions().timeZone')

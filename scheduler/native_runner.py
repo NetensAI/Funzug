@@ -6,6 +6,7 @@ import datetime as dt
 import json
 import os
 import re
+import signal
 from pathlib import Path
 import time
 import traceback
@@ -110,6 +111,11 @@ def safe_error_diagnostics(error):
         frame = frames[-1]
         result['code_location'] = Path(frame.filename).name + ':' + str(frame.lineno)
     return result
+
+
+def shutdown_requested(_signal, _frame):
+    # Unwind tick's finally block so Docker shutdown closes worker-owned pages.
+    raise KeyboardInterrupt
 
 
 def error_backoff_seconds(local):
@@ -225,17 +231,21 @@ def main():
     # A single worker owns scheduling. Docker mounts /state exclusively for it;
     # the lock prevents overlapping manual invocations in the same deployment.
     import fcntl
-    with path.with_suffix('.lock').open('a') as lock:
-        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        with sync_playwright() as playwright:
-            browser=playwright.chromium.connect_over_cdp(endpoint)
-            if len(browser.contexts)!=1:raise NativeFailure('persistent_browser_context_unavailable')
-            context=browser.contexts[0]
-            while True:
-                try:tick(config,path,context,True)
-                except Exception:print('Native scheduler check failed; sensitive details omitted',flush=True)
-                if args.once:return
-                time.sleep(60)
+    signal.signal(signal.SIGTERM, shutdown_requested)
+    try:
+        with path.with_suffix('.lock').open('a') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            with sync_playwright() as playwright:
+                browser=playwright.chromium.connect_over_cdp(endpoint)
+                if len(browser.contexts)!=1:raise NativeFailure('persistent_browser_context_unavailable')
+                context=browser.contexts[0]
+                while True:
+                    try:tick(config,path,context,True)
+                    except Exception:print('Native scheduler check failed; sensitive details omitted',flush=True)
+                    if args.once:return
+                    time.sleep(60)
+    except KeyboardInterrupt:
+        return
 
 
 if __name__=='__main__':main()
