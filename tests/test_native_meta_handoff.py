@@ -49,6 +49,14 @@ class NativeHandoffTests(unittest.TestCase):
             self.assertEqual(item['native_handoff']['content_hash'],self.row['contentHash'])
             self.assertFalse(pipeline.workflow_delivery_allowed(item))
 
+    def test_deleted_test_reel_cannot_be_reserved_even_when_mixed_delivery_is_enabled(self):
+        item={**copy.deepcopy(self.item),'id':'funzug-test-2026-10-16-reel','format':'reel','delivery_mode':'meta_native_pending'}
+        before=copy.deepcopy(item)
+        with patch.dict('os.environ',{'FUNZUG_NATIVE_MIXED_ENABLED':'1','FUNZUG_NATIVE_ACCEPTANCE_ENABLED':'1'}):
+            with self.assertRaisesRegex(RuntimeError,'not enabled'):
+                reserve(item,self.row,self.now)
+        self.assertEqual(item,before)
+
     def test_invalid_platform_lists_never_mutate_handoff(self):
         for platforms in (['facebook','facebook'],[{}],['other'],'facebook'):
             item={**copy.deepcopy(self.item),'platforms':platforms}
