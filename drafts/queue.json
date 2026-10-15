@@ -664,6 +664,626 @@
         ],
         "visual_note": "Original editorial illustration, not documentary photography."
       }
+    },
+{
+  "id": "funzug-2026-10-15-butterfly-taste-feet",
+  "status": "draft",
+  "format": "image",
+  "headline": "Butterflies Taste The World With Their Feet",
+  "caption": "A butterfly can learn about a plant just by standing on it.\n\nTaste receptors on its feet detect chemicals on the surface. For females, that information can help identify a suitable plant for their eggs.\n\nIt is a very different way of exploring the world from ours. What looks like a quiet landing can also be a chemical inspection.\n\nWhich tiny animal ability surprises you most?\n\n#Butterflies #Wildlife #NatureFacts #InsectScience #AnimalAdaptations",
+  "topic_key": "butterfly-taste-feet",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-22T08:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-butterfly-taste-feet.png",
+  "claims": [
+    {
+      "text": "Butterflies have taste receptors on their feet that detect chemicals.",
+      "source_ids": [
+        "wsu-butterfly-feet"
+      ],
+      "support_note": "The university explainer describes foot taste receptors and chemical detection."
+    },
+    {
+      "text": "Female butterflies use this information to assess plants for egg laying.",
+      "source_ids": [
+        "wsu-butterfly-feet"
+      ],
+      "support_note": "The explainer connects female foot receptors with identifying suitable host plants."
     }
+  ],
+  "sources": [
+    {
+      "id": "wsu-butterfly-feet",
+      "title": "How do butterflies taste with their feet?",
+      "publisher": "Washington State University",
+      "url": "https://askdruniverse.wsu.edu/2026/07/16/butterflies-taste-feet/",
+      "published_at": "2026-07-16T00:00:00Z",
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native 4:5 cinematic close-up of an eastern tiger swallowtail standing on a leaf, realistic anatomy and warm meadow light. Headline: Butterflies Taste The World With Their Feet. Tiny copperplate Funzug at bottom, no extra text. Final edit corrects canvas to1122x1402 without local resizing.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-library-of-things",
+  "status": "draft",
+  "format": "image",
+  "headline": "This Library Lends More Than Books",
+  "caption": "A library card can unlock more than a good read.\n\nSacramento Public Library's Library of Things includes practical equipment such as sewing machines and power drill sets. Its own announcement describes borrowing tools as part of the collection.\n\nThe idea turns a familiar question around: what if an item you need occasionally could be borrowed rather than bought?\n\nWhat would you want your local library to lend?\n\n#PublicLibraries #LibraryOfThings #Community #Sacramento #EverydayIdeas",
+  "topic_key": "library-of-things",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-22T16:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-library-of-things.png",
+  "claims": [
+    {
+      "text": "Sacramento Public Library offers a Library of Things collection.",
+      "source_ids": [
+        "spl-things"
+      ],
+      "support_note": "The library announcement identifies the collection and several branches offering it."
+    },
+    {
+      "text": "The collection includes sewing machines and power drill sets for library cardholders to borrow.",
+      "source_ids": [
+        "spl-things"
+      ],
+      "support_note": "The announcement explicitly lists these tools and describes cardholder borrowing. It does not establish current inventory availability."
+    }
+  ],
+  "sources": [
+    {
+      "id": "spl-things",
+      "title": "Rotary Helps Bring Library of Things to North Sacramento-Hagginwood",
+      "publisher": "Sacramento Public Library",
+      "url": "https://www.saclibrary.org/news/rotary-helps-bring-library-things-north-sacramento-hagginwood",
+      "published_at": "2025-10-23T00:00:00Z",
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 cinematic American library checkout with sewing machine and drill case beside books, natural hands of librarian and patron, warm light. Exact headline: This Library Lends More Than Books. Tiny art-deco brass Funzug, safe margins, one scene.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-utah-wildlife-overpass",
+  "status": "draft",
+  "format": "image",
+  "headline": "A Highway Bridge Built For Wildlife",
+  "caption": "Some bridges are designed for travelers with hooves and paws.\n\nNear Parleys Summit in Utah, a wildlife crossing carries animals over Interstate 80. The Utah Wildlife Migration Initiative shared footage of several kinds of animals using it.\n\nThe crossing was constructed in 2018. It offers a route over the highway rather than through moving traffic.\n\nWhere would a wildlife crossing make the biggest difference near you?\n\n#WildlifeCrossings #Utah #Conservation #RoadSafety #Coexistence",
+  "topic_key": "utah-wildlife-overpass",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-22T20:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-utah-wildlife-overpass.png",
+  "claims": [
+    {
+      "text": "A wildlife crossing over Interstate 80 near Parleys Summit was constructed in 2018.",
+      "source_ids": [
+        "utah-parleys"
+      ],
+      "support_note": "The official initiative's video description identifies location and construction year."
+    },
+    {
+      "text": "Footage documents several kinds of animals using this crossing.",
+      "source_ids": [
+        "utah-parleys"
+      ],
+      "support_note": "The official description explicitly describes a compilation showing various animals using the overpass. No new collision-reduction statistic is claimed."
+    }
+  ],
+  "sources": [
+    {
+      "id": "utah-parleys",
+      "title": "Parleys Summit wildlife crossing - Video",
+      "publisher": "Utah Wildlife Migration Initiative",
+      "url": "https://wildlifemigration.utah.gov/stories/parleys-summit-wildlife-crossing/",
+      "published_at": "2020-12-16T00:00:00Z",
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 cinematic mule deer on naturalistic fenced wildlife overpass above an interstate in Utah mountain country. Exact headline: A Highway Bridge Built For Wildlife. Tiny forest-green engraved Funzug. Editorial interpretation, no collage.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-empowerment-sleeping-bag-coat",
+  "status": "draft",
+  "format": "image",
+  "headline": "This Coat Becomes A Sleeping Bag",
+  "caption": "A winter coat can be designed to do more than keep someone warm while standing.\n\nEmpowerment Plan makes a coat that transforms into a sleeping bag for people in need.\n\nThe organization also provides employment and training for people experiencing homelessness to manufacture the coats. The work and the product are two parts of the same mission.\n\nWhat everyday object would you redesign to help someone through a difficult situation?\n\n#DesignForGood #Community #PracticalInnovation #Employment #HumanStories",
+  "topic_key": "empowerment-sleeping-bag-coat",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-23T08:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-empowerment-sleeping-bag-coat.png",
+  "claims": [
+    {
+      "text": "Empowerment Plan manufactures a coat that transforms into a sleeping bag.",
+      "source_ids": [
+        "ep-home"
+      ],
+      "support_note": "The organization's homepage explicitly describes the transforming coat."
+    },
+    {
+      "text": "The organization provides employment and training for individuals experiencing homelessness to manufacture the coats.",
+      "source_ids": [
+        "ep-home"
+      ],
+      "support_note": "The homepage states this employment and training model. No guaranteed individual housing outcome or safety certification is asserted."
+    }
+  ],
+  "sources": [
+    {
+      "id": "ep-home",
+      "title": "Empowerment Plan",
+      "publisher": "Empowerment Plan",
+      "url": "https://www.empowermentplan.org/",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 dignified workshop scene, adult seamstress at industrial sewing machine with a winter coat and extended sleeping-bag panel on cutting table. Exact headline: This Coat Becomes A Sleeping Bag. Tiny stitched-style Funzug. Correct native canvas1122x1402, credible hands and fabric.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-pando-aspen-clone",
+  "status": "draft",
+  "format": "image",
+  "headline": "This Forest Is One Giant Aspen Clone",
+  "caption": "A grove can look like a crowd of separate trees and still be one enormous clone.\n\nPando is an aspen clone in central Utah. Genetic research confirmed that the dominant group of sampled stems belonged to the same clone.\n\nAspens can produce new stems from roots. That means counting trunks is not always the same thing as counting distinct genetic individuals.\n\nWould knowing that change the way you looked at a forest?\n\n#Pando #AspenTrees #Utah #ForestScience #NatureFacts",
+  "topic_key": "pando-aspen-clone",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-23T16:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-pando-aspen-clone.png",
+  "claims": [
+    {
+      "text": "Pando is a genetically confirmed giant aspen clone in central Utah.",
+      "source_ids": [
+        "usfs-pando-genetics"
+      ],
+      "support_note": "The primary paper's results confirm Pando, identify its dominant genotype, and distinguish neighboring genotypes."
+    },
+    {
+      "text": "Quaking aspens can reproduce through new shoots arising from roots.",
+      "source_ids": [
+        "usfs-aspen-silvics"
+      ],
+      "support_note": "The Forest Service silvics account describes root suckers and clonal formation."
+    }
+  ],
+  "sources": [
+    {
+      "id": "usfs-pando-genetics",
+      "title": "PANDO LIVES: Molecular genetic evidence of a giant aspen clone in central Utah",
+      "publisher": "USDA Forest Service / DeWoody and colleagues",
+      "url": "https://www.fs.usda.gov/NFGEL/documents/publications/DeWoody_etal_pando_2008.pdf",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    },
+    {
+      "id": "usfs-aspen-silvics",
+      "title": "Quaking Aspen",
+      "publisher": "USDA Forest Service",
+      "url": "https://research.fs.usda.gov/silvics/quaking-aspen",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 cinematic Utah quaking aspen grove in golden autumn light, many white trunks in continuous forest floor, no fantasy exposed roots. Exact headline: This Forest Is One Giant Aspen Clone. Tiny leaf-veined gold Funzug lettering, one scene.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-ghost-army-inflatable-tanks",
+  "status": "draft",
+  "format": "image",
+  "headline": "The WWII Army That Used Inflatable Tanks",
+  "caption": "Some of World War II's most unusual military equipment was designed to look more powerful than it really was.\n\nThe U.S. Army's Ghost Army used inflatable tanks as part of battlefield deception.\n\nThe unit also relied on sound effects, radio trickery and impersonation. The point was to influence what the enemy believed was happening.\n\nIt is a striking reminder that military history includes artists and inventive problem-solvers, not just weapons. Which overlooked history story should more people know?\n\n#GhostArmy #WWIIHistory #AmericanHistory #MilitaryHistory #HiddenHistory",
+  "topic_key": "ghost-army-inflatable-tanks",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-23T20:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-ghost-army-inflatable-tanks.png",
+  "claims": [
+    {
+      "text": "The Ghost Army used inflatable tanks during World War II.",
+      "source_ids": [
+        "army-ghost"
+      ],
+      "support_note": "The Army historical account explicitly describes inflatable tanks and their use to deceive enemy forces."
+    },
+    {
+      "text": "Its methods also included sound effects, radio trickery and impersonation.",
+      "source_ids": [
+        "army-ghost"
+      ],
+      "support_note": "These additional methods are listed by the Army. The caption's mention of artists is supported by the account of recruitment from art schools."
+    }
+  ],
+  "sources": [
+    {
+      "id": "army-ghost",
+      "title": "Fort Leonard Wood examines WWII Ghost Army deception tactics",
+      "publisher": "United States Army",
+      "url": "https://www.army.mil/article/247350",
+      "published_at": "2021-06-09T00:00:00Z",
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 historical editorial reconstruction, four WWII US soldiers in period uniforms carrying soft inflatable Sherman tank with fabric seams in a European field. Exact headline: The WWII Army That Used Inflatable Tanks. Tiny vintage letterpress Funzug. Final canvas1122x1402, no combat or gore.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-pittsburgh-therapy-dogs",
+  "status": "draft",
+  "format": "image",
+  "headline": "Therapy Dogs Help Take The Edge Off Flying",
+  "caption": "Before a flight, a friendly dog can be a welcome part of the airport experience.\n\nPittsburgh International Airport's PIT PAWS program lets passengers interact with trained, certified therapy dogs.\n\nIts full name is Pups Alleviating Worry and Stress. The airport describes the visits as a way to offer a few minutes of relaxation before flying.\n\nWould a dog greeting improve your airport day?\n\n#AirportLife #TherapyDogs #Pittsburgh #TravelStories #Dogs",
+  "topic_key": "pittsburgh-therapy-dogs",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-24T08:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-pittsburgh-therapy-dogs.png",
+  "claims": [
+    {
+      "text": "PIT PAWS is Pittsburgh International Airport's program allowing passengers to interact with trained and certified therapy dogs.",
+      "source_ids": [
+        "pit-paws"
+      ],
+      "support_note": "The airport's accessibility page describes these participants and interactions."
+    },
+    {
+      "text": "PIT PAWS stands for Pups Alleviating Worry and Stress and is intended to offer relaxation before flying.",
+      "source_ids": [
+        "pit-paws"
+      ],
+      "support_note": "The PIT PAWS section gives the full name and intended benefit. This is not a claim of proven treatment or guaranteed dog availability."
+    }
+  ],
+  "sources": [
+    {
+      "id": "pit-paws",
+      "title": "Accessibility: PIT PAWS",
+      "publisher": "Allegheny County Airport Authority",
+      "url": "https://flypittsburgh.com/pittsburgh-international-airport/accessibility/",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 golden retriever on loose leash with adult volunteer and seated adult traveler in modern American airport, natural hands, warm light. Exact headline: Therapy Dogs Help Take The Edge Off Flying. Tiny amber hand-lettered Funzug, no cure implication. Final canvas1122x1402.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-livermore-centennial-bulb",
+  "status": "draft",
+  "format": "image",
+  "headline": "A Firehouse Bulb With A Century Of History",
+  "caption": "This lightbulb's story began in a firehouse in 1901.\n\nLivermore's Centennial Light was first installed at the California fire department that year. The committee documenting its history describes a handblown bulb with a carbon filament.\n\nIts long life has included moves and interruptions. That detail matters: remarkable longevity does not mean it has never gone out.\n\nWhat is the oldest everyday object still being used in your family?\n\n#CentennialLight #Livermore #CaliforniaHistory #EverydayHistory #Engineering",
+  "topic_key": "livermore-centennial-bulb",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-24T16:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-livermore-centennial-bulb.png",
+  "claims": [
+    {
+      "text": "The Centennial Light was first installed at Livermore's fire department in 1901 and is a handblown carbon-filament bulb.",
+      "source_ids": [
+        "centennial-facts"
+      ],
+      "support_note": "The committee's fact sheet gives the installation date, place, material and filament type."
+    },
+    {
+      "text": "Its history includes moves, outages and a 2013 interruption.",
+      "source_ids": [
+        "centennial-facts"
+      ],
+      "support_note": "The fact sheet describes relocations, a 1937 interruption, power outages and a May 2013 power-supply failure. No uninterrupted-burning claim is made."
+    }
+  ],
+  "sources": [
+    {
+      "id": "centennial-facts",
+      "title": "Livermore's Centennial Light Facts",
+      "publisher": "Livermore Lightbulb Centennial Committee",
+      "url": "https://www.centennialbulb.org/facts.htm",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native1122x1402 cinematic antique handblown pear-shaped carbon-filament bulb above softly blurred red American fire engine. Exact headline: A Firehouse Bulb With A Century Of History. Final edit removes duplicate Funzug from bulb and leaves ONE tiny100x25pixel custom copper-wire signature near bottom, no flourishes. Not a documentary photograph.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-whittier-begich-towers",
+  "status": "draft",
+  "format": "image",
+  "headline": "Most Of This Town Shares One Building",
+  "caption": "In Whittier, Alaska, one residential building plays an unusually large role in daily life.\n\nA city-published economic analysis says most of the town's residents live in Begich Towers, a 14-story building.\n\nThe same report describes a general store and post office in the building, plus a tunnel connection to the school.\n\nThe viral version often says everyone lives there. The more accurate version is still extraordinary: most residents, not all. Could you imagine this kind of close-knit setup?\n\n#Whittier #Alaska #UnusualPlaces #CommunityLife #AmericanPlaces",
+  "topic_key": "whittier-begich-towers",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-24T20:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-whittier-begich-towers.png",
+  "claims": [
+    {
+      "text": "Most Whittier residents live in the 14-story Begich Towers building, not every resident.",
+      "source_ids": [
+        "whittier-plan"
+      ],
+      "support_note": "The city-published housing analysis explicitly says most residents and documents other housing."
+    },
+    {
+      "text": "The building contains a general store and post office and is connected to the school by a tunnel.",
+      "source_ids": [
+        "whittier-plan"
+      ],
+      "support_note": "The same housing section explicitly identifies these services and the school connection."
+    }
+  ],
+  "sources": [
+    {
+      "id": "whittier-plan",
+      "title": "Economic Analysis for the Whittier Development Plan",
+      "publisher": "City of Whittier / McKinley Research Group",
+      "url": "https://www.whittieralaska.gov/media/1871",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native1122x1402 cinematic editorial interpretation of Whittier Alaska, pale modest mid-century14-story apartment building beside snowy harbor and coastal mountains. Exact headline: Most Of This Town Shares One Building. Tiny ice-blue handwritten Funzug, no invented factual signage.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-el-yunque-rainforest",
+  "status": "draft",
+  "format": "image",
+  "headline": "A Tropical Rainforest In The US Forest System",
+  "caption": "The U.S. national forest system includes a tropical rainforest in Puerto Rico.\n\nEl Yunque sits in the island's northeast. The Forest Service identifies it as the only tropical rainforest within the national forest system.\n\nThat wording matters. It does not mean every other kind of rainforest is absent from the United States.\n\nWhat American landscape surprised you most when you first learned about it?\n\n#ElYunque #PuertoRico #NationalForests #Rainforest #NatureStories",
+  "topic_key": "el-yunque-rainforest",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-25T08:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-el-yunque-rainforest.png",
+  "claims": [
+    {
+      "text": "El Yunque is in northeastern Puerto Rico.",
+      "source_ids": [
+        "usfs-elyunque"
+      ],
+      "support_note": "The Forest Service Welcome to El Yunque section identifies the region."
+    },
+    {
+      "text": "It is the only tropical rainforest within the U.S. national forest system.",
+      "source_ids": [
+        "usfs-elyunque"
+      ],
+      "support_note": "The agency explicitly uses this limited designation, not the broader claim that the US has no other rainforests."
+    }
+  ],
+  "sources": [
+    {
+      "id": "usfs-elyunque",
+      "title": "El Yunque National Forest",
+      "publisher": "USDA Forest Service",
+      "url": "https://www.fs.usda.gov/r08/elyunque",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 lush Puerto Rican tropical rainforest with tree ferns, green canopy, modest waterfall and humid sunlight. Exact headline: A Tropical Rainforest In The US Forest System. Tiny botanical Funzug, single original editorial scene.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-lasagna-love-neighbors",
+  "status": "draft",
+  "format": "image",
+  "headline": "Neighbors Are Sharing Kindness One Lasagna At A Time",
+  "caption": "Sometimes a community story starts with a home-cooked meal.\n\nLasagna Love connects volunteer cooks with individuals and families in need through a neighbor-to-neighbor model.\n\nThe organization's mission describes sharing home-cooked lasagnas. It is a simple idea built around something familiar: making food for another person.\n\nWhat meal would you make for a neighbor having a hard week?\n\n#LasagnaLove #CommunityKindness #NeighborsHelpingNeighbors #HomeCooking #HumanStories",
+  "topic_key": "lasagna-love-neighbors",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-25T16:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-lasagna-love-neighbors.png",
+  "claims": [
+    {
+      "text": "Lasagna Love connects volunteer lasagna cooks with individuals and families in need.",
+      "source_ids": [
+        "lasagna-mission"
+      ],
+      "support_note": "The organization's indexed homepage mission text explicitly describes the neighbor-to-neighbor connection. Direct homepage fetch returned 403; mission text was inspected in the search result, and no claims beyond that excerpt are made."
+    },
+    {
+      "text": "The meals described in its mission are home-cooked lasagnas.",
+      "source_ids": [
+        "lasagna-mission"
+      ],
+      "support_note": "The same primary-organization mission excerpt explicitly says home-cooked lasagnas. No guaranteed delivery timing, local availability or eligibility condition is asserted."
+    }
+  ],
+  "sources": [
+    {
+      "id": "lasagna-mission",
+      "title": "Spread Kindness With Food",
+      "publisher": "Lasagna Love",
+      "url": "https://lasagnalove.org/",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 warm American home doorway, adult volunteer handing securely covered foil casserole tray to smiling adult, realistic hands, no named real people or logos. Exact headline: Neighbors Are Sharing Kindness One Lasagna At A Time. Tiny terracotta cursive Funzug, one scene.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+},
+{
+  "id": "funzug-2026-10-15-wombat-cube-scat",
+  "status": "draft",
+  "format": "image",
+  "headline": "This Animal Really Produces Cube-Shaped Poop",
+  "caption": "Nature has a surprisingly geometric bathroom story.\n\nBare-nosed wombats produce cube-shaped droppings. Researchers investigated how those flat sides and rounded corners form.\n\nA Georgia Tech research seminar summary describes dissections, material testing and experiments with model intestines. Its key point is that the cubes form inside the intestine, before they leave the body.\n\nWhich strange animal fact sounds made up until you check it?\n\n#Wombats #AnimalFacts #NatureScience #Wildlife #Biology",
+  "topic_key": "wombat-cube-scat",
+  "platforms": [
+    "facebook",
+    "instagram"
+  ],
+  "scheduled_at": "2026-10-25T20:30:00+05:30",
+  "media_path": "drafts/assets/2026-10-15-wombat-cube-scat.png",
+  "claims": [
+    {
+      "text": "Bare-nosed wombats produce cube-shaped feces.",
+      "source_ids": [
+        "gatech-wombat"
+      ],
+      "support_note": "The university research seminar summary explicitly identifies cubic scat in this species."
+    },
+    {
+      "text": "The cubes form within the intestine before excretion, investigated through dissections, material tests and model-intestine experiments.",
+      "source_ids": [
+        "gatech-wombat"
+      ],
+      "support_note": "These methods and the location of cube formation are explicitly stated in the seminar abstract."
+    }
+  ],
+  "sources": [
+    {
+      "id": "gatech-wombat",
+      "title": "QBioS Seminar Series: Alexander Bo Lee, How to poop cubes",
+      "publisher": "Georgia Institute of Technology",
+      "url": "https://qbios.gatech.edu/qbios-seminar-series-alexander-bo-lee",
+      "published_at": null,
+      "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+    }
+  ],
+  "image_metadata": {
+    "generated_with": "ChatGPT built-in image generation",
+    "dimensions_px": [
+      1122,
+      1402
+    ],
+    "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+    "generation_prompt": "Native4:5 realistic bare-nosed wombat on Australian woodland ground at dusk beside two small irregular cube-shaped scat pellets, no gross detail, credible anatomy. Exact headline: This Animal Really Produces Cube-Shaped Poop. Tiny carved earth-tone Funzug, one cohesive scene.",
+    "batch_id": "2026-10-15-fresh-stories-12",
+    "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+  }
+}
   ]
 }
