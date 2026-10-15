@@ -48,7 +48,11 @@ class MetaBrowser:
         self.context = context
         self.workdir = workdir
         self.page = context.new_page()
-        self.planner = context.new_page()
+        try:
+            self.planner = context.new_page()
+        except BaseException:
+            self.page.close()
+            raise
         self.image_hash = None
         self.uploaded_thumbnail_urls = None
         self.media_hashes = None
@@ -61,8 +65,10 @@ class MetaBrowser:
 
     def close(self):
         # Close worker-owned tabs only. Keep the persistent login browser alive.
-        self.page.close()
-        self.planner.close()
+        try:
+            self.page.close()
+        finally:
+            self.planner.close()
 
     def timezone(self, page):
         zone = page.evaluate('Intl.DateTimeFormat().resolvedOptions().timeZone')
@@ -70,13 +76,22 @@ class MetaBrowser:
             raise NativeFailure('browser_timezone_must_be_IST')
 
     def visible(self, page, heading):
-        page.get_by_role('heading', name=heading, exact=True).wait_for(state='visible', timeout=30000)
+        try:
+            page.get_by_role('heading', name=heading, exact=True).wait_for(state='visible', timeout=30000)
+        except Exception:
+            self.check_access(page)
+            raise
+        self.check_access(page)
         if '/login' in page.url or '/checkpoint' in page.url:
             raise NativeFailure('meta_login_required')
         self.timezone(page)
 
+    def check_access(self, page):
+        if page.get_by_text(re.compile(r"^You['’]re Temporarily Blocked$", re.I)).count():
+            raise NativeFailure('meta_temporarily_blocked')
+
     def selected_platforms(self):
-        selector = self.page.get_by_role('combobox').filter(has_text=re.compile('Funzug|funzugdotcom'))
+        selector = self.page.get_by_role('combobox', name=re.compile(r'^Post to(?:\s|$)'))
         if selector.count() != 1:
             raise NativeFailure('account_selector_changed')
         text = selector.inner_text()
@@ -155,7 +170,7 @@ class MetaBrowser:
         selected = self.selected_platforms()
         if set(selected) == set(platforms):
             return
-        self.page.get_by_role('combobox').filter(has_text=re.compile('Funzug|funzugdotcom')).click()
+        self.page.get_by_role('combobox', name=re.compile(r'^Post to(?:\s|$)')).click()
         for platform, name in [('facebook', 'Funzug'), ('instagram', 'funzugdotcom')]:
             option = self.page.get_by_role('option', name=name, exact=True)
             count = option.count()
@@ -487,6 +502,16 @@ class MetaBrowser:
         header = self.planner.get_by_text(target, exact=True)
         bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
         cards = self.planner.get_by_label(packet['caption'], exact=True)
+        # Date headers can render before the posts. An existing submission must
+        # wait for its reviewed caption instead of treating loading as absence.
+        if allow_past or (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}:
+            cards.first.wait_for(state='visible', timeout=45000)
+        # Facebook defers card hydration until it enters the viewport. Waiting
+        # for a descendant link cannot trigger an offscreen placeholder to load.
+        for card in cards.all():
+            card.scroll_into_view_if_needed(timeout=15000)
+            card.locator('[data-visualcompletion="loading-state"]').wait_for(state='hidden', timeout=45000)
+        bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
         return cards,bounds
 
     def inspect(self, packet: dict) -> dict:
@@ -494,8 +519,16 @@ class MetaBrowser:
         slot=stamp(packet['proposedSchedule'])
         results = {}
         for platform in packet['platforms']:
+            if results:
+                # Opening a card can scroll the calendar horizontally.
+                header = self.planner.get_by_text(calendar_label(slot), exact=True)
+                bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
             name = time_label(slot) + (' Facebook' if platform == 'facebook' else ' Instagram')
             candidates = cards.get_by_role('link', name=name, exact=True)
+            if (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}:
+                # Facebook and Instagram cards hydrate independently. A labelled
+                # card can still be an empty loading-state while the other is ready.
+                candidates.first.wait_for(state='visible', timeout=45000)
             matching = []
             for candidate in candidates.all():
                 position = candidate.bounding_box()
@@ -511,6 +544,7 @@ class MetaBrowser:
             if dialog.count() != 1:
                 raise NativeFailure('planner_detail_not_unique')
             detail = dialog.get_by_text(re.compile(r'^ID: [0-9]+$'))
+            detail.wait_for(state='visible', timeout=15000)
             if detail.count() != 1:
                 raise NativeFailure('planner_identifier_not_visible')
             identifier = re.fullmatch(r'ID: ([0-9]+)', detail.inner_text())
@@ -527,6 +561,7 @@ class MetaBrowser:
             if closes.count() != 1:
                 raise NativeFailure('planner_detail_close_changed')
             closes.click()
+            dialog.wait_for(state='hidden', timeout=15000)
         return results
 
     def inspect_publication(self, packet: dict) -> dict:

@@ -40,6 +40,36 @@ class MissingRow:
 
 
 class AccountSelectorTests(unittest.TestCase):
+    def test_visible_meta_block_stops_before_any_account_action(self):
+        browser = MetaBrowser.__new__(MetaBrowser)
+        page = Mock()
+        page.get_by_text.return_value.count.return_value = 1
+        with self.assertRaisesRegex(NativeFailure,'meta_temporarily_blocked'):
+            browser.check_access(page)
+        page.get_by_role.assert_not_called()
+
+    def test_caption_mentioning_funzug_is_not_an_account_selector(self):
+        browser = MetaBrowser.__new__(MetaBrowser)
+        browser.page = Mock()
+        account = Mock()
+        account.count.return_value = 1
+        account.inner_text.return_value = 'Instagram Facebook Funzug and funzugdotcom'
+        broad = Mock()
+        broad.filter.return_value.count.return_value = 2
+
+        def by_role(role, **options):
+            self.assertEqual(role, 'combobox')
+            name = options.get('name')
+            if name is None:
+                return broad
+            self.assertIsNotNone(name.search('Post to Funzug and funzugdotcom'))
+            self.assertIsNone(name.search('Write into the dialogue box to include text with your post.'))
+            return account
+
+        browser.page.get_by_role.side_effect = by_role
+        self.assertEqual(browser.selected_platforms(), ['facebook', 'instagram'])
+        broad.filter.assert_not_called()
+
     def fixture(self, facebook=True, instagram=True):
         browser = MetaBrowser.__new__(MetaBrowser)
         browser.page = Mock()
