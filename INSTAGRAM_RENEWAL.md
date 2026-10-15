@@ -4,6 +4,8 @@ Facebook uses the existing non-expiring system-user credential. Instagram Login 
 
 The renewal workflow stores the token, account ID, expiry, and integrity fingerprint in one encrypted environment secret, `FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL`. Updating a single bundle prevents a new token being paired with an old expiry. It checks Funzug's account identity and reads `content_publishing_limit` to verify basic and publishing access. It never creates media or publishes a post.
 
+The scheduled job attaches the `funzug-publish` environment before checking `FUNZUG_INSTAGRAM_API_MODE`. The mode gate runs before checkout or credential access, and scheduled runs skip cleanly unless Instagram Login is active. This keeps GitHub's environment-scoped variable available without exposing secrets to a skipped run.
+
 The private GitHub App is installed only on NetensAI/Funzug. Renewal requests an installation token with Environments write permission, which is needed to replace the encrypted environment secret. Save `FUNZUG_GH_APP_ID` and `FUNZUG_GH_APP_PRIVATE_KEY` in the `funzug-publish` environment. The private key remains a persistent credential; normal installation-token expiry is handled automatically.
 
 One-time initialization:
