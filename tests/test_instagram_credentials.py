@@ -62,15 +62,12 @@ class InstagramCredentialTests(unittest.TestCase):
         save.assert_not_called()
         activate.assert_not_called()
 
-    def test_scheduled_mode_gate_runs_after_environment_is_attached(self):
+    def test_instagram_renewal_uses_one_recurring_scheduler(self):
         workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/renew-instagram-credential.yml").read_text()
-        job_condition = next(line.strip() for line in workflow.splitlines() if line.strip().startswith("if: github.ref"))
-        self.assertNotIn("vars.FUNZUG_INSTAGRAM_API_MODE", job_condition)
-        self.assertIn("github.event_name == 'schedule'", job_condition)
+        self.assertIn("on:\n  workflow_dispatch:", workflow)
+        self.assertNotIn("\n  schedule:\n", workflow)
+        self.assertIn("if: github.ref == 'refs/heads/main' && (inputs.bootstrap || inputs.renew_now)", workflow)
         self.assertIn("environment: funzug-publish", workflow)
-        self.assertIn("id: renewal-gate", workflow)
-        self.assertIn("FUNZUG_INSTAGRAM_API_MODE: ${{ vars.FUNZUG_INSTAGRAM_API_MODE }}", workflow)
-        self.assertIn("if: steps.renewal-gate.outputs.run == 'true'", workflow)
 
 
 if __name__ == "__main__":
