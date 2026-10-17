@@ -1076,7 +1076,7 @@
     },
     {
       "id": "funzug-2026-10-13-greenland-shark-longevity",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Shark Can Live For Centuries",
       "caption": "A Greenland shark's lifetime can span centuries. Its exact age is much harder to pin down.\n\nScientists estimate ages using radiocarbon measurements from proteins in the eye lens. One large female in a study was estimated to be between 272 and 512 years old.\n\nThat wide range matters. It does not mean every Greenland shark lives 500 years, or that a shark in a viral photograph has a confirmed birth year.\n\nWould you rather explore the deep ocean or outer space?\n\n#GreenlandShark #OceanScience #MarineLife #AnimalFacts #DeepSea",
@@ -1152,7 +1152,22 @@
           }
         },
         "submission_started_at": "2026-10-14T12:49:54.258811+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-17T16:30:00+05:30",
+          "post_id": "1524660573032300",
+          "scheduled_post_id": "2087002212027665"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-17T16:30:00+05:30",
+          "post_id": "18244880665315512",
+          "scheduled_post_id": "3529415300551310"
+        }
+      },
+      "last_attempt_at": "2026-10-17T16:34:21.302091+05:30"
     },
     {
       "id": "funzug-2026-10-13-octopus-three-hearts",
