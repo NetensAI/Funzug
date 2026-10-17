@@ -1251,7 +1251,7 @@
     },
     {
       "id": "funzug-2026-10-13-singing-sand",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "These Sand Dunes Can Actually Sing",
       "caption": "A desert can have a bass note of its own.\n\nAt Colorado's Great Sand Dunes, moving sand can produce a low humming or booming sound. The National Park Service has recorded this unusual phenomenon.\n\nThe sound can accompany sand tumbling down a dune face during an avalanche. Calling it singing is a nickname, not a claim that the dunes make music like an instrument.\n\nWould you recognize that sound without seeing where it came from?\n\n#GreatSandDunes #SingingSand #Geology #NationalParks #NatureScience",
@@ -1335,7 +1335,22 @@
           }
         },
         "submission_started_at": "2026-10-14T12:52:22.900840+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-17T20:18:00+05:30",
+          "post_id": "1524852876346403",
+          "scheduled_post_id": "1101262836214829"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-17T20:18:00+05:30",
+          "post_id": "18012753851961294",
+          "scheduled_post_id": "1692644935781746"
+        }
+      },
+      "last_attempt_at": "2026-10-17T20:22:03.895805+05:30"
     },
     {
       "id": "funzug-2026-10-13-fulgurite",
