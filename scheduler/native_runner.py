@@ -18,7 +18,7 @@ from scheduler.native_dispatch import CheckpointDispatcher
 from scheduler.native_worker import IST, NativeFailure, advance, stamp, verify_delivery_package
 from scheduler.runner import write_state
 from scripts.renew_instagram_credential import installation_token
-from scripts.mixed_delivery_policy import CANCELLED_IDS, mixed_delivery_enabled
+from scripts.mixed_delivery_policy import ACCEPTANCE_IDS, CANCELLED_IDS, mixed_delivery_enabled
 
 BATCH = 'funzug-draft-inbox-v1'
 DEFAULT_API = 'https://funzug.netens.top/api/integrations/funzug'
@@ -64,6 +64,12 @@ def delivery_allowed(row):
     if isinstance(identifier, str) and identifier in CANCELLED_IDS:
         return False
     media_format = row.get('media_format', row.get('format', 'image'))
+    expected_format = {
+        'funzug-test-2026-10-22-carousel': 'carousel',
+        'funzug-test-2026-10-22-reel': 'reel',
+    }.get(identifier) if isinstance(identifier, str) else None
+    if isinstance(identifier, str) and identifier in ACCEPTANCE_IDS and media_format != expected_format:
+        return False
     return media_format not in {'carousel', 'reel'} or mixed_delivery_enabled(identifier, os.environ)
 
 
@@ -97,6 +103,33 @@ def publication_candidates(rows,now):
         if stamp(row.get('proposedSchedule'))<=now-dt.timedelta(minutes=2):
             result.append(row)
     return sorted(result,key=lambda row:stamp(row['proposedSchedule']))
+
+
+def reconcile_recorded_publications(rows,state,now=None):
+    """Clear stale local checkpoints when BrandFlow already records completion."""
+    items=state.get('items')
+    if not isinstance(items,dict):
+        return 0
+    reconciled=0
+    checked_at=int(time.time() if now is None else now)
+    for row in rows:
+        if not isinstance(row,dict):
+            continue
+        identifier=row.get('externalId')
+        published_at=row.get('publishedAt')
+        local=items.get(identifier) if isinstance(identifier,str) else None
+        if not isinstance(published_at,str) or not published_at or not isinstance(local,dict):
+            continue
+        if (local.get('status')=='published' and local.get('published_at')==published_at
+                and not local.get('error') and not local.get('error_diagnostics')):
+            continue
+        local['status']='published'
+        local['published_at']=published_at
+        local['reconciled_at']=checked_at
+        local.pop('error',None)
+        local.pop('error_diagnostics',None)
+        reconciled+=1
+    return reconciled
 
 
 def safe_error_diagnostics(error):
@@ -135,6 +168,7 @@ def tick(config, state_path, context, enabled=False):
     if not isinstance(rows,list):
         raise NativeFailure('draft_status_unavailable')
     state=json.loads(state_path.read_text()) if state_path.exists() else {'items':{}}
+    reconcile_recorded_publications(rows,state)
     state['last_checked_at']=int(time.time())
     selected=candidates(rows,now)
     state['approved_upcoming_count']=len(selected)

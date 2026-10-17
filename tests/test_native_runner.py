@@ -74,16 +74,18 @@ class NativeRunnerTests(unittest.TestCase):
         now = dt.datetime.now(IST)
         image = {'externalId':'image','status':'approved','publicationAuthorized':True,
                  'scheduleTimezone':'Asia/Kolkata','proposedSchedule':(now+dt.timedelta(days=1)).isoformat()}
-        carousel = {**image,'externalId':'funzug-test-2026-10-16-carousel','media_format':'carousel'}
-        reel = {**image,'externalId':'funzug-test-2026-10-16-reel','media_format':'reel'}
+        carousel = {**image,'externalId':'funzug-test-2026-10-22-carousel','media_format':'carousel'}
+        reel = {**image,'externalId':'funzug-test-2026-10-22-reel','media_format':'reel'}
+        old_carousel = {**image,'externalId':'funzug-test-2026-10-16-carousel','media_format':'carousel'}
+        old_reel = {**image,'externalId':'funzug-test-2026-10-16-reel','media_format':'reel'}
         with patch.dict('os.environ', {}, clear=True):
-            self.assertEqual(candidates([image,carousel,reel],now),[image])
+            self.assertEqual(candidates([image,carousel,reel,old_carousel,old_reel],now),[image])
         with patch.dict('os.environ', {'FUNZUG_NATIVE_ACCEPTANCE_ENABLED':'1'}, clear=True):
-            self.assertEqual(candidates([image,carousel,reel],now),[image,carousel])
+            self.assertEqual(candidates([image,carousel,reel,old_carousel,old_reel],now),[image,carousel,reel])
         due = [{**row,'nativeHandoff':{'state':'scheduled'},
-                'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()} for row in [image,carousel,reel]]
+                'proposedSchedule':(now-dt.timedelta(minutes=3)).isoformat()} for row in [image,carousel,reel,old_carousel,old_reel]]
         with patch.dict('os.environ', {'FUNZUG_NATIVE_MIXED_ENABLED':'1'}, clear=True):
-            self.assertEqual(publication_candidates(due,now),due[:2])
+            self.assertEqual(publication_candidates(due,now),due[:3])
             self.assertEqual(candidates([{**reel,'media_format':'image'}],now),[])
 
     def test_disabled_mixed_poll_never_reads_packages_opens_browser_or_dispatches(self):
@@ -134,6 +136,36 @@ class NativeRunnerTests(unittest.TestCase):
         advance.assert_not_called()
         driver.prepare.assert_not_called()
         driver.submit.assert_not_called()
+
+    def test_recorded_complete_publication_clears_stale_local_error_without_meta_access(self):
+        published_at='2026-10-14T22:30:00+05:30'
+        row={'externalId':'brine','status':'approved','publicationAuthorized':True,
+             'publishedAt':published_at,'scheduleTimezone':'Asia/Kolkata',
+             'nativeHandoff':{'state':'scheduled'},
+             'proposedSchedule':'2026-10-14T22:30:00+05:30'}
+        state={'items':{'brine':{'status':'scheduled','error':'checkpoint_pending_reconciliation',
+                                'error_diagnostics':{'exception_type':'TimeoutError'},
+                                'checkpoints':{'submit:brine':{'phase':'accepted'}}}}}
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'state.json'
+            path.write_text(json.dumps(state))
+            with patch('scheduler.native_runner.read_api',return_value={'drafts':[row]}) as read,\
+                 patch('scheduler.native_runner.auth') as authenticate,\
+                 patch('scheduler.native_runner.write_state') as save,\
+                 patch('scheduler.meta_browser.MetaBrowser') as browser:
+                tick({},path,None,True)
+
+        read.assert_called_once()
+        authenticate.assert_not_called()
+        browser.assert_not_called()
+        saved=save.call_args.args[1]
+        local=saved['items']['brine']
+        self.assertEqual(local['status'],'published')
+        self.assertEqual(local['published_at'],published_at)
+        self.assertNotIn('error',local)
+        self.assertNotIn('error_diagnostics',local)
+        self.assertEqual(local['checkpoints'],{'submit:brine':{'phase':'accepted'}})
+        self.assertEqual(saved['active_item_ids'],[])
 
 
 if __name__=='__main__':unittest.main()

@@ -2,36 +2,30 @@
   "brand": {"name":"Funzug","timezone":"Asia/Kolkata","required_image_size":[1080,1350]},
   "items": [
     {
-      "id":"funzug-test-2026-10-16-carousel",
+      "id":"funzug-test-2026-10-22-carousel",
       "status":"draft",
       "format":"carousel",
       "headline":"Funzug workflow test: Carousel",
-      "caption":"Funzug delivery workflow test. This test is scheduled for verification and will be cancelled before publication.",
-      "topic_key":"acceptance-test-carousel-20261016",
+      "caption":"Workflow test only. Synthetic blue artwork to verify ordered Carousel delivery. This is not a news story.",
+      "topic_key":"acceptance-test-carousel-20261022",
       "platforms":["facebook","instagram"],
-      "scheduled_at":"2026-10-16T20:00:00+05:30",
-      "media_paths":["drafts/assets/2026-10-13-wood-frog-winter-small-brand.png","drafts/assets/2026-10-13-singing-sand-small-brand.png"],
-      "claims":[
-        {"text":"Wood frogs can survive winter freezing.","source_ids":["nps-wood-frog"],"support_note":"The existing verified NPS evidence supports the unchanged first slide headline. The pending news draft is not modified or re-verified."},
-        {"text":"Sand dunes can produce humming or booming sounds.","source_ids":["nps-singing-sands"],"support_note":"The existing verified NPS evidence supports the unchanged second slide headline. This is a labeled workflow test, not a new news submission."}
-      ],
-      "sources":[
-        {"id":"nps-wood-frog","title":"Biological Miracle","publisher":"National Park Service","url":"https://www.nps.gov/gaar/learn/nature/wood-frog-page-2.htm","published_at":null,"checked_at":"2026-10-13T17:51:57+05:30"},
-        {"id":"nps-singing-sands","title":"Sound Library: Singing Sands","publisher":"National Park Service","url":"https://www.nps.gov/subjects/sound/singing-sands.htm","published_at":null,"checked_at":"2026-10-13T17:51:57+05:30"}
-      ]
+      "scheduled_at":"2026-10-22T20:00:00+05:30",
+      "media_paths":["drafts/tests/assets/oct22-carousel-01.png","drafts/tests/assets/oct22-carousel-02.png"],
+      "claims":[{"text":"This is a workflow-only test draft, not a news item.","source_ids":["funzug-test-fixture"],"support_note":"The item is explicitly labeled as synthetic workflow-test content and makes no external factual claim."}],
+      "sources":[{"id":"funzug-test-fixture","title":"Funzug synthetic media acceptance fixture","publisher":"Funzug project","url":"https://github.com/NetensAI/Funzug","published_at":null,"checked_at":"2026-10-17T11:00:00+05:30"}]
     },
     {
-      "id":"funzug-test-2026-10-16-reel",
+      "id":"funzug-test-2026-10-22-reel",
       "status":"draft",
       "format":"reel",
       "headline":"Funzug workflow test: Reel",
-      "caption":"Funzug delivery workflow test. This synthetic blue clip will be cancelled before publication.",
-      "topic_key":"acceptance-test-reel-20261016",
+      "caption":"Workflow test only. Synthetic blue animation to verify Reel delivery. This is not a news story.",
+      "topic_key":"acceptance-test-reel-20261022",
       "platforms":["facebook","instagram"],
-      "scheduled_at":"2026-10-16T20:15:00+05:30",
-      "media_path":"drafts/tests/reel-standard.mp4",
-      "claims":[{"text":"The test clip is a synthetic blue video, not news footage.","source_ids":["fixture-generator"],"support_note":"The project-owned FFmpeg generator creates a blue color source and silent AAC audio. The owner explicitly authorized this workflow test."}],
-      "sources":[{"id":"fixture-generator","title":"Synthetic native Reel acceptance fixture generator","publisher":"Funzug project","url":"https://github.com/NetensAI/Funzug/blob/codex/private-ordered-media-storage/scripts/create_native_reel_fixture.sh","published_at":"2026-10-14T11:07:32+05:30","checked_at":"2026-10-14T11:07:32+05:30"}]
+      "scheduled_at":"2026-10-22T20:15:00+05:30",
+      "media_path":"drafts/tests/assets/oct22-reel.mp4",
+      "claims":[{"text":"This is a workflow-only test Reel, not a news video.","source_ids":["funzug-test-fixture"],"support_note":"The item is explicitly labeled as synthetic workflow-test content and makes no external factual claim."}],
+      "sources":[{"id":"funzug-test-fixture","title":"Funzug synthetic media acceptance fixture","publisher":"Funzug project","url":"https://github.com/NetensAI/Funzug","published_at":null,"checked_at":"2026-10-17T11:00:00+05:30"}]
     }
   ]
 }

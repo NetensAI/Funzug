@@ -1,6 +1,12 @@
 """Shared fail-closed mixed delivery scope; acceptance never enables news items."""
-ACCEPTANCE_IDS = frozenset({'funzug-test-2026-10-16-carousel'})
-CANCELLED_IDS = frozenset({'funzug-test-2026-10-16-reel'})
+ACCEPTANCE_IDS = frozenset({
+    'funzug-test-2026-10-22-carousel',
+    'funzug-test-2026-10-22-reel',
+})
+CANCELLED_IDS = frozenset({
+    'funzug-test-2026-10-16-carousel',
+    'funzug-test-2026-10-16-reel',
+})
 
 
 def mixed_delivery_enabled(identifier, environment):
