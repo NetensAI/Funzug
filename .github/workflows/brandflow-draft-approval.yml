@@ -8,6 +8,12 @@ on:
   schedule:
     - cron: "2-59/5 * * * *"
   workflow_dispatch:
+    inputs:
+      acceptance_tests:
+        description: "Sync only the two owner-authorized Oct 22 test drafts into BrandFlow for review"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -49,8 +55,13 @@ jobs:
           FUNZUG_MEDIA_BASE_URL: ${{ vars.FUNZUG_MEDIA_BASE_URL }}
           FUNZUG_MEDIA_UPLOAD_TOKEN: ${{ secrets.FUNZUG_MEDIA_UPLOAD_TOKEN }}
           FUNZUG_DELIVERY_MODE: ${{ vars.FUNZUG_DELIVERY_MODE }}
+          SYNC_ACCEPTANCE_TESTS: ${{ inputs.acceptance_tests || false }}
         run: |
-          python scripts/brandflow_sync.py sync
+          if [ "$SYNC_ACCEPTANCE_TESTS" = "true" ]; then
+            python scripts/brandflow_sync.py sync --acceptance-tests
+          else
+            python scripts/brandflow_sync.py sync
+          fi
           python scripts/brandflow_sync.py sync-results
           python scripts/brandflow_sync.py process-approvals
           python funzug_pipeline.py validate
