@@ -188,11 +188,11 @@ def require_matching_approved_content(item: dict[str, Any], status: dict[str, An
 
 def acceptance_inbox():
     inbox = pipeline.load_json(ROOT / 'drafts/tests/queue.json')
-    expected = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
+    expected = {'funzug-test-2026-10-22-carousel','funzug-test-2026-10-22-reel'}
     items = inbox.get('items', [])
     if len(items) != 2 or {item.get('id') for item in items} != expected or any(item.get('status') != 'draft' for item in items):
         raise RuntimeError('Acceptance inbox must contain exactly the two authorized unapproved tests')
-    slots = {'carousel':'2026-10-16T20:00:00+05:30','reel':'2026-10-16T20:15:00+05:30'}
+    slots = {'carousel':'2026-10-22T20:00:00+05:30','reel':'2026-10-22T20:15:00+05:30'}
     if any(item.get('scheduled_at') != slots.get(item.get('format')) or item.get('platforms') != ['facebook','instagram'] for item in items):
         raise RuntimeError('Acceptance test platforms or owner-authorized IST slots changed')
     return inbox
@@ -321,8 +321,8 @@ def process_approvals() -> int:
     token, base = secret(), api_url()
     statuses = api_status(base, token)
     drafts = pipeline.load_json(pipeline.DRAFT_QUEUE_PATH)
-    acceptance_ids = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
-    cancelled_acceptance_ids = {'funzug-test-2026-10-16-reel'}
+    acceptance_ids = {'funzug-test-2026-10-22-carousel','funzug-test-2026-10-22-reel'}
+    cancelled_acceptance_ids = {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}
     active_acceptance_ids = acceptance_ids - cancelled_acceptance_ids
     if any(identifier in active_acceptance_ids and status.get('status') == 'approved' for identifier,status in statuses.items()):
         tests = acceptance_inbox()

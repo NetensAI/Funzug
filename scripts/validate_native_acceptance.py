@@ -12,7 +12,7 @@ def main():
     errors = pipeline.validate_draft_queue(queue)
     if errors:
         raise RuntimeError('\n'.join(errors))
-    if {item['id'] for item in queue['items']} != {'funzug-test-2026-10-16-carousel','funzug-test-2026-10-16-reel'}:
+    if {item['id'] for item in queue['items']} != {'funzug-test-2026-10-22-carousel','funzug-test-2026-10-22-reel'}:
         raise RuntimeError('Unexpected acceptance-test items')
     for item in queue['items']:
         if item['status'] != 'draft':
