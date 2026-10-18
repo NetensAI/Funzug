@@ -806,7 +806,7 @@
     },
     {
       "id": "funzug-2026-10-11-noaa-ocean-carbon-data",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "44 Million Ocean Carbon Clues",
       "caption": "A new NOAA data release brings together about 44 million measurements of carbon dioxide at the ocean surface. The observations span 1957 through 2025.\n\nThe Surface Ocean CO₂ Atlas is built from measurements collected by an international network, including instruments on cargo ships, cruise liners, and research vessels. The data are quality controlled before being added to the atlas.\n\nResearchers use these measurements to study how carbon moves between ocean and atmosphere and to track changes in the global carbon cycle. This is a large observation archive, not a single snapshot of every part of the ocean.\n\nWhat other hidden patterns might decades of ocean readings reveal?\n\nThe glowing lines represent data, not visible carbon dioxide.\n\n#OceanScience #NOAA #ClimateData #CarbonCycle #MarineScience",
@@ -898,7 +898,22 @@
           }
         },
         "submission_started_at": "2026-10-14T13:07:12.495212+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-18T16:30:00+05:30",
+          "post_id": "1525683849596639",
+          "scheduled_post_id": "994721706985086"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-18T16:30:00+05:30",
+          "post_id": "18111585350133619",
+          "scheduled_post_id": "2270230887152944"
+        }
+      },
+      "last_attempt_at": "2026-10-18T16:34:03.615120+05:30"
     },
     {
       "id": "funzug-2026-10-11-nasa-sunrise-mission",
