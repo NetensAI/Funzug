@@ -1354,7 +1354,7 @@
     },
     {
       "id": "funzug-2026-10-13-fulgurite",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Lightning Can Turn Sand Into Glass",
       "caption": "Some lightning strikes leave a glass record in the ground.\n\nWhen lightning heats suitable sandy material, it can melt and fuse surrounding grains into a natural glass structure called a fulgurite. Some form rough, hollow tubes.\n\nThe result is not usually a perfect crystal or a smooth sculpture. At Great Sand Dunes, the National Park Service describes dark glass tubes formed by lightning.\n\nWould you have recognized this as evidence of a storm?\n\n#Fulgurite #Lightning #Geology #NaturalGlass #EarthScience",
@@ -1445,7 +1445,22 @@
           }
         },
         "submission_started_at": "2026-10-14T12:54:49.114705+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-18T12:30:00+05:30",
+          "post_id": "1525513276280363",
+          "scheduled_post_id": "4531045277163564"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-18T12:30:00+05:30",
+          "post_id": "18648510700052538",
+          "scheduled_post_id": "3339632156198634"
+        }
+      },
+      "last_attempt_at": "2026-10-18T12:33:53.396975+05:30"
     },
     {
       "id": "funzug-2026-10-14-ocean-bioluminescence",
