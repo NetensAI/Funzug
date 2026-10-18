@@ -1479,7 +1479,7 @@
     },
     {
       "id": "funzug-2026-10-14-ocean-bioluminescence",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "The Ocean Can Glow With Living Light",
       "caption": "Some shorelines can sparkle after dark, and the light comes from living organisms.\n\nIn Puerto Rico's Mosquito Bay, tiny dinoflagellates produce flashes of blue light when the water is disturbed. The effect can make waves and paddles glow.\n\nBioluminescence is a chemical process used by many kinds of organisms. The illustration shows a possible glowing shoreline, not a photograph of a specific bay.\n\nWould you visit a beach that lights up at night?\n\n#Bioluminescence #OceanScience #PuertoRico #Nature #Science",
@@ -1571,7 +1571,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:10:54.901476+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-18T20:17:00+05:30",
+          "post_id": "1525857459579278",
+          "scheduled_post_id": "1420801076823026"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-18T20:17:00+05:30",
+          "post_id": "17978451096140164",
+          "scheduled_post_id": "972940589221876"
+        }
+      },
+      "last_attempt_at": "2026-10-18T20:21:00.871471+05:30"
     },
     {
       "id": "funzug-2026-10-14-sea-otters-resting",
