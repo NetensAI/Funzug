@@ -1201,7 +1201,7 @@
     },
     {
       "id": "funzug-2026-10-13-octopus-three-hearts",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Three Hearts Keep This Octopus Alive",
       "caption": "An octopus has three hearts, but they do not all do the same job.\n\nTwo pump blood through the gills. The third sends oxygenated blood around the body.\n\nIts oxygen-carrying chemistry is different from ours too. Octopuses use copper-based hemocyanin, which gives their blood a blue color, rather than our iron-based hemoglobin.\n\nWhich is more surprising: three hearts or blue blood?\n\n#Octopus #MarineBiology #OceanLife #AnimalScience #NatureFacts",
@@ -1277,7 +1277,22 @@
           }
         },
         "submission_started_at": "2026-10-14T13:01:35.016765+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-19T12:30:00+05:30",
+          "post_id": "1526516146180076",
+          "scheduled_post_id": "1870438704121474"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-19T12:30:00+05:30",
+          "post_id": "17913115263538551",
+          "scheduled_post_id": "2184904635757213"
+        }
+      },
+      "last_attempt_at": "2026-10-19T12:34:23.424508+05:30"
     },
     {
       "id": "funzug-2026-10-13-singing-sand",
