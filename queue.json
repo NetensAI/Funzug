@@ -1620,7 +1620,7 @@
     },
     {
       "id": "funzug-2026-10-14-sea-otters-resting",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Sea Otters Sometimes Hold Paws While Resting",
       "caption": "A quiet moment on the water can help keep a sea otter close to its group.\n\nSea otters sometimes hold paws while resting in rafts. They may also wrap themselves in kelp, which helps keep them from drifting apart.\n\nIt is a behavior seen in some situations, not a rule for every otter. The image is an illustration of the behavior, not a wildlife photograph.\n\nWhat animal behavior would you love to see in the wild?\n\n#SeaOtters #MarineLife #OceanAnimals #Wildlife #NatureFacts",
@@ -1704,7 +1704,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:21:38.034016+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-19T16:30:00+05:30",
+          "post_id": "1526679659497058",
+          "scheduled_post_id": "880595445047851"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-19T16:30:00+05:30",
+          "post_id": "18426503728155138",
+          "scheduled_post_id": "1093525526743130"
+        }
+      },
+      "last_attempt_at": "2026-10-19T16:34:08.877766+05:30"
     },
     {
       "id": "funzug-2026-10-14-havasupai-mule-mail",
