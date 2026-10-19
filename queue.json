@@ -917,7 +917,7 @@
     },
     {
       "id": "funzug-2026-10-11-nasa-sunrise-mission",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Six Tiny Satellites, One Giant Eye",
       "caption": "NASA’s SunRISE mission is designed to make six small satellites work together as one giant radio telescope. Each spacecraft is about the size of a toaster oven.\n\nFlying in formation above geosynchronous orbit, the satellites will track radio bursts from the Sun’s corona. Those bursts can be linked to energetic particles that may pose hazards to spacecraft and astronauts.\n\nThe mission is planned to launch no earlier than mid-2027. It is not in orbit yet; the concept is to combine the satellites’ observations into a much larger virtual instrument.\n\nWhat questions about the Sun could a formation of tiny spacecraft help answer?\n\nSpacecraft positions and sizes are not to scale.\n\n#NASA #SunRISE #SolarScience #SpaceTechnology #Astronomy",
@@ -1000,7 +1000,22 @@
           }
         },
         "submission_started_at": "2026-10-14T12:59:51.856729+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-19T08:18:00+05:30",
+          "post_id": "1526350736196617",
+          "scheduled_post_id": "2315305195885397"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-19T08:18:00+05:30",
+          "post_id": "18140499052616088",
+          "scheduled_post_id": "2045157769497827"
+        }
+      },
+      "last_attempt_at": "2026-10-19T08:21:52.058671+05:30"
     },
     {
       "id": "funzug-2026-10-13-wood-frog-winter",
