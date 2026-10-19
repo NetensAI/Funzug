@@ -1723,7 +1723,7 @@
     },
     {
       "id": "funzug-2026-10-14-havasupai-mule-mail",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This US Community Gets Its Mail By Mule",
       "caption": "Deep inside the Grand Canyon, a mule train carries more than hikers' supplies.\n\nThe U.S. Postal Service says mules have delivered mail and goods to the Havasupai community since the 1930s. The route descends about eight miles to Supai, where the post office serves the community.\n\nThe delivery system reflects the canyon's remote terrain. This artwork is an illustration, not a photograph of a specific mail run.\n\nWhat would you find most surprising to receive by mule?\n\n#USPS #GrandCanyon #Arizona #Community #AmericanStories",
@@ -1807,7 +1807,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:23:13.312118+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-19T20:10:00+05:30",
+          "post_id": "1526861829478841",
+          "scheduled_post_id": "28458131600555176"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-19T20:10:00+05:30",
+          "post_id": "18128180987511209",
+          "scheduled_post_id": "1057097610671187"
+        }
+      },
+      "last_attempt_at": "2026-10-19T20:13:32.228039+05:30"
     },
     {
       "id": "funzug-2026-10-14-jbj-soul-kitchen",
