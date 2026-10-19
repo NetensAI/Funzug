@@ -18,6 +18,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=app:app /app/.next/standalone ./
 COPY --from=builder --chown=app:app /app/.next/static ./.next/static
 COPY --chown=app:app scripts/reviewed_media.py scripts/validate_ordered_media.py ./scripts/
+COPY --chown=app:app scripts/image_preview.py ./scripts/
 USER app
 EXPOSE 3000
 CMD ["node","server.js"]

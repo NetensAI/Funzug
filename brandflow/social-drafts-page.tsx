@@ -4,33 +4,37 @@ import SocialDraftReschedule from '@/components/SocialDraftReschedule';
 import SocialDraftMedia from '@/components/SocialDraftMedia';
 import {db} from '@/lib/db';
 import {getSession} from '@/lib/auth';
-import {draftContentHash} from '@/lib/funzug-content-hash.mjs';
+import {draftContentHashFromChecksum} from '@/lib/funzug-content-hash.mjs';
 import {mixedDeliveryEnabled} from '@/lib/mixed-delivery-policy.mjs';
 
-export default async function Page({searchParams}:{searchParams:{brand?:string,status?:string}}){
+export default async function Page({searchParams}:{searchParams:{brand?:string,status?:string,page?:string}}){
  const {rows:brands}=await db.query("SELECT * FROM brands WHERE status<>'archived' ORDER BY created_at");
  const brand=brands.find(x=>x.slug===searchParams.brand)||brands[0];
  const requestedStatus=searchParams.status||'';
  const status:'pending_review'|'approved'|'rejected'=requestedStatus==='pending_review'||requestedStatus==='approved'||requestedStatus==='rejected'?requestedStatus:'pending_review';
- const {rows}=await db.query(`SELECT d.*,u.username reviewer_username,COALESCE((SELECT jsonb_agg(jsonb_build_object('oldSchedule',r.old_proposed_schedule,'oldTimezone',r.old_schedule_timezone,'newSchedule',r.new_proposed_schedule,'newTimezone',r.new_schedule_timezone,'reviewedAt',r.rescheduled_at,'reviewNote',r.reschedule_note,'reviewedBy',ru.username) ORDER BY r.rescheduled_at DESC) FROM social_post_reschedules r LEFT JOIN users ru ON ru.id=r.rescheduled_by WHERE r.draft_id=d.id),'[]'::jsonb) reschedule_history FROM social_post_drafts d LEFT JOIN users u ON u.id=d.reviewed_by WHERE d.brand_id=$1 AND d.status=$2 ORDER BY d.proposed_schedule,d.created_at DESC LIMIT 100`,[brand.id,status]);
+ const page=Math.min(10000,Math.max(1,Number.parseInt(searchParams.page||'1',10)||1));
+ const {rows:pageRows}=await db.query(`SELECT d.id,d.media_format,d.batch_id,d.external_id,d.headline,d.caption,d.claims,d.evidence_sources,d.platforms,d.proposed_schedule,d.schedule_timezone,d.status,d.published_at,d.reviewed_at,d.review_note,d.platform_outcomes,d.native_handoff,d.image_mime_type,encode(sha256(d.image_bytes),'hex') image_sha256,u.username reviewer_username,COALESCE((SELECT jsonb_agg(jsonb_build_object('oldSchedule',r.old_proposed_schedule,'oldTimezone',r.old_schedule_timezone,'newSchedule',r.new_proposed_schedule,'newTimezone',r.new_schedule_timezone,'reviewedAt',r.rescheduled_at,'reviewNote',r.reschedule_note,'reviewedBy',ru.username) ORDER BY r.rescheduled_at DESC) FROM social_post_reschedules r LEFT JOIN users ru ON ru.id=r.rescheduled_by WHERE r.draft_id=d.id),'[]'::jsonb) reschedule_history FROM social_post_drafts d LEFT JOIN users u ON u.id=d.reviewed_by WHERE d.brand_id=$1 AND d.status=$2 ORDER BY d.proposed_schedule,d.created_at DESC,d.id LIMIT 9 OFFSET $3`,[brand.id,status,(page-1)*8]);
+ const rows=pageRows.slice(0,8),hasMore=pageRows.length>8;
+ const pageUrl=(n:number)=>`/social-drafts?brand=${encodeURIComponent(brand.slug)}&status=${status}&page=${n}`;
  const session=await getSession();
  const mixedIds=rows.filter(d=>d.media_format&&d.media_format!=='image').map(d=>d.id);
  if(mixedIds.length){
   const {rows:assets}=await db.query('SELECT draft_id,media_index,mime_type,width,height,duration_ms,sha256 FROM social_post_media_assets WHERE draft_id=ANY($1::uuid[]) ORDER BY draft_id,media_index',[mixedIds]);
   for(const draft of rows){
-   draft.media_assets=assets.filter(a=>a.draft_id===draft.id).map(a=>({index:a.media_index,mimeType:a.mime_type,width:a.width,height:a.height}));
+   draft.media_assets=assets.filter(a=>a.draft_id===draft.id).map(a=>({index:a.media_index,mimeType:a.mime_type,width:a.width,height:a.height,sha256:a.sha256}));
    draft.ordered_media=assets.filter(a=>a.draft_id===draft.id).map(a=>({index:a.media_index,mimeType:a.mime_type,width:a.width,height:a.height,durationMs:a.duration_ms,sha256:a.sha256}));
   }
  }
  return <AppPage>{()=> <div className="stack">
   <div className="card"><div className="row spread"><div><h2>{brand.name} social-post review</h2><div className="muted">Approve to authorize publishing at your selected IST time. Approval does not publish immediately.</div></div><div className="row">{['pending_review','approved','rejected'].map(s=><a className={`btn ${s===status?'':'secondary'}`} href={`/social-drafts?brand=${brand.slug}&status=${s}`} key={s}>{s.replace('_',' ')}</a>)}</div></div></div>
-  {rows.map(d=>{
+  <nav className="row" aria-label="Review pages">{page>1&&<a className="btn secondary" href={pageUrl(page-1)}>Previous</a>}<span>Page {page}</span>{hasMore&&<a className="btn secondary" href={pageUrl(page+1)}>Next 8 posts</a>}</nav>
+  {rows.map((d,index)=>{
    const sources=new Map((d.evidence_sources||[]).map((s:any)=>[s.id,s]));
    const published=Boolean(d.published_at);
-   const reviewedContentHash=draftContentHash(d);
+   const reviewedContentHash=draftContentHashFromChecksum(d);
    const reviewEnabled=(!d.media_format||d.media_format==='image'||mixedDeliveryEnabled(d.external_id,process.env))&&Boolean(reviewedContentHash);
    return <article className="card draft" key={d.id}>
-    <div><SocialDraftMedia id={d.id} headline={d.headline} format={d.media_format} assets={d.media_assets||[]}/></div>
+    <div><SocialDraftMedia id={d.id} headline={d.headline} format={d.media_format} assets={d.media_assets||[]} imageHash={d.image_sha256} priority={index===0}/></div>
     <div className="stack">
      <div className="row spread"><span className="badge">{published?'published':d.status.replace('_',' ')}</span><span className="muted">Batch {d.batch_id} · {d.external_id}</span></div>
      <h2>{d.headline}</h2><p className="caption">{d.caption}</p>
@@ -49,6 +53,7 @@ export default async function Page({searchParams}:{searchParams:{brand?:string,s
     </div>
    </article>;
   })}
-  {!rows.length&&<div className="card empty">No {status.replace('_',' ')} social-post drafts for this brand.</div>}
+  {!rows.length&&<div className="card empty">No {status.replace('_',' ')} social-post drafts on this page.</div>}
+  <nav className="row" aria-label="More review pages">{page>1&&<a className="btn secondary" href={pageUrl(page-1)}>Previous</a>}{hasMore&&<a className="btn" href={pageUrl(page+1)}>Next 8 posts</a>}</nav>
  </div>}</AppPage>;
 }

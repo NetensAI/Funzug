@@ -44,6 +44,14 @@ export function draftContentHash(row){
   return contentHash({headline:row.headline,caption:row.caption,claims:row.claims,sources:row.evidence_sources,platforms:row.platforms,imageMimeType:row.image_mime_type,imageSha256:createHash('sha256').update(row.image_bytes).digest('hex')});
 }
 
+// Only use a checksum selected from the database alongside the reviewed fields.
+// This produces exactly the same approval fingerprint without transferring BLOBs.
+export function draftContentHashFromChecksum(row){
+  if(row.media_format&&row.media_format!=='image')return draftContentHash(row);
+  if(typeof row.image_sha256!=='string'||! /^[0-9a-f]{64}$/.test(row.image_sha256))return null;
+  return contentHash({headline:row.headline,caption:row.caption,claims:row.claims,sources:row.evidence_sources,platforms:row.platforms,imageMimeType:row.image_mime_type,imageSha256:row.image_sha256});
+}
+
 // Database-generated checksums from one parent/asset snapshot, never client hashes.
 export function storedOrderedMediaHash(row){
   const kind=row.media_format,assets=row.ordered_media;

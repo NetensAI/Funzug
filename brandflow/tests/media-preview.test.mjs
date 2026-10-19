@@ -13,6 +13,15 @@ const assets=[0,1].map(index=>({index,mimeType:'image/png',width:1122,height:140
 test('single image retains its existing private preview',()=>{
  const html=render({format:'image'});assert.match(html,/private-id\/image/);assert.doesNotMatch(html,/<video/);
 });
+
+test('review cards use small versioned previews, eager first image and lazy later images',()=>{
+ const hash='a'.repeat(64);
+ const first=render({format:'image',imageHash:hash,priority:true});
+ assert.match(first,/preview=1/);assert.match(first,/loading="eager"/);assert.match(first,/fetchpriority="high"/);
+ assert.match(first,new RegExp(`href="/api/social-drafts/private-id/image\\?v=${hash}"`));
+ const later=render({format:'image',imageHash:hash});
+ assert.match(later,/loading="lazy"/);assert.match(later,/decoding="async"/);
+});
 test('carousel renders every slide in reviewed order without external URLs',()=>{
  const html=render({format:'carousel',assets});
  assert.ok(html.indexOf('/media/0')<html.indexOf('/media/1'));

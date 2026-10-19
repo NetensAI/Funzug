@@ -75,8 +75,9 @@ test('ordered private previews require current administrator access before retur
    '@/lib/auth':{getSession:async()=>session},
    '@/lib/db':{db:{query:async(sql,args)=>{calls.push({sql,args});return {rows:row?[row]:[]}}}},
    '@/lib/private-media-response.mjs':{privateMediaResponse:()=>({body:Buffer.from('private'),status:200,headers:{'Cache-Control':'private, no-store'}})},
+   '@/lib/image-preview.mjs':{},
   }).GET;
-  return {calls,send:(params={id,index:'0'})=>GET({headers:new Headers()}, {params})};
+  return {calls,send:(params={id,index:'0'})=>GET({url:'https://review.example/api/media',headers:new Headers()}, {params})};
  };
  for(const session of [null,{sub:'owner',role:'viewer'}]){const f=make(session,{});assert.equal((await f.send()).status,403);assert.equal(f.calls.length,0);}
  const f=make({sub:'owner',role:'admin'},{});assert.equal((await f.send()).status,200);assert.match(f.calls[0].sql,/u.active=true AND u.role='admin'/);assert.match(f.calls[0].sql,/b.slug='funzug'/);assert.equal(f.calls[0].args[1],0);
