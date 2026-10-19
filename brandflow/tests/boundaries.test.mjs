@@ -12,6 +12,7 @@ import {orderedMediaManifest} from '../lib/ordered-media-manifest.mjs';
 import {createHash} from 'node:crypto';
 import * as hashHelpers from '../lib/funzug-content-hash.mjs';
 import * as mixedPolicy from '../lib/mixed-delivery-policy.mjs';
+import * as istDates from '../lib/ist-dates.mjs';
 const require=createRequire(import.meta.url);
 test('ordered ingestion authenticates and decodes before storage, and rolls back audit failure',async()=>{
  const draft={format:'carousel',media:[]};
@@ -185,7 +186,7 @@ function load(file, overrides, globals={}){
  const source=fs.readFileSync(new URL(file,import.meta.url),'utf8');
  const compiled=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText;
  const module={exports:{}};
- vm.runInNewContext(compiled,{process:{env:{}},...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name==='@/lib/mixed-delivery-policy.mjs')return mixedPolicy;if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
+ vm.runInNewContext(compiled,{process:{env:{}},...globals,module,exports:module.exports,Buffer,console,URL,Date,Map,Object,JSON,require(name){if(name in overrides)return overrides[name];if(name==='@/lib/mixed-delivery-policy.mjs')return mixedPolicy;if(name==='@/lib/ist-dates.mjs')return istDates;if(name==='@/components/IstScheduleInput')return {__esModule:true,default:()=>null};if(name.startsWith('@/')||name.startsWith('next/'))throw Error(`Unmocked production dependency: ${name}`);return require(name);}});
  return module.exports;
 }
 test('actual reschedule component releases busy state after network and non-JSON errors',async()=>{

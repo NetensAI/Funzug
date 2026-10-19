@@ -2,17 +2,14 @@
 
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
+import IstScheduleInput from '@/components/IstScheduleInput';
+import {toIstLocalValue} from '@/lib/ist-dates.mjs';
 
-function toIstInput(value:string){
- const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(value));
- const part=(type:string)=>parts.find(x=>x.type===type)?.value||'';
- return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
-}
 
 export default function SocialDraftReview({id,initialSchedule,reviewedContentHash}:{id:string;initialSchedule:string;reviewedContentHash:string}){
  const router=useRouter();
  const [approved,setApproved]=useState(false);
- const [schedule,setSchedule]=useState(()=>toIstInput(initialSchedule));
+ const [schedule,setSchedule]=useState(()=>toIstLocalValue(initialSchedule));
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
 
@@ -28,9 +25,7 @@ export default function SocialDraftReview({id,initialSchedule,reviewedContentHas
  }
 
  return <div className="reviewbox stack">
-  <label className="label">Schedule date and time (IST)
-   <input className="input" type="datetime-local" value={schedule} onChange={e=>setSchedule(e.target.value)} required/>
-  </label>
+  <IstScheduleInput label="Schedule date and time (IST)" value={schedule} onChange={setSchedule}/>
   <label><input type="checkbox" checked={approved} onChange={e=>setApproved(e.target.checked)}/> I approve this post for scheduled publishing</label>
   <div className="warning">Approving authorizes the reviewed media to be uploaded to Meta and published at the selected IST time. It will not publish immediately.</div>
   {error&&<div className="error">{error}</div>}
