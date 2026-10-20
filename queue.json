@@ -2476,7 +2476,7 @@
         "batch_id": "2026-10-15-fresh-stories-12",
         "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
       },
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "a02dc8564635a06192a835dde6824a45e558e51b5e6fff8d7f4cd362876a132c",
       "approval": {
         "status": "approved",
@@ -2486,6 +2486,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-20T15:08:32.569921+05:30",
+        "scheduled_at": "2026-10-21T20:29:00+05:30",
+        "content_hash": "a02dc8564635a06192a835dde6824a45e558e51b5e6fff8d7f4cd362876a132c",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
@@ -2801,6 +2812,192 @@
         "approved_by": "vatsal",
         "approved_at": "2026-10-20T09:37:32.853Z",
         "note": "Approved for scheduled publishing at 23 Oct 2026, 8:11 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-15-livermore-centennial-bulb",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Firehouse Bulb With A Century Of History",
+      "caption": "This lightbulb's story began in a firehouse in 1901.\n\nLivermore's Centennial Light was first installed at the California fire department that year. The committee documenting its history describes a handblown bulb with a carbon filament.\n\nIts long life has included moves and interruptions. That detail matters: remarkable longevity does not mean it has never gone out.\n\nWhat is the oldest everyday object still being used in your family?\n\n#CentennialLight #Livermore #CaliforniaHistory #EverydayHistory #Engineering",
+      "topic_key": "livermore-centennial-bulb",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-23T12:35:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-livermore-centennial-bulb.png",
+      "claims": [
+        {
+          "text": "The Centennial Light was first installed at Livermore's fire department in 1901 and is a handblown carbon-filament bulb.",
+          "source_ids": [
+            "centennial-facts"
+          ],
+          "support_note": "The committee's fact sheet gives the installation date, place, material and filament type."
+        },
+        {
+          "text": "Its history includes moves, outages and a 2013 interruption.",
+          "source_ids": [
+            "centennial-facts"
+          ],
+          "support_note": "The fact sheet describes relocations, a 1937 interruption, power outages and a May 2013 power-supply failure. No uninterrupted-burning claim is made."
+        }
+      ],
+      "sources": [
+        {
+          "id": "centennial-facts",
+          "title": "Livermore's Centennial Light Facts",
+          "publisher": "Livermore Lightbulb Centennial Committee",
+          "url": "https://www.centennialbulb.org/facts.htm",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native1122x1402 cinematic antique handblown pear-shaped carbon-filament bulb above softly blurred red American fire engine. Exact headline: A Firehouse Bulb With A Century Of History. Final edit removes duplicate Funzug from bulb and leaves ONE tiny100x25pixel custom copper-wire signature near bottom, no flourishes. Not a documentary photograph.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "8a312cbd6ff36144a7399b0ed38d1ba6b9194804241bd6e1002c02b4f87e1241",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-20T09:37:47.449Z",
+        "note": "Approved for scheduled publishing at 23 Oct 2026, 12:35 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-15-whittier-begich-towers",
+      "status": "approved",
+      "format": "image",
+      "headline": "Most Of This Town Shares One Building",
+      "caption": "In Whittier, Alaska, one residential building plays an unusually large role in daily life.\n\nA city-published economic analysis says most of the town's residents live in Begich Towers, a 14-story building.\n\nThe same report describes a general store and post office in the building, plus a tunnel connection to the school.\n\nThe viral version often says everyone lives there. The more accurate version is still extraordinary: most residents, not all. Could you imagine this kind of close-knit setup?\n\n#Whittier #Alaska #UnusualPlaces #CommunityLife #AmericanPlaces",
+      "topic_key": "whittier-begich-towers",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-23T16:44:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-whittier-begich-towers.png",
+      "claims": [
+        {
+          "text": "Most Whittier residents live in the 14-story Begich Towers building, not every resident.",
+          "source_ids": [
+            "whittier-plan"
+          ],
+          "support_note": "The city-published housing analysis explicitly says most residents and documents other housing."
+        },
+        {
+          "text": "The building contains a general store and post office and is connected to the school by a tunnel.",
+          "source_ids": [
+            "whittier-plan"
+          ],
+          "support_note": "The same housing section explicitly identifies these services and the school connection."
+        }
+      ],
+      "sources": [
+        {
+          "id": "whittier-plan",
+          "title": "Economic Analysis for the Whittier Development Plan",
+          "publisher": "City of Whittier / McKinley Research Group",
+          "url": "https://www.whittieralaska.gov/media/1871",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native1122x1402 cinematic editorial interpretation of Whittier Alaska, pale modest mid-century14-story apartment building beside snowy harbor and coastal mountains. Exact headline: Most Of This Town Shares One Building. Tiny ice-blue handwritten Funzug, no invented factual signage.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "1a264456cfe0f14b249f5d692bcdb4e72b114e613039600fa4c14be8772a1d5c",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-20T09:38:05.291Z",
+        "note": "Approved for scheduled publishing at 23 Oct 2026, 4:44 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-15-el-yunque-rainforest",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Tropical Rainforest In The US Forest System",
+      "caption": "The U.S. national forest system includes a tropical rainforest in Puerto Rico.\n\nEl Yunque sits in the island's northeast. The Forest Service identifies it as the only tropical rainforest within the national forest system.\n\nThat wording matters. It does not mean every other kind of rainforest is absent from the United States.\n\nWhat American landscape surprised you most when you first learned about it?\n\n#ElYunque #PuertoRico #NationalForests #Rainforest #NatureStories",
+      "topic_key": "el-yunque-rainforest",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-23T20:06:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-el-yunque-rainforest.png",
+      "claims": [
+        {
+          "text": "El Yunque is in northeastern Puerto Rico.",
+          "source_ids": [
+            "usfs-elyunque"
+          ],
+          "support_note": "The Forest Service Welcome to El Yunque section identifies the region."
+        },
+        {
+          "text": "It is the only tropical rainforest within the U.S. national forest system.",
+          "source_ids": [
+            "usfs-elyunque"
+          ],
+          "support_note": "The agency explicitly uses this limited designation, not the broader claim that the US has no other rainforests."
+        }
+      ],
+      "sources": [
+        {
+          "id": "usfs-elyunque",
+          "title": "El Yunque National Forest",
+          "publisher": "USDA Forest Service",
+          "url": "https://www.fs.usda.gov/r08/elyunque",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native4:5 lush Puerto Rican tropical rainforest with tree ferns, green canopy, modest waterfall and humid sunlight. Exact headline: A Tropical Rainforest In The US Forest System. Tiny botanical Funzug, single original editorial scene.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "fbf0eaba1ea75541ce2d43f418631d948fb1c5fa27ccb5e1490fe0e0fe7e583e",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-20T09:38:20.045Z",
+        "note": "Approved for scheduled publishing at 23 Oct 2026, 8:06 pm IST",
         "review_checklist": {
           "approvalConfirmed": true
         }
