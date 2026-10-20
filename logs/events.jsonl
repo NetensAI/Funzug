@@ -179,3 +179,5 @@
 {"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-library-of-things", "approved_by": "vatsal"}
 {"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-utah-wildlife-overpass", "approved_by": "vatsal"}
 {"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-empowerment-sleeping-bag-coat", "approved_by": "vatsal"}
+{"logged_at": "2026-10-20T09:36:05+00:00", "event": "approved", "item_id": "funzug-2026-10-15-pando-aspen-clone", "approved_by": "vatsal"}
+{"logged_at": "2026-10-20T09:36:07+00:00", "event": "native_handoff_reserve", "item_id": "funzug-2026-10-15-butterfly-taste-feet", "scheduled_at": "2026-10-21T16:15:00+05:30", "content_hash": "386a567990013ec8b4e46b9d8fd749436dd5c266228a374d881501e67e648438", "state": "reserved"}

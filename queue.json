@@ -2403,7 +2403,7 @@
         "batch_id": "2026-10-15-fresh-stories-12",
         "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
       },
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "386a567990013ec8b4e46b9d8fd749436dd5c266228a374d881501e67e648438",
       "approval": {
         "status": "approved",
@@ -2413,6 +2413,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-20T15:06:07.332311+05:30",
+        "scheduled_at": "2026-10-21T16:15:00+05:30",
+        "content_hash": "386a567990013ec8b4e46b9d8fd749436dd5c266228a374d881501e67e648438",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
@@ -2596,6 +2607,76 @@
         "approved_by": "vatsal",
         "approved_at": "2026-10-20T09:35:08.924Z",
         "note": "Approved for scheduled publishing at 22 Oct 2026, 12:19 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-15-pando-aspen-clone",
+      "status": "approved",
+      "format": "image",
+      "headline": "This Forest Is One Giant Aspen Clone",
+      "caption": "A grove can look like a crowd of separate trees and still be one enormous clone.\n\nPando is an aspen clone in central Utah. Genetic research confirmed that the dominant group of sampled stems belonged to the same clone.\n\nAspens can produce new stems from roots. That means counting trunks is not always the same thing as counting distinct genetic individuals.\n\nWould knowing that change the way you looked at a forest?\n\n#Pando #AspenTrees #Utah #ForestScience #NatureFacts",
+      "topic_key": "pando-aspen-clone",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-22T16:22:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-pando-aspen-clone.png",
+      "claims": [
+        {
+          "text": "Pando is a genetically confirmed giant aspen clone in central Utah.",
+          "source_ids": [
+            "usfs-pando-genetics"
+          ],
+          "support_note": "The primary paper's results confirm Pando, identify its dominant genotype, and distinguish neighboring genotypes."
+        },
+        {
+          "text": "Quaking aspens can reproduce through new shoots arising from roots.",
+          "source_ids": [
+            "usfs-aspen-silvics"
+          ],
+          "support_note": "The Forest Service silvics account describes root suckers and clonal formation."
+        }
+      ],
+      "sources": [
+        {
+          "id": "usfs-pando-genetics",
+          "title": "PANDO LIVES: Molecular genetic evidence of a giant aspen clone in central Utah",
+          "publisher": "USDA Forest Service / DeWoody and colleagues",
+          "url": "https://www.fs.usda.gov/NFGEL/documents/publications/DeWoody_etal_pando_2008.pdf",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        },
+        {
+          "id": "usfs-aspen-silvics",
+          "title": "Quaking Aspen",
+          "publisher": "USDA Forest Service",
+          "url": "https://research.fs.usda.gov/silvics/quaking-aspen",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native4:5 cinematic Utah quaking aspen grove in golden autumn light, many white trunks in continuous forest floor, no fantasy exposed roots. Exact headline: This Forest Is One Giant Aspen Clone. Tiny leaf-veined gold Funzug lettering, one scene.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "2427e332382d1a4b865202a99cb56aaae4c360e097b01fe24613624305fd514a",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-20T09:35:50.831Z",
+        "note": "Approved for scheduled publishing at 22 Oct 2026, 4:22 pm IST",
         "review_checklist": {
           "approvalConfirmed": true
         }
