@@ -2563,7 +2563,7 @@
         }
       },
       "native_handoff": {
-        "state": "reserved",
+        "state": "submitting",
         "reserved_at": "2026-10-20T15:09:20.641266+05:30",
         "scheduled_at": "2026-10-22T08:30:00+05:30",
         "content_hash": "563726b417ef8b26b387010015ce7f9760ab3b4a05ef009db4f45fd7680a05cc",
@@ -2571,7 +2571,8 @@
           "facebook",
           "instagram"
         ],
-        "receipts": {}
+        "receipts": {},
+        "submission_started_at": "2026-10-20T15:15:50.871580+05:30"
       }
     },
     {
