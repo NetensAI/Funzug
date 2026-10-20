@@ -1944,7 +1944,7 @@
     },
     {
       "id": "funzug-2026-10-14-chesapeake-bridge-tunnel",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This US Crossing Goes Above And Below Water",
       "caption": "A highway across the mouth of Chesapeake Bay disappears underwater, then rises again.\n\nThe Chesapeake Bay Bridge-Tunnel spans about 17.6 miles and combines bridges, causeways, man-made islands, and two one-mile tunnels.\n\nThe tunnels let ships pass through the busy shipping channel. The image is a stylized scene, not an engineering diagram.\n\nWould you take this route on a road trip?\n\n#ChesapeakeBay #Virginia #RoadTrip #Engineering #USLandmarks",
@@ -2028,7 +2028,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:25:44.352553+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-20T16:31:00+05:30",
+          "post_id": "1527654952732862",
+          "scheduled_post_id": "1584398186125142"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-20T16:31:00+05:30",
+          "post_id": "18159489268457996",
+          "scheduled_post_id": "2403297533741819"
+        }
+      },
+      "last_attempt_at": "2026-10-20T18:00:00.886972+05:30"
     },
     {
       "id": "funzug-2026-10-14-dolly-imagination-library",
