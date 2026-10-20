@@ -470,6 +470,19 @@ class MetaBrowser:
             raise NativeFailure('composer_not_verified')
         # Any timeout returns to controller reconciliation, never click again.
 
+    def wait_for_planner_match(self, locator):
+        """A missing card after submission is not proof Planner is unavailable."""
+        try:
+            locator.first.wait_for(state='visible', timeout=45000)
+        except Exception as error:
+            # Keep Playwright optional for the offline adapter tests. Only its
+            # visibility timeout is absence; transport and selector errors fail.
+            if type(error).__name__ != 'TimeoutError':
+                raise
+            self.check_access(self.planner)
+            return False
+        return True
+
     def planner_cards(self, packet: dict, allow_past=False, *, expect_existing=None):
         self.planner.goto(PLANNER, wait_until='domcontentloaded')
         self.visible(self.planner, 'Planner')
@@ -507,7 +520,7 @@ class MetaBrowser:
         if expect_existing is None:
             expect_existing = (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}
         if allow_past or expect_existing:
-            cards.first.wait_for(state='visible', timeout=45000)
+            self.wait_for_planner_match(cards)
         # Facebook defers card hydration until it enters the viewport. Waiting
         # for a descendant link cannot trigger an offscreen placeholder to load.
         for card in cards.all():
@@ -527,14 +540,20 @@ class MetaBrowser:
                 # Opening a card can scroll the calendar horizontally.
                 header = self.planner.get_by_text(calendar_label(slot), exact=True)
                 bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
-            name = time_label(slot) + (' Facebook' if platform == 'facebook' else ' Instagram')
-            candidates = cards.get_by_role('link', name=name, exact=True)
+            platform_name = 'Facebook' if platform == 'facebook' else 'Instagram'
+            candidates = cards.get_by_role('link').filter(
+                has=self.planner.get_by_role('img', name=platform_name, exact=True))
             if expect_existing:
                 # Facebook and Instagram cards hydrate independently. A labelled
                 # card can still be an empty loading-state while the other is ready.
-                candidates.first.wait_for(state='visible', timeout=45000)
+                if not self.wait_for_planner_match(candidates):
+                    continue
             matching = []
             for candidate in candidates.all():
+                # Meta uses narrow no-break spaces in some visible time labels.
+                # Bind the actual clock text and platform image independently.
+                if re.sub(r'\s+', ' ', candidate.inner_text()).strip() != time_label(slot):
+                    continue
                 position = candidate.bounding_box()
                 if position and bounds['left'] <= position['x'] + position['width'] / 2 <= bounds['right']:
                     matching.append(candidate)
