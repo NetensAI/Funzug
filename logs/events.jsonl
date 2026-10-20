@@ -175,3 +175,7 @@
 {"logged_at": "2026-10-20T07:04:22+00:00", "event": "published", "item_id": "funzug-2026-10-14-jbj-soul-kitchen", "platform": "facebook", "post_id": "1527490892749268", "scheduled_post_id": "2084954152145843", "published_at": "2026-10-20T12:30:00+05:30", "source": "Meta Business Suite"}
 {"logged_at": "2026-10-20T07:04:22+00:00", "event": "published", "item_id": "funzug-2026-10-14-jbj-soul-kitchen", "platform": "instagram", "post_id": "18119579296998657", "scheduled_post_id": "968284352411858", "published_at": "2026-10-20T12:30:00+05:30", "source": "Meta Business Suite"}
 {"logged_at": "2026-10-20T07:04:22+00:00", "event": "native_handoff_published", "item_id": "funzug-2026-10-14-jbj-soul-kitchen", "scheduled_at": "2026-10-20T12:30:00+05:30", "content_hash": "4ee31a850b5df906c58b01ffa93001398b781a88c489520623971ad5bf15f603", "state": "scheduled", "platforms": ["facebook", "instagram"], "source": "Meta Business Suite"}
+{"logged_at": "2026-10-20T09:35:20+00:00", "event": "approved", "item_id": "funzug-2026-10-15-butterfly-taste-feet", "approved_by": "vatsal"}
+{"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-library-of-things", "approved_by": "vatsal"}
+{"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-utah-wildlife-overpass", "approved_by": "vatsal"}
+{"logged_at": "2026-10-20T09:35:21+00:00", "event": "approved", "item_id": "funzug-2026-10-15-empowerment-sleeping-bag-coat", "approved_by": "vatsal"}
