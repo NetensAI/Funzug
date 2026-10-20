@@ -2047,7 +2047,7 @@
     },
     {
       "id": "funzug-2026-10-14-dolly-imagination-library",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Dolly Parton's Program Mails Free Books To Kids",
       "caption": "A book can arrive in the mail before a child can read the words inside it.\n\nDolly Parton's Imagination Library offers a free, age-appropriate book each month to enrolled children from birth to age five. The books are delivered by mail, with local partners helping fund and run programs.\n\nAvailability depends on whether a local program serves the child's area. Families can check the program's official site to see if registration is open nearby.\n\nWhat book made you love reading as a child?\n\n#DollyParton #ImaginationLibrary #ChildrensBooks #EarlyLearning #Reading",
@@ -2131,7 +2131,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:29:11.226203+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-20T20:31:00+05:30",
+          "post_id": "1527845526047138",
+          "scheduled_post_id": "2302910117175257"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-20T20:31:00+05:30",
+          "post_id": "18005575848006267",
+          "scheduled_post_id": "1158986583386750"
+        }
+      },
+      "last_attempt_at": "2026-10-20T20:35:08.211335+05:30"
     },
     {
       "id": "funzug-2026-10-14-popcorn-turns-inside-out",
