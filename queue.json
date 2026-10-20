@@ -1019,7 +1019,7 @@
     },
     {
       "id": "funzug-2026-10-13-wood-frog-winter",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Frog Survives A Frozen Winter",
       "caption": "For a wood frog, freezing is not necessarily the end.\n\nThese frogs can survive winter with ice forming outside their cells. Their livers release glucose that helps protect the cells from freezing and dehydration.\n\nDuring this dormant state, breathing and heartbeat can stop. As conditions warm in spring, the frog thaws and activity resumes. It has survived freezing, not returned from death.\n\nWhich winter survival strategy surprises you most?\n\n#WoodFrog #WinterWildlife #AnimalAdaptations #NatureScience #Biology",
@@ -1102,7 +1102,22 @@
           }
         },
         "submission_started_at": "2026-10-14T13:02:31.020101+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-20T08:13:00+05:30",
+          "post_id": "1527321336099557",
+          "scheduled_post_id": "1108192562135486"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-20T08:13:00+05:30",
+          "post_id": "18219231208357785",
+          "scheduled_post_id": "1283827120538908"
+        }
+      },
+      "last_attempt_at": "2026-10-20T08:16:46.158015+05:30"
     },
     {
       "id": "funzug-2026-10-13-greenland-shark-longevity",
