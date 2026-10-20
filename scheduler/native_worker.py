@@ -105,7 +105,7 @@ def verify_ordered_package(packet: dict) -> list[bytes]:
 
 
 class Browser(Protocol):
-    def inspect(self, packet: dict) -> dict[str, dict]: ...
+    def inspect(self, packet: dict, *, expect_existing: bool | None = None) -> dict[str, dict]: ...
     def prepare(self, packet: dict, image: bytes | list[bytes]) -> dict: ...
     def prepared(self, packet: dict) -> dict: ...
     def submit(self) -> None: ...
@@ -238,7 +238,7 @@ def advance(packet: dict, state: dict, browser: Browser, workflow: Callable, per
             raise NativeFailure('submission_checkpoint_unconfirmed')
         if stamp(packet['proposedSchedule'])<=dt.datetime.now(IST)+dt.timedelta(minutes=10):
             raise NativeFailure('approved_slot_too_close')
-        if browser.inspect(packet):
+        if browser.inspect(packet, expect_existing=False):
             raise NativeFailure('existing_planner_post_needs_reconciliation')
         # A durable submission_intent is written before the public click. Only
         # phases preceding that marker may rebuild an unsent composer on restart.
