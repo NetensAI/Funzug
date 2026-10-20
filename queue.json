@@ -1841,7 +1841,7 @@
     },
     {
       "id": "funzug-2026-10-14-jbj-soul-kitchen",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "A Community Restaurant Welcomes Those Unable To Pay",
       "caption": "At one New Jersey restaurant, a meal is not out of reach when someone cannot pay.\n\nJBJ Soul Kitchen uses a suggested donation model. Guests who cannot contribute are still welcomed to eat and can learn about volunteer opportunities.\n\nThe nonprofit operates community restaurants in New Jersey. Check its current site for locations and hours before visiting.\n\nHow can a local restaurant strengthen its community?\n\n#CommunityKitchen #NewJersey #FoodAccess #CommunitySupport #LocalStories",
@@ -1925,7 +1925,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:38:38.773647+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-20T12:30:00+05:30",
+          "post_id": "1527490892749268",
+          "scheduled_post_id": "2084954152145843"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-20T12:30:00+05:30",
+          "post_id": "18119579296998657",
+          "scheduled_post_id": "968284352411858"
+        }
+      },
+      "last_attempt_at": "2026-10-20T12:34:22.673829+05:30"
     },
     {
       "id": "funzug-2026-10-14-chesapeake-bridge-tunnel",
