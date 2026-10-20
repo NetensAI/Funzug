@@ -470,7 +470,7 @@ class MetaBrowser:
             raise NativeFailure('composer_not_verified')
         # Any timeout returns to controller reconciliation, never click again.
 
-    def planner_cards(self, packet: dict, allow_past=False):
+    def planner_cards(self, packet: dict, allow_past=False, *, expect_existing=None):
         self.planner.goto(PLANNER, wait_until='domcontentloaded')
         self.visible(self.planner, 'Planner')
         self.planner.get_by_role('button', name='Week', exact=True).click()
@@ -504,7 +504,9 @@ class MetaBrowser:
         cards = self.planner.get_by_label(packet['caption'], exact=True)
         # Date headers can render before the posts. An existing submission must
         # wait for its reviewed caption instead of treating loading as absence.
-        if allow_past or (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}:
+        if expect_existing is None:
+            expect_existing = (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}
+        if allow_past or expect_existing:
             cards.first.wait_for(state='visible', timeout=45000)
         # Facebook defers card hydration until it enters the viewport. Waiting
         # for a descendant link cannot trigger an offscreen placeholder to load.
@@ -514,8 +516,10 @@ class MetaBrowser:
         bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
         return cards,bounds
 
-    def inspect(self, packet: dict) -> dict:
-        cards,bounds=self.planner_cards(packet)
+    def inspect(self, packet: dict, *, expect_existing=None) -> dict:
+        if expect_existing is None:
+            expect_existing = (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}
+        cards,bounds=self.planner_cards(packet, expect_existing=expect_existing)
         slot=stamp(packet['proposedSchedule'])
         results = {}
         for platform in packet['platforms']:
@@ -525,7 +529,7 @@ class MetaBrowser:
                 bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
             name = time_label(slot) + (' Facebook' if platform == 'facebook' else ' Instagram')
             candidates = cards.get_by_role('link', name=name, exact=True)
-            if (packet.get('nativeHandoff') or {}).get('state') in {'scheduled', 'submitting'}:
+            if expect_existing:
                 # Facebook and Instagram cards hydrate independently. A labelled
                 # card can still be an empty loading-state while the other is ready.
                 candidates.first.wait_for(state='visible', timeout=45000)

@@ -27,14 +27,16 @@ def checkpoint(packet,state='reserved'):
 
 class Driver:
     def __init__(self,packet,observations=None):
-        self.packet=packet;self.observations=observations or [{}];self.submits=0;self.events=[]
+        self.packet=packet;self.observations=observations or [{}];self.submits=0;self.events=[];self.inspect_expectations=[]
     def proof(self,packet,image):
         return {**binding(packet),'caption':packet['caption'],'image_sha256':hashlib.sha256(image).hexdigest(),'timezone':'Asia/Kolkata','story':False,'boost':False}
     def prepare(self,packet,image):
         self.events.append('prepare');return self.proof(packet,image)
     def prepared(self,packet):return self.proof(packet,verify_package(packet))
     def submit(self):self.events.append('submit');self.submits+=1
-    def inspect(self,packet):return self.observations.pop(0) if self.observations else {}
+    def inspect(self,packet,*,expect_existing=None):
+        self.inspect_expectations.append(expect_existing)
+        return self.observations.pop(0) if self.observations else {}
 
 
 def receipts(packet,platforms=None):
@@ -78,6 +80,7 @@ class NativeWorkerTests(unittest.TestCase):
         driver=Driver(self.packet,[receipts(self.packet)]);calls=[]
         advance(self.packet,state,driver,lambda *x:calls.append(x),lambda s:None,lambda:self.packet,self.now)
         self.assertEqual(driver.submits,0);self.assertEqual([x[0] for x in calls],['receipt','receipt'])
+        self.assertEqual(driver.inspect_expectations,[None])
     def test_unknown_submission_remains_blocked(self):
         self.packet['nativeHandoff']=checkpoint(self.packet,'submitting')
         driver=Driver(self.packet);calls=[]
@@ -134,6 +137,7 @@ class NativeWorkerTests(unittest.TestCase):
         def persist(s):saved.append(copy.deepcopy(s))
         self.assertEqual(advance(self.packet,state,driver,workflow,persist,lambda:copy.deepcopy(self.packet),self.now),'scheduled')
         self.assertEqual(driver.submits,1)
+        self.assertEqual(driver.inspect_expectations,[False,None])
         self.assertTrue(any(s['phase']=='submission_intent' for s in saved))
     def test_resume_never_submits_without_owned_completed_begin_run(self):
         self.packet['nativeHandoff']=checkpoint(self.packet,'submitting')

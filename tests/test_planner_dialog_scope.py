@@ -6,6 +6,23 @@ from scheduler.native_worker import IST, NativeFailure
 
 
 class PlannerDialogScopeTests(unittest.TestCase):
+    def test_preclick_submission_checkpoint_does_not_wait_for_absent_post(self):
+        driver = MetaBrowser.__new__(MetaBrowser)
+        driver.planner = Mock()
+        driver.visible = Mock()
+        slot = dt.datetime.now(IST) + dt.timedelta(days=1)
+        header, dates, cards = Mock(), Mock(), Mock()
+        header.count.return_value = 1
+        header.evaluate.return_value = {'left':0,'right':100}
+        driver.planner.get_by_role.return_value.count.return_value = 1
+        driver.planner.get_by_text.side_effect = lambda text, **kw: header if text == calendar_label(slot) else dates
+        driver.planner.get_by_label.return_value = cards
+        cards.all.return_value = []
+        driver.planner_cards({'caption':'unsent reviewed caption',
+            'proposedSchedule':slot.isoformat(),'nativeHandoff':{'state':'submitting'}},
+            expect_existing=False)
+        cards.first.wait_for.assert_not_called()
+
     def test_offscreen_card_hydrates_before_link_lookup(self):
         driver = MetaBrowser.__new__(MetaBrowser)
         driver.planner = Mock()
@@ -91,3 +108,10 @@ class PlannerDialogScopeTests(unittest.TestCase):
             links.all.return_value = [candidate]
         links.first.wait_for.side_effect = hydrate
         self.assertEqual(driver.inspect(packet)['facebook']['schedule_id'], '123')
+
+    def test_preclick_inspection_still_reports_existing_duplicate(self):
+        driver, dialog, close, packet = self.fixture()
+        packet['nativeHandoff'] = {'state':'submitting'}
+        self.assertEqual(driver.inspect(packet, expect_existing=False)['facebook']['schedule_id'], '123')
+        driver.planner_cards.assert_called_once_with(packet, expect_existing=False)
+        driver.planner_cards.return_value[0].get_by_role.return_value.first.wait_for.assert_not_called()
