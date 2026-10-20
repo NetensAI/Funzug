@@ -187,3 +187,4 @@
 {"logged_at": "2026-10-20T09:38:30+00:00", "event": "approved", "item_id": "funzug-2026-10-15-whittier-begich-towers", "approved_by": "vatsal"}
 {"logged_at": "2026-10-20T09:38:30+00:00", "event": "approved", "item_id": "funzug-2026-10-15-el-yunque-rainforest", "approved_by": "vatsal"}
 {"logged_at": "2026-10-20T09:38:32+00:00", "event": "native_handoff_reserve", "item_id": "funzug-2026-10-15-library-of-things", "scheduled_at": "2026-10-21T20:29:00+05:30", "content_hash": "a02dc8564635a06192a835dde6824a45e558e51b5e6fff8d7f4cd362876a132c", "state": "reserved"}
+{"logged_at": "2026-10-20T09:39:20+00:00", "event": "native_handoff_reserve", "item_id": "funzug-2026-10-15-utah-wildlife-overpass", "scheduled_at": "2026-10-22T08:30:00+05:30", "content_hash": "563726b417ef8b26b387010015ce7f9760ab3b4a05ef009db4f45fd7680a05cc", "state": "reserved"}
