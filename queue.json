@@ -2150,7 +2150,7 @@
     },
     {
       "id": "funzug-2026-10-14-popcorn-turns-inside-out",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Why Popcorn Turns Itself Inside Out",
       "caption": "A popcorn kernel does more than burst. It flips as it becomes the fluffy snack.\n\nHeat turns moisture inside the kernel into steam. Pressure builds beneath the tough outer hull until the kernel pops, and expanding starch pushes outward.\n\nThe U.S. Department of Agriculture's National Agricultural Library describes the popped kernel as turning inside out. Nebraska Extension explains that steam pressure drives the process.\n\nDid you know the kernel flips as it pops?\n\n#Popcorn #FoodScience #USDA #EverydayScience #Curiosity",
@@ -2252,7 +2252,22 @@
           }
         },
         "submission_started_at": "2026-10-14T15:41:31.748229+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-21T08:33:00+05:30",
+          "post_id": "1528325345999156",
+          "scheduled_post_id": "1863053068476034"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-21T08:33:00+05:30",
+          "post_id": "17909260029482687",
+          "scheduled_post_id": "2159943251401258"
+        }
+      },
+      "last_attempt_at": "2026-10-21T08:36:52.499886+05:30"
     },
     {
       "id": "funzug-test-2026-10-16-carousel",
