@@ -2400,7 +2400,7 @@
     },
     {
       "id": "funzug-2026-10-15-butterfly-taste-feet",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Butterflies Taste The World With Their Feet",
       "caption": "A butterfly can learn about a plant just by standing on it.\n\nTaste receptors on its feet detect chemicals on the surface. For females, that information can help identify a suitable plant for their eggs.\n\nIt is a very different way of exploring the world from ours. What looks like a quiet landing can also be a chemical inspection.\n\nWhich tiny animal ability surprises you most?\n\n#Butterflies #Wildlife #NatureFacts #InsectScience #AnimalAdaptations",
@@ -2487,7 +2487,22 @@
           }
         },
         "submission_started_at": "2026-10-20T15:12:42.024532+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-21T16:15:00+05:30",
+          "post_id": "1528620385969652",
+          "scheduled_post_id": "1115015577607313"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-21T16:15:00+05:30",
+          "post_id": "17973196416177589",
+          "scheduled_post_id": "1107365478664858"
+        }
+      },
+      "last_attempt_at": "2026-10-21T16:19:50.172661+05:30"
     },
     {
       "id": "funzug-2026-10-15-library-of-things",
