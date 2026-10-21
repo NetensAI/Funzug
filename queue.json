@@ -3345,6 +3345,130 @@
         },
         "submission_started_at": "2026-10-20T17:58:31.228041+05:30"
       }
+    },
+    {
+      "id": "funzug-2026-10-15-lasagna-love-neighbors",
+      "status": "approved",
+      "format": "image",
+      "headline": "Neighbors Are Sharing Kindness One Lasagna At A Time",
+      "caption": "Sometimes a community story starts with a home-cooked meal.\n\nLasagna Love connects volunteer cooks with individuals and families in need through a neighbor-to-neighbor model.\n\nThe organization's mission describes sharing home-cooked lasagnas. It is a simple idea built around something familiar: making food for another person.\n\nWhat meal would you make for a neighbor having a hard week?\n\n#LasagnaLove #CommunityKindness #NeighborsHelpingNeighbors #HomeCooking #HumanStories",
+      "topic_key": "lasagna-love-neighbors",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-24T20:19:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-lasagna-love-neighbors.png",
+      "claims": [
+        {
+          "text": "Lasagna Love connects volunteer lasagna cooks with individuals and families in need.",
+          "source_ids": [
+            "lasagna-mission"
+          ],
+          "support_note": "The organization's indexed homepage mission text explicitly describes the neighbor-to-neighbor connection. Direct homepage fetch returned 403; mission text was inspected in the search result, and no claims beyond that excerpt are made."
+        },
+        {
+          "text": "The meals described in its mission are home-cooked lasagnas.",
+          "source_ids": [
+            "lasagna-mission"
+          ],
+          "support_note": "The same primary-organization mission excerpt explicitly says home-cooked lasagnas. No guaranteed delivery timing, local availability or eligibility condition is asserted."
+        }
+      ],
+      "sources": [
+        {
+          "id": "lasagna-mission",
+          "title": "Spread Kindness With Food",
+          "publisher": "Lasagna Love",
+          "url": "https://lasagnalove.org/",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native4:5 warm American home doorway, adult volunteer handing securely covered foil casserole tray to smiling adult, realistic hands, no named real people or logos. Exact headline: Neighbors Are Sharing Kindness One Lasagna At A Time. Tiny terracotta cursive Funzug, one scene.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "eeab7e0909e18d22df26bc621b7064181c75e553e9930dcefaaa026dc5db0059",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:30:24.660Z",
+        "note": "Approved for scheduled publishing at 24 Oct 2026, 8:19 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-15-wombat-cube-scat",
+      "status": "approved",
+      "format": "image",
+      "headline": "This Animal Really Produces Cube-Shaped Poop",
+      "caption": "Nature has a surprisingly geometric bathroom story.\n\nBare-nosed wombats produce cube-shaped droppings. Researchers investigated how those flat sides and rounded corners form.\n\nA Georgia Tech research seminar summary describes dissections, material testing and experiments with model intestines. Its key point is that the cubes form inside the intestine, before they leave the body.\n\nWhich strange animal fact sounds made up until you check it?\n\n#Wombats #AnimalFacts #NatureScience #Wildlife #Biology",
+      "topic_key": "wombat-cube-scat",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-25T08:33:00+05:30",
+      "media_path": "drafts/assets/2026-10-15-wombat-cube-scat.png",
+      "claims": [
+        {
+          "text": "Bare-nosed wombats produce cube-shaped feces.",
+          "source_ids": [
+            "gatech-wombat"
+          ],
+          "support_note": "The university research seminar summary explicitly identifies cubic scat in this species."
+        },
+        {
+          "text": "The cubes form within the intestine before excretion, investigated through dissections, material tests and model-intestine experiments.",
+          "source_ids": [
+            "gatech-wombat"
+          ],
+          "support_note": "These methods and the location of cube formation are explicitly stated in the seminar abstract."
+        }
+      ],
+      "sources": [
+        {
+          "id": "gatech-wombat",
+          "title": "QBioS Seminar Series: Alexander Bo Lee, How to poop cubes",
+          "publisher": "Georgia Institute of Technology",
+          "url": "https://qbios.gatech.edu/qbios-seminar-series-alexander-bo-lee",
+          "published_at": null,
+          "checked_at": "2026-10-15T16:13:56.9913339+05:30"
+        }
+      ],
+      "image_metadata": {
+        "generated_with": "ChatGPT built-in image generation",
+        "dimensions_px": [
+          1122,
+          1402
+        ],
+        "visual_note": "Original editorial illustration, not documentary photography. No platform label removal.",
+        "generation_prompt": "Native4:5 realistic bare-nosed wombat on Australian woodland ground at dusk beside two small irregular cube-shaped scat pellets, no gross detail, credible anatomy. Exact headline: This Animal Really Produces Cube-Shaped Poop. Tiny carved earth-tone Funzug, one cohesive scene.",
+        "batch_id": "2026-10-15-fresh-stories-12",
+        "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
+      },
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "2f6a94539b2597fbc15aaaeb75df7a9f1b60548e46ad3720f8918dd6e385531a",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:31:00.341Z",
+        "note": "Approved for scheduled publishing at 25 Oct 2026, 8:33 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
