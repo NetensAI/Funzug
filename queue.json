@@ -2506,7 +2506,7 @@
     },
     {
       "id": "funzug-2026-10-15-library-of-things",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Library Lends More Than Books",
       "caption": "A library card can unlock more than a good read.\n\nSacramento Public Library's Library of Things includes practical equipment such as sewing machines and power drill sets. Its own announcement describes borrowing tools as part of the collection.\n\nThe idea turns a familiar question around: what if an item you need occasionally could be borrowed rather than bought?\n\nWhat would you want your local library to lend?\n\n#PublicLibraries #LibraryOfThings #Community #Sacramento #EverydayIdeas",
@@ -2593,7 +2593,22 @@
           }
         },
         "submission_started_at": "2026-10-20T15:14:12.802042+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-21T20:29:00+05:30",
+          "post_id": "1528818252616532",
+          "scheduled_post_id": "1842391736942416"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-21T20:29:00+05:30",
+          "post_id": "18356286646174339",
+          "scheduled_post_id": "1513821627469304"
+        }
+      },
+      "last_attempt_at": "2026-10-21T20:36:08.789598+05:30"
     },
     {
       "id": "funzug-2026-10-15-utah-wildlife-overpass",
