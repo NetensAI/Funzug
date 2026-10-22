@@ -2938,7 +2938,7 @@
     },
     {
       "id": "funzug-2026-10-15-ghost-army-inflatable-tanks",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "The WWII Army That Used Inflatable Tanks",
       "caption": "Some of World War II's most unusual military equipment was designed to look more powerful than it really was.\n\nThe U.S. Army's Ghost Army used inflatable tanks as part of battlefield deception.\n\nThe unit also relied on sound effects, radio trickery and impersonation. The point was to influence what the enemy believed was happening.\n\nIt is a striking reminder that military history includes artists and inventive problem-solvers, not just weapons. Which overlooked history story should more people know?\n\n#GhostArmy #WWIIHistory #AmericanHistory #MilitaryHistory #HiddenHistory",
@@ -3025,7 +3025,22 @@
           }
         },
         "submission_started_at": "2026-10-20T17:52:09.777448+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-22T20:21:00+05:30",
+          "post_id": "1529791542519203",
+          "scheduled_post_id": "1604910081120966"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-22T20:21:00+05:30",
+          "post_id": "18093580349658917",
+          "scheduled_post_id": "2473605186775948"
+        }
+      },
+      "last_attempt_at": "2026-10-22T23:35:49.721333+05:30"
     },
     {
       "id": "funzug-2026-10-15-pittsburgh-therapy-dogs",
