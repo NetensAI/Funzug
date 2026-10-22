@@ -3693,7 +3693,7 @@
         }
       },
       "native_handoff": {
-        "state": "submitting",
+        "state": "scheduled",
         "reserved_at": "2026-10-22T23:24:16.032909+05:30",
         "scheduled_at": "2026-10-24T12:15:00+05:30",
         "content_hash": "4f2b7983186f3c5756084b9ec9d510f581cafe21cb0de1cfcb2c59d91ba7cd51",
@@ -3709,6 +3709,14 @@
             "content_hash": "4f2b7983186f3c5756084b9ec9d510f581cafe21cb0de1cfcb2c59d91ba7cd51",
             "planner_url": "https://business.facebook.com/latest/content_calendar/?business_id=327637346385766&asset_id=124454514239741&calendar_type=WEEK",
             "checked_at": "2026-10-22T23:48:36.808450+05:30"
+          },
+          "instagram": {
+            "platform": "instagram",
+            "schedule_id": "1919466456090639",
+            "scheduled_at": "2026-10-24T12:15:00+05:30",
+            "content_hash": "4f2b7983186f3c5756084b9ec9d510f581cafe21cb0de1cfcb2c59d91ba7cd51",
+            "planner_url": "https://business.facebook.com/latest/composer/?asset_id=124454514239741&business_id=327637346385766&ir_qe_exposed=1&nav_ref=internal_nav&ref=biz_web_content_manager_calendar_view&context_ref=CONTENT_CALENDAR",
+            "checked_at": "2026-10-22T23:57:32.901314+05:30"
           }
         },
         "submission_started_at": "2026-10-22T23:40:00.622895+05:30"
