@@ -3817,7 +3817,7 @@
           "checked_at": "2026-10-21T14:52:51Z"
         }
       ],
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "249da6c39f113ae63116e86c0bd9a3a106d35867ad1e1b5a46daf0857cab09b2",
       "approval": {
         "status": "approved",
@@ -3827,6 +3827,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-22T23:54:19.251204+05:30",
+        "scheduled_at": "2026-10-25T04:26:00+05:30",
+        "content_hash": "249da6c39f113ae63116e86c0bd9a3a106d35867ad1e1b5a46daf0857cab09b2",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
