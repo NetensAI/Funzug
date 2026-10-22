@@ -2612,7 +2612,7 @@
     },
     {
       "id": "funzug-2026-10-15-utah-wildlife-overpass",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "A Highway Bridge Built For Wildlife",
       "caption": "Some bridges are designed for travelers with hooves and paws.\n\nNear Parleys Summit in Utah, a wildlife crossing carries animals over Interstate 80. The Utah Wildlife Migration Initiative shared footage of several kinds of animals using it.\n\nThe crossing was constructed in 2018. It offers a route over the highway rather than through moving traffic.\n\nWhere would a wildlife crossing make the biggest difference near you?\n\n#WildlifeCrossings #Utah #Conservation #RoadSafety #Coexistence",
@@ -2699,7 +2699,22 @@
           }
         },
         "submission_started_at": "2026-10-20T15:15:50.871580+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-22T08:30:00+05:30",
+          "post_id": "1529292302569127",
+          "scheduled_post_id": "1802925837270550"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-22T08:30:00+05:30",
+          "post_id": "17925712674202250",
+          "scheduled_post_id": "1090385073990442"
+        }
+      },
+      "last_attempt_at": "2026-10-22T23:06:41.295306+05:30"
     },
     {
       "id": "funzug-2026-10-15-empowerment-sleeping-bag-coat",
