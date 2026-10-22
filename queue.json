@@ -3426,7 +3426,7 @@
         "batch_id": "2026-10-15-fresh-stories-12",
         "research_note": "Original evergreen story selection for USA readers. The inspiration Facebook feed was inaccessible through public web access, so no claim is made to have inspected its latest posts. Compared against repository history, both queues, and the live October 11-24 Planner inspected earlier in this session. Mini PC Planner refresh is intentionally paused during Meta cooldown. Sources accessed October 15, 2026. Proposed dates are suggestions only, not reservations or approvals."
       },
-      "delivery_mode": "meta_native_pending",
+      "delivery_mode": "meta_native",
       "reviewed_content_hash": "eeab7e0909e18d22df26bc621b7064181c75e553e9930dcefaaa026dc5db0059",
       "approval": {
         "status": "approved",
@@ -3436,6 +3436,17 @@
         "review_checklist": {
           "approvalConfirmed": true
         }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-22T23:26:35.193734+05:30",
+        "scheduled_at": "2026-10-24T20:19:00+05:30",
+        "content_hash": "eeab7e0909e18d22df26bc621b7064181c75e553e9930dcefaaa026dc5db0059",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
       }
     },
     {
