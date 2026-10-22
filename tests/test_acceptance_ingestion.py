@@ -4,6 +4,13 @@ from unittest.mock import patch
 from scripts import brandflow_sync as sync
 
 
+class FrozenDateTime(sync.dt.datetime):
+    @classmethod
+    def now(cls, tz=None):
+        moment = cls(2026, 10, 22, 19, 0, tzinfo=sync.SCHEDULE_TIMEZONE)
+        return moment.astimezone(tz) if tz else moment.replace(tzinfo=None)
+
+
 class AcceptanceIngestionTests(unittest.TestCase):
     def fixture(self):
         return {'items':[{'id':f'funzug-test-2026-10-22-{kind}','format':kind,'status':'draft','scheduled_at':slot,'platforms':['facebook','instagram']} for kind,slot in [('carousel','2026-10-22T20:00:00+05:30'),('reel','2026-10-22T20:15:00+05:30')]]}
@@ -29,7 +36,8 @@ class AcceptanceIngestionTests(unittest.TestCase):
         news={'items':[{'id':'news-pending','status':'draft'}]};before=copy.deepcopy(news)
         row={'status':'approved','publicationAuthorized':True,'scheduleTimezone':'Asia/Kolkata','proposedSchedule':item['scheduled_at'],'reviewedBy':'owner','reviewedAt':'2026-10-14T11:00:00+05:30','reviewNote':'Authorized test','contentHash':'a'*64}
         with patch.dict('os.environ',{'FUNZUG_DELIVERY_MODE':'meta_native'}),patch.object(sync,'secret',return_value='fixture'),patch.object(sync,'api_url',return_value='https://funzug.netens.top/api/integrations/funzug/drafts'),patch.object(sync,'api_status',return_value={item['id']:row}),patch.object(sync,'acceptance_inbox',return_value=inbox),patch.object(sync.pipeline,'load_json',side_effect=[news,{'items':[]},{'items':[]}]),patch.object(sync,'require_matching_approved_content') as match,patch.object(sync,'approve_native_draft') as approve,patch.object(sync.pipeline,'host_and_approve_draft') as public_upload:
-            sync.process_approvals()
+            with patch.object(sync.dt, 'datetime', FrozenDateTime):
+                sync.process_approvals()
         self.assertEqual(news,before)
         match.assert_called_once()
         self.assertEqual(approve.call_count,1)
