@@ -102,7 +102,7 @@ This staging build did not restart production or apply database migrations.
 On 14 October, CI runs 38519004965 and 38519001232 completed successfully.
 Production migrations 013 and 014 were then applied in one PostgreSQL transaction
 after verifying a private custom-format backup at
-`/home/vatsal/apps/brandflow/.backups/pre-pr67-20261014-ordered-media.dump`.
+`~/apps/brandflow/.backups/pre-pr67-20261014-ordered-media.dump`.
 Backup permissions are 0600; directory permissions are 0700. The archive is
 35,815,035 bytes and passed pg_restore --list validation. The new ordered-media
 table exists and all 15 existing draft records remain format=image. No approval,

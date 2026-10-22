@@ -2,8 +2,8 @@
 from pathlib import Path, PurePosixPath
 import tarfile
 
-ROOT = Path('/home/vatsal/apps/brandflow').resolve()
-BUNDLE = Path('/home/vatsal/apps/brandflow-pr67-check.IxKv2K/funzug-pr67-source.tar')
+ROOT = (Path.home() / 'apps/brandflow').resolve()
+BUNDLE = Path.home() / 'apps/brandflow-pr67-check.IxKv2K/funzug-pr67-source.tar'
 BACKUP = ROOT / '.backups/source-pre-pr67-20261014.tar.gz'
 PREFIXES = ('app/api/integrations/funzug/', 'app/api/social-drafts/', 'app/social-drafts/', 'components/', 'lib/')
 FILES = {'Dockerfile','middleware.ts','scripts/reviewed_media.py','scripts/validate_ordered_media.py'}

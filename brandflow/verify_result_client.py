@@ -7,7 +7,7 @@ from pathlib import Path
 
 def main():
     key='FUNZUG_DRAFT_INGEST_SECRET='
-    token=next(line[len(key):].strip().strip('"').strip("'") for line in Path('/home/vatsal/apps/brandflow/.env').read_text().splitlines() if line.startswith(key))
+    token=next(line[len(key):].strip().strip('"').strip("'") for line in (Path.home() / 'apps/brandflow/.env').read_text().splitlines() if line.startswith(key))
     os.environ['FUNZUG_DRAFT_INGEST_SECRET']=token
     os.environ['FUNZUG_BRANDFLOW_DRAFTS_URL']='https://funzug.netens.top/api/integrations/funzug/drafts'
     sys.path.insert(0,'/tmp/funzug-outcomes-client')

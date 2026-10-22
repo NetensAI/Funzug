@@ -9,8 +9,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--renew-after", required=True)
     args = parser.parse_args()
-    source = Path("/home/vatsal/apps/brandflow/.env")
-    root = Path("/home/vatsal/apps/funzug-automation/scheduler")
+    source = Path.home() / "apps/brandflow/.env"
+    root = Path.home() / "apps/funzug-automation/scheduler"
     if root.resolve() != root:
         raise RuntimeError("Deployment root cannot be a symlink")
     key = "FUNZUG_DRAFT_INGEST_SECRET="

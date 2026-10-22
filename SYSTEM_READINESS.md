@@ -41,7 +41,7 @@ The end-to-end goal remains incomplete. Setup and credential access do not autho
 ## Verified
 
 - PR #55 (`c9271b2`) merged the legacy Meta placeholder receipt reconciliation fix. It allows a verified schedule ID to replace a stored planner placeholder while retaining the other platform's unchanged placeholder during partial reconciliation.
-- The merged BrandFlow helper is deployed at `/home/vatsal/apps/brandflow/lib/funzug-native-handoff.mjs`, SHA-256 `6d69bb579fe4f6adefff3d15ca8001ac5035ad68571360669d7ed96db234dce0`. The prior helper is preserved as `funzug-native-handoff.mjs.pre-pr55-20261013.bak`.
+- The merged BrandFlow helper is deployed at `~/apps/brandflow/lib/funzug-native-handoff.mjs`, SHA-256 `6d69bb579fe4f6adefff3d15ca8001ac5035ad68571360669d7ed96db234dce0`. The prior helper is preserved as `funzug-native-handoff.mjs.pre-pr55-20261013.bak`.
 - BrandFlow dashboard and database containers are healthy. `/api/health` reports healthy, database connected, and timezone `Asia/Kolkata`.
 - PR #55 checks passed: Python 132 passed, 1 skipped; BrandFlow Node 34 passed, 1 skipped. The deployed dashboard build compiled successfully.
 - Instagram Login renewal run #2 completed successfully at 11:30 AM IST on 13 October. `FUNZUG_INSTAGRAM_API_MODE` is `instagram_login`.

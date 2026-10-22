@@ -10,7 +10,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def main():
     key='FUNZUG_DRAFT_INGEST_SECRET='
-    lines=Path('/home/vatsal/apps/brandflow/.env').read_text().splitlines()
+    lines=(Path.home() / 'apps/brandflow/.env').read_text().splitlines()
     token=next(line[len(key):].strip().strip('"').strip("'") for line in lines if line.startswith(key))
     assert len(token)>=32
     queue=json.loads(Path('/tmp/funzug-results-verification.json').read_text())
