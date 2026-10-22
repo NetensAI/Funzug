@@ -2824,7 +2824,7 @@
     },
     {
       "id": "funzug-2026-10-15-pando-aspen-clone",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Forest Is One Giant Aspen Clone",
       "caption": "A grove can look like a crowd of separate trees and still be one enormous clone.\n\nPando is an aspen clone in central Utah. Genetic research confirmed that the dominant group of sampled stems belonged to the same clone.\n\nAspens can produce new stems from roots. That means counting trunks is not always the same thing as counting distinct genetic individuals.\n\nWould knowing that change the way you looked at a forest?\n\n#Pando #AspenTrees #Utah #ForestScience #NatureFacts",
@@ -2919,7 +2919,22 @@
           }
         },
         "submission_started_at": "2026-10-20T15:18:17.919117+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-22T16:22:00+05:30",
+          "post_id": "1529604475871243",
+          "scheduled_post_id": "1618205839745963"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-22T16:22:00+05:30",
+          "post_id": "17921436135443367",
+          "scheduled_post_id": "2319260938834040"
+        }
+      },
+      "last_attempt_at": "2026-10-22T23:34:31.370328+05:30"
     },
     {
       "id": "funzug-2026-10-15-ghost-army-inflatable-tanks",
