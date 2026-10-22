@@ -2718,7 +2718,7 @@
     },
     {
       "id": "funzug-2026-10-15-empowerment-sleeping-bag-coat",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "This Coat Becomes A Sleeping Bag",
       "caption": "A winter coat can be designed to do more than keep someone warm while standing.\n\nEmpowerment Plan makes a coat that transforms into a sleeping bag for people in need.\n\nThe organization also provides employment and training for people experiencing homelessness to manufacture the coats. The work and the product are two parts of the same mission.\n\nWhat everyday object would you redesign to help someone through a difficult situation?\n\n#DesignForGood #Community #PracticalInnovation #Employment #HumanStories",
@@ -2805,7 +2805,22 @@
           }
         },
         "submission_started_at": "2026-10-20T17:39:38.220712+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-22T12:19:00+05:30",
+          "post_id": "1529444542553903",
+          "scheduled_post_id": "29224669133823999"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-22T12:19:00+05:30",
+          "post_id": "18029945969883417",
+          "scheduled_post_id": "1579834573829030"
+        }
+      },
+      "last_attempt_at": "2026-10-22T23:12:42.303527+05:30"
     },
     {
       "id": "funzug-2026-10-15-pando-aspen-clone",
