@@ -3499,6 +3499,527 @@
           "approvalConfirmed": true
         }
       }
+    },
+    {
+      "id": "funzug-2026-10-21-chapea-mars-year",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Year Inside A Mars Mission",
+      "caption": "Four people have spent a year living as if Mars were home, without leaving Houston.\n\nNASA’s CHAPEA Mission 2 crew entered a 1,700-square-foot habitat on October 19, 2025. Their 378-day simulation includes growing crops, managing limited supplies, working through communication delays, and practicing suited outdoor tasks.\n\nThe project studies how people and mission routines hold up during long isolation. It is a ground-based simulation, not a crewed trip to Mars. NASA plans to analyze the crew’s health and performance data after the mission ends.\n\nWhich everyday task would feel hardest to manage in a sealed habitat?\n\nThe image is an editorial reconstruction, not a photograph of the crew.\n\n#Mars #NASA #SpaceExploration #HumanSpaceflight #Science",
+      "topic_key": "chapea-mars-analog-crew-one-year-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-24T08:18:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-chapea-mars-year.png",
+      "claims": [
+        {
+          "text": "Four members of NASA CHAPEA Mission 2 have spent a year in an isolated Mars-analog habitat at Johnson Space Center in Houston.",
+          "source_ids": [
+            "nasa-chapea-year-2026"
+          ],
+          "support_note": "NASA says the four-person crew spent 365 days in a confined habitat at Johnson Space Center, operating as if on Mars."
+        },
+        {
+          "text": "The habitat is 1,700 square feet and the mission lasts 378 days, including crop growing, resource management, communication delays, and simulated surface work.",
+          "source_ids": [
+            "nasa-chapea-year-2026"
+          ],
+          "support_note": "NASA lists the habitat area, mission duration, and the simulated activities; this is an Earth-based analog, not a Mars flight."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-chapea-year-2026",
+          "title": "NASA’s Simulated Mars Crew Marks One Year Inside Habitat",
+          "publisher": "NASA",
+          "url": "https://www.nasa.gov/humans-in-space/nasas-simulated-mars-crew-marks-one-year-inside-habitat/",
+          "published_at": "2026-10-19T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native",
+      "reviewed_content_hash": "1430c030c0fd1fda2f37d3a093c43acdd39653e31c67ad5888733489890ee72b",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:29:43.693Z",
+        "note": "Approved for scheduled publishing at 24 Oct 2026, 8:18 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      },
+      "native_handoff": {
+        "state": "reserved",
+        "reserved_at": "2026-10-22T23:23:06.657191+05:30",
+        "scheduled_at": "2026-10-24T08:18:00+05:30",
+        "content_hash": "1430c030c0fd1fda2f37d3a093c43acdd39653e31c67ad5888733489890ee72b",
+        "platforms": [
+          "facebook",
+          "instagram"
+        ],
+        "receipts": {}
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-hubble-spiral-edge",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Galaxy Seen Along Its Edge",
+      "caption": "From the right angle, a spiral galaxy can look like a narrow line of light.\n\nNASA says Hubble’s new view shows NGC 1827, an intermediate spiral about 37 million light-years away in the constellation Columba. Rust-colored dust lanes cross its disk, while blue regions mark places where stars may be forming.\n\nThe image is part of a survey of satellite galaxies around Milky Way-like systems. Studying smaller galaxies helps astronomers test models that do not always match observations at these scales.\n\nWhat do you notice first: the dust lanes or the distant galaxies behind it?\n\nThis artwork is a visualization, not Hubble’s actual image.\n\n#Hubble #Galaxies #NASA #Astronomy #SpaceScience",
+      "topic_key": "hubble-ngc-1827-edge-on-spiral-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-24T12:15:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-hubble-spiral-edge.png",
+      "claims": [
+        {
+          "text": "NGC 1827 is an intermediate spiral galaxy about 37 million light-years away in Columba, shown edge-on in a new Hubble image.",
+          "source_ids": [
+            "nasa-hubble-ngc1827-2026"
+          ],
+          "support_note": "NASA identifies the galaxy, approximate distance, constellation, and edge-on orientation of the October 16 Hubble observation."
+        },
+        {
+          "text": "The Hubble image shows dust lanes and blue regions where stars are likely forming, as part of a survey of satellite galaxies around Milky Way-like hosts.",
+          "source_ids": [
+            "nasa-hubble-ngc1827-2026"
+          ],
+          "support_note": "NASA describes the visible dust lanes and blue star-forming regions and explains the survey context."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-hubble-ngc1827-2026",
+          "title": "NASA’s Hubble Spies Spiral’s Edge",
+          "publisher": "NASA Goddard Space Flight Center",
+          "url": "https://science.nasa.gov/missions/hubble/nasas-hubble-spies-spirals-edge/",
+          "published_at": "2026-10-16T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "4f2b7983186f3c5756084b9ec9d510f581cafe21cb0de1cfcb2c59d91ba7cd51",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:29:54.940Z",
+        "note": "Approved for scheduled publishing at 24 Oct 2026, 12:15 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-thwaites-glacier-model",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Glacier Model Found A Hidden Zone",
+      "caption": "A new model is changing how researchers represent the place where Thwaites Glacier meets the ocean.\n\nInstead of treating grounded ice and floating ice as meeting at a sharp line, the study accounts for a wider grounding zone where seawater can move beneath the glacier during tides.\n\nNASA reports that this approach matched satellite records of past retreat four times more closely than models that leave out the zone. Some simulations produced a contribution to future sea-level rise as much as twice earlier projections for the glacier. That is a model result for Thwaites, not a doubling of total global sea-level rise.\n\nBetter representations of hidden processes can change what scientists can estimate.\n\nThe scene is a conceptual illustration, not an image of a measured collapse.\n\n#Glaciers #ClimateScience #NASA #Antarctica #EarthScience",
+      "topic_key": "thwaites-grounding-zone-model-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-24T16:35:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-thwaites-glacier-model.png",
+      "claims": [
+        {
+          "text": "A NASA, UC Irvine, and Dartmouth model represents the transition between grounded and floating Thwaites ice as a grounding zone where seawater can penetrate several miles beneath the glacier.",
+          "source_ids": [
+            "nasa-thwaites-projections-2026"
+          ],
+          "support_note": "NASA describes the grounding-zone treatment and the tidal seawater penetration mechanism in the model."
+        },
+        {
+          "text": "The revised model matched historical satellite data four times more closely, and some simulations estimated Thwaites could contribute up to twice some previous projections by century's end.",
+          "source_ids": [
+            "nasa-thwaites-projections-2026"
+          ],
+          "support_note": "NASA reports the fourfold improvement in historical fit and says some model runs yielded up to twice current projections for Thwaites's contribution, not total global rise."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-thwaites-projections-2026",
+          "title": "NASA Study Refines Projections for Thwaites Glacier",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/blogs/science-news/2026/10/20/nasa-refines-thwaites-glacier-projections/",
+          "published_at": "2026-10-20T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "c5a19518d4c688f81772b1a44a990c771a91282701a445a01bbe933a0c192412",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:30:11.073Z",
+        "note": "Approved for scheduled publishing at 24 Oct 2026, 4:35 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-moon-mcgetchin-crater",
+      "status": "approved",
+      "format": "image",
+      "headline": "A New Moon Crater The Size Of Two Fields",
+      "caption": "A routine scan of lunar images led to a crater roughly 728 feet wide.\n\nNASA’s Lunar Reconnaissance Orbiter team found the feature by comparing images taken before and after the impact. The crater, now named McGetchin, formed sometime between April 11 and May 22, 2024.\n\nScientists estimate that an impact this large happens on the Moon about once a century or less often. Smaller impacts are far more common, and NASA says the orbiter has identified at least 1,000 new craters during its mission.\n\nThe Moon keeps changing, even when the changes are too small or slow for us to notice from Earth.\n\nThe artwork is a lunar visualization, not a NASA observation image.\n\n#Moon #NASA #LunarScience #Space #Astronomy",
+      "topic_key": "mcgetchin-lunar-impact-crater-2024-discovered-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-25T04:26:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-moon-mcgetchin-crater.png",
+      "claims": [
+        {
+          "text": "NASA's Lunar Reconnaissance Orbiter observations revealed the 728-foot-wide McGetchin crater, formed between April 11 and May 22, 2024.",
+          "source_ids": [
+            "nasa-mcgetchin-crater-2026"
+          ],
+          "support_note": "NASA dates the impact interval from before-and-after orbiter images and gives the crater's measured diameter and official name."
+        },
+        {
+          "text": "Scientists estimate an impact of this magnitude happens on the Moon about once per century or less often.",
+          "source_ids": [
+            "nasa-mcgetchin-crater-2026"
+          ],
+          "support_note": "NASA attributes the once-a-century-or-longer estimate to the researchers and distinguishes this event from more frequent smaller impacts."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-mcgetchin-crater-2026",
+          "title": "NASA’s Moon Orbiter Spots New, ‘Once-in-Century’ Moon Crater",
+          "publisher": "NASA Science",
+          "url": "https://science.nasa.gov/solar-system/moon/nasas-moon-orbiter-spots-new-once-in-century-moon-crater/",
+          "published_at": "2026-09-16T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "249da6c39f113ae63116e86c0bd9a3a106d35867ad1e1b5a46daf0857cab09b2",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:30:48.126Z",
+        "note": "Approved for scheduled publishing at 25 Oct 2026, 4:26 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-human-water-cycle",
+      "status": "approved",
+      "format": "image",
+      "headline": "Satellites Traced A Human Fingerprint In Water",
+      "caption": "Earth’s water cycle is shaped by more than weather.\n\nNASA researchers used over two decades of gravity measurements from the GRACE and GRACE-FO missions to track changes in water stored on land, from April 2002 through November 2025.\n\nA new analysis maps places where those trends were strongly associated with human activity. The measurements reveal broad patterns in water storage, but an association on a map does not mean every local change has one cause.\n\nThe result gives scientists another way to study how farming, groundwater use, and other human decisions intersect with rivers, soil, and lakes.\n\nThe image is a conceptual visualization, not NASA satellite data.\n\n#EarthScience #WaterCycle #NASA #Satellites #Climate",
+      "topic_key": "nasa-grace-human-water-storage-patterns-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-25T12:25:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-human-water-cycle.png",
+      "claims": [
+        {
+          "text": "NASA used more than two decades of GRACE and GRACE-FO gravity measurements to map terrestrial water-storage trends from April 2002 through November 2025.",
+          "source_ids": [
+            "nasa-human-water-cycle-2026"
+          ],
+          "support_note": "NASA describes the satellite gravity record, the April 2002-November 2025 period, and the terrestrial water storage measurement."
+        },
+        {
+          "text": "The study highlights regions where water-storage trends were strongly associated with human activities.",
+          "source_ids": [
+            "nasa-human-water-cycle-2026"
+          ],
+          "support_note": "NASA's Earth Observatory explains the map's black-outlined regions as areas with strong associations, not proof that each local trend has a single cause."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nasa-human-water-cycle-2026",
+          "title": "The Human Fingerprint on Earth’s Water Cycle",
+          "publisher": "NASA Earth Observatory",
+          "url": "https://science.nasa.gov/earth/earth-observatory/the-human-fingerprint-on-earths-water-cycle/",
+          "published_at": "2026-10-20T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "0424eaf5da72ee793581aabe234d191c06679f21f509f71af9ac8097ecfc4572",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:31:14.419Z",
+        "note": "Approved for scheduled publishing at 25 Oct 2026, 12:25 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-california-olive-ridley-nests",
+      "status": "approved",
+      "format": "image",
+      "headline": "Two Sea Turtles Made West Coast History",
+      "caption": "Two olive ridley sea turtles nested on Orange County beaches three days apart.\n\nNOAA says the September 2026 events were the first recorded sea-turtle nests on the U.S. West Coast. One turtle nested near Seal Beach, and a second was observed about eight miles away near Huntington Beach Pier.\n\nTeams protected the nests and moved the eggs to the Aquarium of the Pacific as a precaution. Researchers did not yet know whether the eggs were viable, so hatching was not guaranteed.\n\nThe unusual nesting events brought local residents, scientists, agencies, and aquarium staff together to protect a fragile chance.\n\nThis is an artistic reconstruction, not a photograph of the documented turtles.\n\n#SeaTurtles #California #Wildlife #NOAA #OceanConservation",
+      "topic_key": "olive-ridley-first-west-coast-nests-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-25T16:18:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-california-olive-ridley-nests.png",
+      "claims": [
+        {
+          "text": "Two olive ridley turtles nested in Orange County in September 2026, the first recorded sea-turtle nests on the U.S. West Coast.",
+          "source_ids": [
+            "noaa-california-olive-ridley-2026"
+          ],
+          "support_note": "NOAA records the September 16 Seal Beach nest and a second nest three days later near Huntington Beach, and calls them the first recorded sea-turtle nests on the U.S. West Coast."
+        },
+        {
+          "text": "The eggs were transferred to the Aquarium of the Pacific as a precaution, and their viability was unknown at the time of the report.",
+          "source_ids": [
+            "noaa-california-olive-ridley-2026"
+          ],
+          "support_note": "NOAA says an inter-agency team moved the eggs on September 25 and explicitly notes uncertainty about fertilization and viability."
+        }
+      ],
+      "sources": [
+        {
+          "id": "noaa-california-olive-ridley-2026",
+          "title": "First-Ever Nesting Olive Ridley Sea Turtles in California",
+          "publisher": "NOAA Fisheries",
+          "url": "https://www.fisheries.noaa.gov/feature-story/first-ever-nesting-olive-ridley-sea-turtles-california",
+          "published_at": "2026-09-25T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "1a6cce2b37bda6d65b28f2d4dd7624f7f2a3382c78740cb266c42a2f2f13a757",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:31:31.738Z",
+        "note": "Approved for scheduled publishing at 25 Oct 2026, 4:18 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-frog-museum-cold-case",
+      "status": "approved",
+      "format": "image",
+      "headline": "Museum Specimens Reopened A Frog Cold Case",
+      "caption": "Old museum specimens helped scientists revisit a mystery that began nearly 50 years ago.\n\nResearchers tested more than 370 preserved frogs from 17 species collected in Brazil’s Atlantic Forest before and after mass declines between 1979 and 1982. The pattern points to chytrid fungus as a likely cause of the die-offs.\n\nThe results were not simple: some species that declined showed no detectable infection in the samples, while some species that persisted were infected. Scientists say differences in disease tolerance may help explain the pattern, but the study focuses on one site.\n\nCollections gathered decades ago can become a record of ecological change that researchers could not measure at the time.\n\nThe image is an editorial research visualization, not a photograph of the study specimens.\n\n#Frogs #WildlifeScience #Smithsonian #Biodiversity #Research",
+      "topic_key": "brazil-frog-decline-chytrid-museum-specimens-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-25T20:39:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-frog-museum-cold-case.png",
+      "claims": [
+        {
+          "text": "Researchers analyzed more than 370 museum specimens from 17 frog species collected before and after major declines at Brazil's Boracéia Biological Station from 1979 to 1982.",
+          "source_ids": [
+            "smithsonian-frog-cold-case-2026"
+          ],
+          "support_note": "The Smithsonian release says researchers sampled over 370 specimens representing 17 species from historical collections covering the period before and during the die-offs."
+        },
+        {
+          "text": "The findings point to chytrid fungus as a likely cause, while infection patterns differed between species that declined and those that persisted.",
+          "source_ids": [
+            "smithsonian-frog-cold-case-2026"
+          ],
+          "support_note": "The release frames chytrid as the likely culprit, notes counterintuitive species-level infection patterns, and cautions that the study is site-specific."
+        }
+      ],
+      "sources": [
+        {
+          "id": "smithsonian-frog-cold-case-2026",
+          "title": "Museum Specimens Reveal Pathogen Behind Decades-Old Mystery of Disappearing Frogs",
+          "publisher": "Smithsonian National Zoo and Conservation Biology Institute",
+          "url": "https://www.si.edu/newsdesk/releases/museum-specimens-reveal-pathogen-behind-decades-old-mystery-disappearing-frogs",
+          "published_at": "2026-10-14T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "a61dc9c4c88e02676b3425a57280aa3fe600d52668ac7fd436a9c9edc0dc30ad",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:31:44.994Z",
+        "note": "Approved for scheduled publishing at 25 Oct 2026, 8:39 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-gunboat-philadelphia-250",
+      "status": "approved",
+      "format": "image",
+      "headline": "The Gunboat That Delayed An Invasion",
+      "caption": "A small wooden gunboat sank on Lake Champlain, but its fleet helped slow a British advance.\n\nThe gunboat Philadelphia was built in 1776 and fought at the Battle of Valcour Island. British cannon fire sank it on October 11, the first day of the engagement, while the American fleet’s resistance delayed the advancing troops.\n\nThe vessel remained underwater until it was raised in 1935. Today it is at the Smithsonian’s National Museum of American History, where conservators are studying and stabilizing the rare surviving warship.\n\nIts story links a few months of urgent wartime shipbuilding to centuries of careful preservation.\n\nThis historical scene is an artistic reconstruction, not a contemporary photograph.\n\n#AmericanHistory #RevolutionaryWar #Smithsonian #LakeChamplain #History",
+      "topic_key": "gunboat-philadelphia-valcour-island-1776-250th",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-26T00:15:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-gunboat-philadelphia-250.png",
+      "claims": [
+        {
+          "text": "The gunboat Philadelphia was built in 1776, sank during the Battle of Valcour Island on October 11, and its fleet delayed advancing British forces.",
+          "source_ids": [
+            "smithsonian-gunboat-philadelphia-2026"
+          ],
+          "support_note": "The Smithsonian National Museum of American History says the vessel was built in summer 1776, sunk by British cannon fire on the battle's first day, and the small fleet delayed the British."
+        },
+        {
+          "text": "The Philadelphia was raised from Lake Champlain in 1935 and is undergoing conservation at the Smithsonian's National Museum of American History.",
+          "source_ids": [
+            "smithsonian-gunboat-philadelphia-2026"
+          ],
+          "support_note": "The Smithsonian release dates the salvage to 1935 and describes current multi-year conservation treatment at the museum."
+        }
+      ],
+      "sources": [
+        {
+          "id": "smithsonian-gunboat-philadelphia-2026",
+          "title": "National Museum of American History Commemorates 250 Years of the Gunboat Philadelphia",
+          "publisher": "Smithsonian National Museum of American History",
+          "url": "https://www.si.edu/newsdesk/releases/national-museum-american-history-commemorates-250-years-gunboat-philadelphia",
+          "published_at": "2026-10-08T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "6e47a947c8a12ead12a2c5582bf36329ffa7589b0357f95b2f924664743f7cd3",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:32:14.784Z",
+        "note": "Approved for scheduled publishing at 26 Oct 2026, 12:15 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-white-sands-ice-age-tracks",
+      "status": "approved",
+      "format": "image",
+      "headline": "A Toddler’s Tracks Crossed An Ice Age Trail",
+      "caption": "A trail of Ice Age footprints may capture one adult carrying a small child across an ancient lakeshore.\n\nAt White Sands, researchers found a human trackway stretching for nearly a mile, with toddler-sized prints appearing at intervals. The track pattern suggests the child was carried, shifted from side to side, and occasionally set down.\n\nSeeds preserved above and below other footprints at the site were radiocarbon dated to roughly 21,000 to 23,000 years ago. White Sands was then a wetter landscape around Lake Otero, not the modern gypsum dunes visitors see today.\n\nA few impressions in mud can preserve the rhythm of an ordinary journey for thousands of years.\n\nThe image is an Ice Age reconstruction, not a photograph of the excavated trackway.\n\n#WhiteSands #Archaeology #IceAge #HumanHistory #NationalParks",
+      "topic_key": "white-sands-adult-toddler-ice-age-trackway",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-26T08:49:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-white-sands-ice-age-tracks.png",
+      "claims": [
+        {
+          "text": "A nearly mile-long White Sands trackway contains toddler-sized prints that appear intermittently beside an adult's trail, with the pattern suggesting the child was carried and set down.",
+          "source_ids": [
+            "nps-white-sands-footprints-2026"
+          ],
+          "support_note": "The National Park Service describes a nearly mile-long trackway and interprets the changing stride and child prints as evidence of carrying and setting the toddler down."
+        },
+        {
+          "text": "Radiocarbon-dated seeds associated with human footprints at White Sands place the track evidence roughly 21,000 to 23,000 years ago, when Lake Otero supported a wetter landscape.",
+          "source_ids": [
+            "nps-white-sands-footprints-2026"
+          ],
+          "support_note": "NPS gives calibrated dates of 22,860 and 21,130 years and describes the Ice Age basin as wetter, with Lake Otero and abundant vegetation."
+        }
+      ],
+      "sources": [
+        {
+          "id": "nps-white-sands-footprints-2026",
+          "title": "Fossilized Footprints",
+          "publisher": "White Sands National Park, National Park Service",
+          "url": "https://www.nps.gov/whsa/learn/nature/fossilized-footprints.htm",
+          "published_at": "2026-08-05T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "e7edf4098dcd86e1a6c42f353301e28fb2126b1dba46f3076917d7f9fae48af8",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:32:34.237Z",
+        "note": "Approved for scheduled publishing at 26 Oct 2026, 8:49 am IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
+    },
+    {
+      "id": "funzug-2026-10-21-shenandoah-wildlife-corridors",
+      "status": "approved",
+      "format": "image",
+      "headline": "Two Neighbors Joined Their Farms For Wildlife",
+      "caption": "Two retired neighbors in Virginia’s Shenandoah Valley are working across property lines to make more room for wildlife.\n\nWith Smithsonian science guidance, John Rice and John Sessler restore and connect habitat while keeping their farms productive. Their work includes managing invasive plants and adding native species that support birds, pollinators, and other wildlife.\n\nThe approach is practical and local: different landowners can make separate patches more useful when the habitats connect.\n\nFor the neighbors, the effort also means sharing what they learn with other people in the community.\n\nThis is a conceptual scene, not a portrait of the named farmers.\n\n#Wildlife #Virginia #Conservation #Community #Nature",
+      "topic_key": "shenandoah-neighbors-farm-wildlife-corridors-2026",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ],
+      "scheduled_at": "2026-10-26T12:27:00+05:30",
+      "media_path": "drafts/assets/2026-10-21-shenandoah-wildlife-corridors.png",
+      "claims": [
+        {
+          "text": "Neighbors John Rice and John Sessler are using Smithsonian-guided habitat practices on farms in Virginia's Shenandoah Valley while keeping the farms productive.",
+          "source_ids": [
+            "smithsonian-shenandoah-farms-2026"
+          ],
+          "support_note": "The Smithsonian article describes the two neighbors' collaboration and management practices to create, restore, and connect habitat while maintaining productive farms."
+        },
+        {
+          "text": "The farmers use native plants and habitat connections intended to support birds, pollinators, and other wildlife.",
+          "source_ids": [
+            "smithsonian-shenandoah-farms-2026"
+          ],
+          "support_note": "The Smithsonian reports the native seed mix, field wildflowers, and linked habitats as part of the neighbors' biodiversity work."
+        }
+      ],
+      "sources": [
+        {
+          "id": "smithsonian-shenandoah-farms-2026",
+          "title": "Meet the Retirees Turning Their Farms Into Wildlife Corridors",
+          "publisher": "Smithsonian National Zoo and Conservation Biology Institute",
+          "url": "https://www.nationalzoo.si.edu/conservation/news/meet-retirees-turning-their-farms-wildlife-corridors",
+          "published_at": "2026-08-24T00:00:00Z",
+          "checked_at": "2026-10-21T14:52:51Z"
+        }
+      ],
+      "delivery_mode": "meta_native_pending",
+      "reviewed_content_hash": "6efbe9baa1a7cc926e7af2810287e2c703ba1e93d829ee3d9bfa7a9679fd878c",
+      "approval": {
+        "status": "approved",
+        "approved_by": "vatsal",
+        "approved_at": "2026-10-21T16:32:48.480Z",
+        "note": "Approved for scheduled publishing at 26 Oct 2026, 12:27 pm IST",
+        "review_checklist": {
+          "approvalConfirmed": true
+        }
+      }
     }
   ]
 }
