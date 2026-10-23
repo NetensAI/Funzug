@@ -77,6 +77,8 @@ def command(args,timeout=120,env=None):
 def runtime_digest():
     paths=list((ROOT/'home_server').glob('*.py'))+list((ROOT/'scheduler').glob('*.py'))
     paths += [ROOT/'home-server/Dockerfile',ROOT/'home-server/compose.yml']
+    # Controller policy is part of the dry-run proof, not just runtime code.
+    paths += [ROOT/'home-server/deploy.py']
     return hashlib.sha256(b''.join(str(p.relative_to(ROOT)).encode()+p.read_bytes() for p in sorted(paths))).hexdigest()
 
 
@@ -284,6 +286,11 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception:
+    except Exception as error:
+        import traceback
+        frames=[frame for frame in traceback.extract_tb(error.__traceback__) if Path(frame.filename).name=='deploy.py']
+        location='deploy_line_'+str(frames[-1].lineno) if frames else 'deployment_location_unavailable'
+        kind=type(error).__name__
+        if kind not in {'RuntimeError','TypeError','KeyError','FileNotFoundError','HTTPError','PermissionError','TimeoutExpired','ValueError'}:kind='Exception'
         print(json.dumps({'result': 'readiness_failed', 'dry_run_passed': False,
-                          'failed_checks': ['readiness_error_details_omitted']}))
+                          'failed_checks': ['deployment_error_'+kind,location]}))
