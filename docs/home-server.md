@@ -33,6 +33,12 @@ Set the non-secret FUNZUG_DEPLOYMENT_ROOT environment variable to the existing d
 
 ## Failure alerts
 
+## Restricted home repair updates
+
+After initial cutover, the explicitly invoked restricted `cutover` operation updates the home worker rather than repeating the original migration. Routine `dry-run` remains metadata-only. Updates refuse active cooldowns and actual temporary blocks, require local home ownership and stopped legacy executors, and build and run isolated offline tests before stopping the current worker. The stopped container is retained under a timestamped backup name with restart disabled. A revision-specific Compose project starts the replacement without removing the backup. State and credential mounts, publication records, browser profile and shared ownership are not reset. Startup is not proof of recovery; check actual health and live publication evidence afterward. No automatic rollback, deletion or publication replay occurs.
+
+Post-insights exact-caption timeouts remain pending reconciliation rather than escalating into browser-wide unavailability. The caption, account, published label, timestamp and platform ID checks remain mandatory. Actual temporary blocks and login requirements still fail closed.
+
 The healthcheck tests both native state and home job state. Failure events contain literal error codes only and are logged locally. An optional HTTPS webhook reads FUNZUG_FAILURE_WEBHOOK_URL from the private home-secrets.json store. It receives only service and code, at most once per hour for repeated failures. Email or Telegram can be connected to this pluggable webhook after the owner chooses a destination. No notification destination is configured automatically.
 
 ## Manual GitHub failback

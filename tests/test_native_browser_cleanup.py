@@ -5,10 +5,42 @@ from unittest.mock import Mock, patch
 from scheduler.meta_browser import MetaBrowser
 from scheduler.native_runner import tick, shutdown_requested
 from scheduler.native_worker import IST
+from scheduler.native_worker import NativeFailure
 import datetime as dt
 
 
 class NativeBrowserCleanupTests(unittest.TestCase):
+    def test_missing_publication_heading_is_pending_not_global_timeout(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        browser.planner.url = 'https://business.facebook.com/latest/insights/object_insights/?content_id=123'
+        browser.planner.get_by_role.return_value.wait_for.side_effect = TimeoutError()
+        with patch.object(browser, 'check_access') as access:
+            with self.assertRaisesRegex(NativeFailure, '^publication_detail_pending$'):
+                browser.publication_heading('Exact approved caption')
+        access.assert_called_once_with(browser.planner)
+        browser.planner.get_by_role.assert_called_once_with('heading', name='Exact approved caption', exact=True)
+
+    def test_publication_heading_preserves_actual_restriction(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        browser.planner.get_by_role.return_value.wait_for.side_effect = TimeoutError()
+        with patch.object(browser, 'check_access', side_effect=NativeFailure('meta_temporarily_blocked')):
+            with self.assertRaisesRegex(NativeFailure, '^meta_temporarily_blocked$'):
+                browser.publication_heading('Exact approved caption')
+
+    def test_publication_heading_login_is_not_publication_proof(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        browser.planner.url = 'https://business.facebook.com/login'
+        browser.planner.get_by_role.return_value.wait_for.side_effect = TimeoutError()
+        with patch.object(browser, 'check_access'):
+            with self.assertRaisesRegex(NativeFailure, '^meta_login_required$'):
+                browser.publication_heading('Exact approved caption')
+
+    def test_publication_heading_does_not_hide_programming_errors(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        browser.planner.get_by_role.return_value.wait_for.side_effect = AttributeError('fixture')
+        with self.assertRaises(AttributeError):
+            browser.publication_heading('Exact approved caption')
+
     def test_incomplete_browser_creation_closes_its_first_owned_tab(self):
         context, page = Mock(), Mock()
         context.new_page.side_effect = [page, RuntimeError('fixture failure')]

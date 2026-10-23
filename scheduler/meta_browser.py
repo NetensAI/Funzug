@@ -631,7 +631,7 @@ class MetaBrowser:
             identifier=links[platform]
             url='https://business.facebook.com/latest/insights/object_insights/?content_id='+identifier
             self.planner.goto(url,wait_until='domcontentloaded')
-            self.planner.get_by_role('heading',name=packet['caption'],exact=True).wait_for(timeout=45000)
+            self.publication_heading(packet['caption'])
             self.timezone(self.planner)
             observed=urlsplit(self.planner.url)
             if observed.scheme!='https' or observed.hostname!='business.facebook.com' or observed.path.rstrip('/')!='/latest/insights/object_insights' or parse_qs(observed.query).get('content_id')!=[identifier]:
@@ -648,3 +648,20 @@ class MetaBrowser:
             if identifier!=scheduled_id:
                 results[platform].update(scheduled_post_id=scheduled_id,content_hash=packet['contentHash'])
         return {'platform_results':results}
+
+    def publication_heading(self, caption):
+        """A missing post-detail heading is not browser-wide unavailability.
+
+        Keep the exact caption proof mandatory. An incomplete insights page
+        remains pending, with the runner's item backoff, never a new submission.
+        Actual access restrictions still take precedence over pending details.
+        """
+        try:
+            self.planner.get_by_role('heading', name=caption, exact=True).wait_for(timeout=45000)
+        except Exception as error:
+            if type(error).__name__ != 'TimeoutError':
+                raise
+            self.check_access(self.planner)
+            if '/login' in self.planner.url or '/checkpoint' in self.planner.url:
+                raise NativeFailure('meta_login_required') from None
+            raise NativeFailure('publication_detail_pending') from None

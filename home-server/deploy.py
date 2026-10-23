@@ -96,9 +96,9 @@ def runtime_digest():
     return hashlib.sha256(b''.join(str(p.relative_to(ROOT)).encode()+p.read_bytes() for p in sorted(paths))).hexdigest()
 
 
-def compose(*args):
+def compose(*args, project='funzug-home'):
     env=dict(os.environ,FUNZUG_DEPLOYMENT_ROOT=str(Path.home()/'apps/funzug-automation'))
-    return command(['docker','compose','-p','funzug-home','-f',str(ROOT/'home-server/compose.yml'),*args],600,env)
+    return command(['docker','compose','-p',project,'-f',str(ROOT/'home-server/compose.yml'),*args],600,env)
 
 
 def github_control(operation):
@@ -219,7 +219,58 @@ def dry_run():
     return result
 
 
+def update_home():
+    """Explicit repair deployment, never invoked by metadata-only monitoring.
+
+    Preserve both old container and all mounted state. A distinct Compose
+    project prevents Compose from removing/recreating the retained backup.
+    Home ownership stays unchanged; stop/wait plus the existing flock exclude
+    overlap. No publication records, cooldowns or submission intents are reset.
+    """
+    directory=Path.home()/'apps/funzug-automation/scheduler/native-state'
+    native=json.loads((directory/'native-worker.json').read_text())
+    if native.get('browser_retry_after',0)>time.time() or native.get('browser_block_reason')=='meta_temporarily_blocked':
+        return {'result':'home_update_blocked','failed_checks':['browser_restricted']}
+    marker=json.loads((directory/'execution-owner.json').read_text())
+    if marker.get('owner')!='home':
+        return {'result':'home_update_blocked','failed_checks':['home_owner_required']}
+    old=json.loads(command(['docker','inspect','funzug-native-worker','scheduler-scheduler-1']))
+    if any(c['State']['Running'] for c in old):
+        return {'result':'home_update_blocked','failed_checks':['competing_executor']}
+    # Public code and isolated tests only, with no credentials or production
+    # mounts. A failing build/test never stops the existing worker.
+    revision=command(['git','-C',str(ROOT),'rev-parse','HEAD']).strip()
+    project='funzug-home-'+revision[:12]
+    compose('config','--quiet',project=project)
+    compose('build',project=project)
+    command(['docker','run','--name','funzug-home-repair-test-'+str(time.time_ns()),
+             '--network=none','--read-only','--tmpfs','/tmp:uid=1000,gid=1000,mode=0700',
+             '--cap-drop=ALL','--security-opt=no-new-privileges','funzug-home-worker:local',
+             'python','-m','unittest','tests.test_home_executor','tests.test_native_runner',
+             'tests.test_native_browser_cleanup','tests.test_home_readiness'],180)
+    # Recheck cooldown after a potentially slow build. Do not replace a worker
+    # that has independently entered a fresh restriction in the meantime.
+    native=json.loads((directory/'native-worker.json').read_text())
+    if native.get('browser_retry_after',0)>time.time() or native.get('browser_block_reason')=='meta_temporarily_blocked':
+        return {'result':'home_update_blocked','failed_checks':['browser_restricted']}
+    backup='funzug-home-worker-backup-'+str(time.time_ns())
+    command(['docker','stop','--timeout','90','funzug-home-worker'])
+    current=json.loads(command(['docker','inspect','funzug-home-worker']))[0]
+    if current['State']['Running']:raise RuntimeError('home stop unconfirmed')
+    command(['docker','update','--restart=no','funzug-home-worker'])
+    command(['docker','rename','funzug-home-worker',backup])
+    # Do not remove any container, including on a failed startup. All state
+    # remains mounted in place; subsequent health checks expose any failure.
+    compose('up','-d','--no-build',project=project)
+    private_write(BASE/'home-update.json',{'revision':revision,'backup':backup,
+                  'project':project,'updated_at':int(time.time())})
+    return {'result':'home_update_started','revision':revision,'owner':'home',
+            'legacy_dispatcher_stopped':True,'duplicate_executors':0}
+
+
 def cutover():
+    if (BASE/'cutover.json').is_file():
+        return update_home()
     proof=json.loads((BASE/'last-dry-run.json').read_text())
     if not proof.get('dry_run_passed') or proof.get('runtime_digest')!=runtime_digest() or time.time()-proof.get('checked_at',0)>3600:
         return {'result':'activation_refused','failed_checks':['fresh_matching_dry_run_required']}
