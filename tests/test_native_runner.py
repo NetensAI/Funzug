@@ -10,6 +10,16 @@ from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_pending_checkpoint_stops_batch_before_another_dispatch(self):
+        slot=(dt.datetime.now(IST)+dt.timedelta(days=1)).isoformat()
+        rows=[{'externalId':name,'status':'approved','publicationAuthorized':True,
+               'scheduleTimezone':'Asia/Kolkata','proposedSchedule':slot}
+              for name in ('first','second')]
+        with patch('scheduler.native_runner.read_api',side_effect=[{'drafts':rows},{}]) as read,patch('scheduler.native_runner.auth',return_value='fixture'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.CheckpointDispatcher'),patch('scheduler.meta_browser.MetaBrowser'),patch('scheduler.native_runner.advance',side_effect=NativeFailure('checkpoint_pending_reconciliation')) as advance:
+            tick({},Path('nonexistent-serialized-checkpoint-state.json'),None,True)
+        self.assertEqual(read.call_count,2)
+        advance.assert_called_once()
+
     def test_browser_block_survives_restart_without_browser_or_workflow_activity(self):
         state = {'items':{},'enabled':True}
         defer_browser(state, 'meta_temporarily_blocked', 1000)

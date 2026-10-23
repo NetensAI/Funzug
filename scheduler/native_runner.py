@@ -177,7 +177,11 @@ def tick(config, state_path, context, enabled=False):
     selected=selected+due
     state['active_item_ids']=[row['externalId'] for row in selected]
     state['enabled']=enabled
-    save=lambda:write_state(state_path,state)
+    def save():
+        # Long browser/workflow reconciliation is still live work. Persist its
+        # heartbeat with the checkpoint, not only at the start of a whole batch.
+        state['last_checked_at']=int(time.time())
+        write_state(state_path,state)
     if not enabled:
         save()
         return
@@ -238,7 +242,11 @@ def tick(config, state_path, context, enabled=False):
                 try:browser.close()
                 except Exception:pass
             save()
-        if state.get('browser_retry_after', 0) > time.time():
+        if (state.get('browser_retry_after', 0) > time.time()
+                or local.get('error') == 'checkpoint_pending_reconciliation'):
+            # The shared GitHub queue allows only one pending writer. Finish
+            # observing this durable correlation before queuing another item.
+            # Otherwise later jobs can cancel earlier submission checkpoints.
             break
 
     # A quiet poll still proves liveness when all schedules were recently
