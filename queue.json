@@ -3044,7 +3044,7 @@
     },
     {
       "id": "funzug-2026-10-15-pittsburgh-therapy-dogs",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "Therapy Dogs Help Take The Edge Off Flying",
       "caption": "Before a flight, a friendly dog can be a welcome part of the airport experience.\n\nPittsburgh International Airport's PIT PAWS program lets passengers interact with trained, certified therapy dogs.\n\nIts full name is Pups Alleviating Worry and Stress. The airport describes the visits as a way to offer a few minutes of relaxation before flying.\n\nWould a dog greeting improve your airport day?\n\n#AirportLife #TherapyDogs #Pittsburgh #TravelStories #Dogs",
@@ -3131,7 +3131,22 @@
           }
         },
         "submission_started_at": "2026-10-20T17:53:21.610872+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-23T08:11:00+05:30",
+          "post_id": "1530259629139061",
+          "scheduled_post_id": "1680444613415451"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-23T08:11:00+05:30",
+          "post_id": "18376505632211849",
+          "scheduled_post_id": "951900300900729"
+        }
+      },
+      "last_attempt_at": "2026-10-23T10:28:15.631227+05:30"
     },
     {
       "id": "funzug-2026-10-15-livermore-centennial-bulb",
