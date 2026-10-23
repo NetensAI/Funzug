@@ -186,7 +186,18 @@ def dry_run():
     if (BASE/'cutover.json').is_file():
         home=json.loads(command(['docker','inspect','funzug-home-worker']))[0]
         old=json.loads(command(['docker','inspect','funzug-native-worker','scheduler-scheduler-1']))
+        checks=[]
+        if home['Config'].get('Cmd')!=['python','-m','home_server.runner']:
+            checks.append('home_command_unexpected')
+        if home['Config'].get('Entrypoint'):
+            checks.append('inherited_entrypoint_present')
+        proof=json.loads(command(['docker','exec','funzug-home-worker','python','-c',
+            'import json;from scheduler.meta_browser import MetaBrowser;print(json.dumps({"patched":hasattr(MetaBrowser,"publication_heading")}))']))
+        if not proof.get('patched'):checks.append('runtime_publication_patch_missing')
+        marker=BASE/'home-update.json'
         return {'result':'home_health_status','healthy':home['State'].get('Health',{}).get('Status')=='healthy',
+                'revision':json.loads(marker.read_text()).get('revision') if marker.is_file() else None,
+                'failed_checks':checks,
                 'owner':'home','legacy_dispatcher_stopped':not any(c['State']['Running'] for c in old),
                 'duplicate_executors':sum(bool(c['State']['Running']) for c in old)}
     compose('config','--quiet')
