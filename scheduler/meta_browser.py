@@ -637,9 +637,9 @@ class MetaBrowser:
             if observed.scheme!='https' or observed.hostname!='business.facebook.com' or observed.path.rstrip('/')!='/latest/insights/object_insights' or parse_qs(observed.query).get('content_id')!=[identifier]:
                 raise NativeFailure('publication_identifier_changed')
             account='Funzug' if platform=='facebook' else 'funzugdotcom'
-            self.planner.get_by_text(account,exact=True).first.wait_for(state='visible',timeout=15000)
+            self.publication_detail_wait(self.planner.get_by_text(account,exact=True).first,15000)
             destination='View post on Facebook' if platform=='facebook' else 'View post on Instagram'
-            self.planner.get_by_text(destination,exact=True).wait_for(state='visible',timeout=15000)
+            self.publication_detail_wait(self.planner.get_by_text(destination,exact=True),15000)
             labels=self.planner.get_by_text(re.compile(r'^Post · Published on: '))
             if labels.count()!=1:
                 raise NativeFailure('publication_label_not_confirmed')
@@ -656,8 +656,12 @@ class MetaBrowser:
         remains pending, with the runner's item backoff, never a new submission.
         Actual access restrictions still take precedence over pending details.
         """
+        self.publication_detail_wait(self.planner.get_by_role('heading', name=caption, exact=True),45000)
+
+    def publication_detail_wait(self, locator, timeout):
+        """All required insight-detail evidence fails closed per item."""
         try:
-            self.planner.get_by_role('heading', name=caption, exact=True).wait_for(timeout=45000)
+            locator.wait_for(state='visible',timeout=timeout)
         except Exception as error:
             if type(error).__name__ != 'TimeoutError':
                 raise

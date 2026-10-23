@@ -10,6 +10,17 @@ import datetime as dt
 
 
 class NativeBrowserCleanupTests(unittest.TestCase):
+    def test_missing_view_post_label_remains_pending_without_cooldown(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        browser.planner.url = 'https://business.facebook.com/latest/insights/object_insights/?content_id=123'
+        locator=Mock()
+        locator.wait_for.side_effect=TimeoutError()
+        with patch.object(browser,'check_access') as access:
+            with self.assertRaisesRegex(NativeFailure,'^publication_detail_pending$'):
+                browser.publication_detail_wait(locator,15000)
+        access.assert_called_once_with(browser.planner)
+        locator.wait_for.assert_called_once_with(state='visible',timeout=15000)
+
     def test_missing_publication_heading_is_pending_not_global_timeout(self):
         browser = MetaBrowser(Mock(), Path('.'))
         browser.planner.url = 'https://business.facebook.com/latest/insights/object_insights/?content_id=123'
