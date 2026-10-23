@@ -10,6 +10,21 @@ import datetime as dt
 
 
 class NativeBrowserCleanupTests(unittest.TestCase):
+    def test_published_instagram_identity_uses_observed_badge_and_account(self):
+        browser=MetaBrowser(Mock(),Path('.'))
+        browser.planner.get_by_role.return_value.count.return_value=1
+        browser.publication_identity('instagram')
+        browser.planner.get_by_text.assert_called_once_with('funzugdotcom',exact=True)
+        browser.planner.get_by_role.assert_called_once_with('img',name='Instagram',exact=True)
+        browser.planner.get_by_role.return_value.wait_for.assert_called_once_with(state='visible',timeout=15000)
+
+    def test_published_identity_rejects_absent_or_ambiguous_platform(self):
+        for count in (0,2):
+            browser=MetaBrowser(Mock(),Path('.'))
+            browser.planner.get_by_role.return_value.count.return_value=count
+            with self.assertRaisesRegex(NativeFailure,'^publication_platform_not_unique$'):
+                browser.publication_identity('facebook')
+
     def test_missing_view_post_label_remains_pending_without_cooldown(self):
         browser = MetaBrowser(Mock(), Path('.'))
         browser.planner.url = 'https://business.facebook.com/latest/insights/object_insights/?content_id=123'

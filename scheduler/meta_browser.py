@@ -636,10 +636,7 @@ class MetaBrowser:
             observed=urlsplit(self.planner.url)
             if observed.scheme!='https' or observed.hostname!='business.facebook.com' or observed.path.rstrip('/')!='/latest/insights/object_insights' or parse_qs(observed.query).get('content_id')!=[identifier]:
                 raise NativeFailure('publication_identifier_changed')
-            account='Funzug' if platform=='facebook' else 'funzugdotcom'
-            self.publication_detail_wait(self.planner.get_by_text(account,exact=True).first,15000)
-            destination='View post on Facebook' if platform=='facebook' else 'View post on Instagram'
-            self.publication_detail_wait(self.planner.get_by_text(destination,exact=True),15000)
+            self.publication_identity(platform)
             labels=self.planner.get_by_text(re.compile(r'^Post · Published on: '))
             if labels.count()!=1:
                 raise NativeFailure('publication_label_not_confirmed')
@@ -648,6 +645,20 @@ class MetaBrowser:
             if identifier!=scheduled_id:
                 results[platform].update(scheduled_post_id=scheduled_id,content_hash=packet['contentHash'])
         return {'platform_results':results}
+
+    def publication_identity(self, platform):
+        # Live insights UI has a platform badge, published label and account
+        # preview. Instagram no longer consistently includes a View post link.
+        # Require the observed identity signals, not a nonexistent outbound link.
+        identities={'facebook':('Facebook','Funzug'),'instagram':('Instagram','funzugdotcom')}
+        if platform not in identities:
+            raise NativeFailure('publication_platform_invalid')
+        label,account=identities[platform]
+        self.publication_detail_wait(self.planner.get_by_text(account,exact=True).first,15000)
+        badge=self.planner.get_by_role('img',name=label,exact=True)
+        if badge.count()!=1:
+            raise NativeFailure('publication_platform_not_unique')
+        self.publication_detail_wait(badge,15000)
 
     def publication_heading(self, caption):
         """A missing post-detail heading is not browser-wide unavailability.
