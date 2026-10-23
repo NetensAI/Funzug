@@ -16,7 +16,8 @@ BASE = Path.home() / '.local/lib/funzug-phase2'
 PROBE = r'''
 import datetime as dt,json,os,pathlib
 from scheduler.native_runner import read_api,candidates,publication_candidates,IST
-from instagram_credentials import decode_bundle,verify_account
+from instagram_credentials import decode_bundle,verify_account,request_json
+from urllib.request import Request
 config=json.loads(pathlib.Path('/run/secrets/config.json').read_text())
 rows=read_api(config,'drafts',{'batchId':'funzug-draft-inbox-v1'})['drafts']
 now=dt.datetime.now(IST)
@@ -32,6 +33,11 @@ if raw:
     try:
         bundle=decode_bundle(raw)
         verify_account(bundle['access_token'],bundle['account_id'])
+        values=json.loads(store.read_text())
+        page=values.get('FUNZUG_FACEBOOK_PAGE_TOKEN')
+        if not page:raise RuntimeError('page verification unavailable')
+        identity=request_json(Request('https://graph.facebook.com/v26.0/124454514239741?fields=id',headers={'Authorization':'Bearer '+page}))
+        if identity.get('id')!='124454514239741':raise RuntimeError('page identity mismatch')
         valid=True
     except Exception: pass
 else: missing.append('FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL')

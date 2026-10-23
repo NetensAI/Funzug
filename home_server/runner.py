@@ -75,6 +75,9 @@ def main():
                     require_home(config)
                     credential_tick(config,jobs,now)
                     native_runner.tick(config,Path('/state/native-worker.json'),browser.contexts[0],True)
+                    from scheduler.native_health import healthy
+                    if not healthy(json.loads(Path('/state/native-worker.json').read_text()),time.time()):
+                        raise RuntimeError('native_worker_unhealthy')
                     jobs.update(last_checked_at=int(time.time()),error=None,backend='home')
                 except Exception:
                     jobs.update(last_checked_at=int(time.time()),error='home_job_failed')
