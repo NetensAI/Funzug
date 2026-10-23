@@ -212,7 +212,7 @@ def cutover():
     # The staged revision must include the disabled triggers and explicit
     # GitHub-owner guard. No recurring trigger is changed by this controller.
     workflow_dir=ROOT/'.github/workflows'
-    production=[p for p in workflow_dir.glob('*.yml') if p.name not in {'test-pipeline.yml','home-credential-transfer.yml'}]
+    production=[p for p in workflow_dir.glob('*.yml') if p.is_file() and p.name not in {'test-pipeline.yml','home-credential-transfer.yml'}]
     for path in production:
         source=path.read_text()
         if '\n  schedule:' in source or '\n  push:' in source or "vars.FUNZUG_EXECUTION_OWNER == 'github'" not in source:
