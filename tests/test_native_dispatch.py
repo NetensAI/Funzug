@@ -50,10 +50,29 @@ class DispatchTests(unittest.TestCase):
 
     def test_failed_non_reservation_checkpoint_is_not_replayed(self):
         state={'checkpoints':{'begin:item:':{'correlation':'old','requested_at':1,'run_id':8,'phase':'failed'}}}
-        with patch('scheduler.native_dispatch.build_opener') as send:
+        run={'id':8,'display_title':'Native Meta begin item old','actor':{'login':'funzug-automation-netensai[bot]'},'status':'completed','conclusion':'failure'}
+        with patch('scheduler.native_dispatch.github',return_value=run),patch('scheduler.native_dispatch.build_opener') as send:
             with self.assertRaisesRegex(NativeFailure,'checkpoint_workflow_failed'):
                 CheckpointDispatcher('fake',state,Mock())('begin','item')
         send.assert_not_called()
+
+    def test_failed_begin_observes_same_successfully_rerun_checkpoint(self):
+        state={'checkpoints':{'begin:item:':{'correlation':'old','requested_at':1,'run_id':8,'phase':'failed'}}}
+        run={'id':8,'display_title':'Native Meta begin item old','actor':{'login':'funzug-automation-netensai[bot]'},'status':'completed','conclusion':'success'}
+        with patch('scheduler.native_dispatch.github',return_value=run) as read,patch('scheduler.native_dispatch.build_opener') as send:
+            CheckpointDispatcher('fake',state,Mock())('begin','item')
+        self.assertEqual(state['checkpoints']['begin:item:']['phase'],'success')
+        self.assertEqual(read.call_args.args[1],'/repos/NetensAI/Funzug/actions/runs/8')
+        send.assert_not_called()
+
+    def test_failed_begin_does_not_trust_another_run_or_actor(self):
+        for changed in ({'id':9},{'display_title':'unrelated'},{'actor':{'login':'other'}}):
+            state={'checkpoints':{'begin:item:':{'correlation':'old','run_id':8,'phase':'failed'}}}
+            run={'id':8,'display_title':'Native Meta begin item old','actor':{'login':'funzug-automation-netensai[bot]'},'status':'completed','conclusion':'success',**changed}
+            with patch('scheduler.native_dispatch.github',return_value=run),patch('scheduler.native_dispatch.build_opener') as send:
+                with self.assertRaisesRegex(NativeFailure,'checkpoint_workflow_failed'):
+                    CheckpointDispatcher('fake',state,Mock())('begin','item')
+            send.assert_not_called()
 
     def test_failed_reservation_without_confirmed_run_is_not_replayed(self):
         state={'checkpoints':{'reserve:item:':{'correlation':'old','phase':'failed'}}}

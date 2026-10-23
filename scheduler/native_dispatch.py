@@ -34,6 +34,21 @@ class CheckpointDispatcher:
         job = jobs.get(key)
         attempts = []
         if job is not None and job.get('phase') == 'failed':
+            if action == 'begin' and isinstance(job.get('run_id'), int) and job.get('correlation'):
+                # A human may rerun the SAME record-only checkpoint after a
+                # failed Git push. Observe that run, never dispatch a new begin
+                # and never discard a durable browser submission intent.
+                run = github('GET', REPO + '/actions/runs/' + str(job['run_id']), self.auth)
+                expected = f'Native Meta {action} {item_id} {job["correlation"]}'
+                if (run.get('id') != job['run_id'] or run.get('display_title') != expected
+                        or run.get('actor', {}).get('login') != 'funzug-automation-netensai[bot]'):
+                    raise NativeFailure('checkpoint_workflow_failed')
+                if run.get('status') != 'completed':
+                    raise NativeFailure('checkpoint_pending_reconciliation')
+                if run.get('conclusion') == 'success':
+                    job['phase'] = 'success'
+                    self.persist(self.state)
+                    return
             # A completed failed reservation is safe to retry with a new
             # correlation. Never replay ambiguous dispatches or other actions.
             if action != 'reserve' or not job.get('correlation') or not job.get('run_id'):
