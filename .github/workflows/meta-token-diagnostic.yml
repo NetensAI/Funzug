@@ -8,11 +8,15 @@ permissions:
 
 jobs:
   token-debug:
-    if: vars.FUNZUG_EXECUTION_OWNER == 'github'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     environment: funzug-publish
     steps:
+      - name: Require GitHub execution ownership before any operation
+        env:
+          FUNZUG_EXECUTION_OWNER: ${{ vars.FUNZUG_EXECUTION_OWNER }}
+        run: test "$FUNZUG_EXECUTION_OWNER" = github
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Python

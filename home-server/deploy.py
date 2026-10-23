@@ -113,9 +113,9 @@ from scripts.renew_instagram_credential import installation_token,github
 config=json.loads(pathlib.Path('/run/secrets/config.json').read_text())
 os.environ['FUNZUG_GH_APP_ID']='5281589'
 os.environ['FUNZUG_GH_APP_PRIVATE_KEY']=pathlib.Path(config['key_file']).read_text()
-token=installation_token({'actions':'write'})
+token=installation_token({'actions':'write'} if OP=='active' else None)
 os.environ.pop('FUNZUG_GH_APP_PRIVATE_KEY',None)
-base='/repos/NetensAI/Funzug/actions/variables'
+base='/repos/NetensAI/Funzug/environments/funzug-publish/variables'
 if OP=='active':
     selected=[]
     for status in ('in_progress','queued','waiting','pending'):
@@ -229,7 +229,7 @@ def cutover():
     production=[p for p in workflow_dir.glob('*.yml') if p.is_file() and p.name not in {'test-pipeline.yml','home-credential-transfer.yml'}]
     for path in production:
         source=path.read_text()
-        if '\n  schedule:' in source or '\n  push:' in source or "vars.FUNZUG_EXECUTION_OWNER == 'github'" not in source:
+        if '\n  schedule:' in source or '\n  push:' in source or 'test "$FUNZUG_EXECUTION_OWNER" = github' not in source:
             return {'result':'activation_refused','failed_checks':['github_workflows_not_fenced_and_manual_only']}
     import urllib.request
     public=json.load(urllib.request.urlopen('https://api.github.com/repos/NetensAI/Funzug/commits/main',timeout=25))

@@ -6,7 +6,7 @@ from urllib.request import Request
 from instagram_credentials import request_json
 from scripts.renew_instagram_credential import installation_token
 
-URL='https://api.github.com/repos/NetensAI/Funzug/actions/variables/FUNZUG_EXECUTION_OWNER'
+URL='https://api.github.com/repos/NetensAI/Funzug/environments/funzug-publish/variables/FUNZUG_EXECUTION_OWNER'
 
 
 def auth(config, permissions=None):
@@ -17,7 +17,7 @@ def auth(config, permissions=None):
 
 
 def owner(config):
-    token=auth(config,{'actions':'write'})
+    token=auth(config)
     return request_json(Request(URL,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'})).get('value')
 
 
