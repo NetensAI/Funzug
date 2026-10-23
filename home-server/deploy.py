@@ -23,13 +23,15 @@ missing=[]
 raw=os.environ.get('FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL') or config.get('FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL')
 path=pathlib.Path('/run/secrets/FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL')
 if not raw and path.is_file(): raw=path.read_text()
+store=pathlib.Path('/state/home-secrets.json')
+if not raw and store.is_file(): raw=json.loads(store.read_text()).get('FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL')
 valid=False
 if raw:
     try: decode_bundle(raw);valid=True
     except Exception: pass
 else: missing.append('FUNZUG_INSTAGRAM_LOGIN_CREDENTIAL')
 print(json.dumps({'missing_secret_names':missing,'credential_valid':valid,
- 'renewal_storage_writable':os.access('/run/secrets',os.W_OK),
+ 'renewal_storage_writable':store.is_file() and os.access(store,os.W_OK) and (store.stat().st_mode&0o777)==0o600,
  'due_reconciliation_count':len(publication_candidates(rows,now)),
  'rows':[{'id':r['externalId'],'slot':r['proposedSchedule'],
           'handoff':r.get('nativeHandoff')} for r in selected]}))
@@ -91,6 +93,15 @@ def main():
     operation = sys.argv[1] if len(sys.argv) == 2 else ''
     if operation == 'dry-run':
         result = dry_run()
+    elif operation == 'cutover' and not (Path.home()/'apps/funzug-automation/scheduler/native-state/home-secrets.json').exists():
+        source=(ROOT/'scripts/home_credential_transfer.py').read_text()
+        program='namespace={"__name__":"home_transfer"}\nexec('+repr(source)+',namespace)\nnamespace["import_latest"]()\n'
+        completed=subprocess.run(['docker','exec','-i','funzug-native-worker','python','-'],
+                                 input=program,text=True,capture_output=True,timeout=120)
+        if completed.returncode:
+            result={'result':'credential_import_failed','failed_checks':['encrypted_migration_import_failed_details_omitted']}
+        else:
+            result=json.loads(completed.stdout)
     elif operation in {'cutover', 'rollback'}:
         result = {'result': 'activation_refused', 'dry_run_passed': False,
                   'failed_checks': ['complete_executor_and_verified_dry_run_required']}
