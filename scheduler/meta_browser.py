@@ -29,6 +29,18 @@ def calendar_label(slot: dt.datetime) -> str:
     return slot.strftime('%a ') + str(slot.day)
 
 
+def planner_month_pattern(slot: dt.datetime):
+    # Meta labels a boundary week by both months, using its exclusive Sunday
+    # boundary (25-31 October is shown as "Oct - Nov"). The exact day header
+    # and year checks below remain mandatory.
+    start = slot.date() - dt.timedelta(days=(slot.weekday() + 1) % 7)
+    labels = {slot.strftime('%B')}
+    for end in (start + dt.timedelta(days=6), start + dt.timedelta(days=7)):
+        if start.month != end.month:
+            labels.add(start.strftime('%b') + ' - ' + end.strftime('%b'))
+    return re.compile('^(?:' + '|'.join(re.escape(label) for label in sorted(labels)) + ')$')
+
+
 def time_label(slot: dt.datetime) -> str:
     return str(slot.hour % 12 or 12) + slot.strftime(':%M %p')
 
@@ -508,7 +520,7 @@ class MetaBrowser:
             self.planner.get_by_text(re.compile(r'^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+[0-9]{1,2}$')).first.wait_for(state='visible', timeout=15000)
         else:
             raise NativeFailure('planner_date_not_visible')
-        month = self.planner.get_by_role('heading', name=slot.strftime('%B'), exact=True)
+        month = self.planner.get_by_role('heading', name=planner_month_pattern(slot))
         year = self.planner.get_by_role('heading', name=str(slot.year), exact=True)
         if month.count() != 1 or year.count() != 1:
             raise NativeFailure('planner_month_not_confirmed')
