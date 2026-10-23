@@ -1,12 +1,6 @@
 name: Sync Funzug drafts with BrandFlow approvals
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'drafts/**'
-  schedule:
-    - cron: "2-59/5 * * * *"
   workflow_dispatch:
     inputs:
       acceptance_tests:
