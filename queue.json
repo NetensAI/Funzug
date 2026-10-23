@@ -3150,7 +3150,7 @@
     },
     {
       "id": "funzug-2026-10-15-livermore-centennial-bulb",
-      "status": "approved",
+      "status": "published",
       "format": "image",
       "headline": "A Firehouse Bulb With A Century Of History",
       "caption": "This lightbulb's story began in a firehouse in 1901.\n\nLivermore's Centennial Light was first installed at the California fire department that year. The committee documenting its history describes a handblown bulb with a carbon filament.\n\nIts long life has included moves and interruptions. That detail matters: remarkable longevity does not mean it has never gone out.\n\nWhat is the oldest everyday object still being used in your family?\n\n#CentennialLight #Livermore #CaliforniaHistory #EverydayHistory #Engineering",
@@ -3237,7 +3237,22 @@
           }
         },
         "submission_started_at": "2026-10-20T17:54:57.312518+05:30"
-      }
+      },
+      "platform_results": {
+        "facebook": {
+          "status": "published",
+          "published_at": "2026-10-23T12:35:00+05:30",
+          "post_id": "1530432572455100",
+          "scheduled_post_id": "1588728072557893"
+        },
+        "instagram": {
+          "status": "published",
+          "published_at": "2026-10-23T12:35:00+05:30",
+          "post_id": "17993418140851408",
+          "scheduled_post_id": "1876199443825059"
+        }
+      },
+      "last_attempt_at": "2026-10-23T12:40:05.769303+05:30"
     },
     {
       "id": "funzug-2026-10-15-whittier-begich-towers",
