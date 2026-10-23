@@ -35,6 +35,8 @@ Set the non-secret FUNZUG_DEPLOYMENT_ROOT environment variable to the existing d
 
 ## Restricted home repair updates
 
+Repair exception: a code-only home update may preserve an active unavailable-Planner cooldown. It never clears or shortens the timer and never opens Meta during deployment; the replacement worker reads the same private state and continues waiting. A positively identified temporary Meta block still refuses deployment. This exception prevents an unchanged buggy worker from repeatedly renewing its own unavailable-Planner cooldown before repair can run.
+
 After initial cutover, the explicitly invoked restricted `cutover` operation updates the home worker rather than repeating the original migration. Routine `dry-run` remains metadata-only. Updates refuse active cooldowns and actual temporary blocks, require local home ownership and stopped legacy executors, and build and run isolated offline tests before stopping the current worker. The stopped container is retained under a timestamped backup name with restart disabled. A revision-specific Compose project starts the replacement without removing the backup. State and credential mounts, publication records, browser profile and shared ownership are not reset. Startup is not proof of recovery; check actual health and live publication evidence afterward. No automatic rollback, deletion or publication replay occurs.
 
 Post-insights exact-caption timeouts remain pending reconciliation rather than escalating into browser-wide unavailability. The caption, account, published label, timestamp and platform ID checks remain mandatory. Actual temporary blocks and login requirements still fail closed.

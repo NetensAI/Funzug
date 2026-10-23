@@ -19,14 +19,26 @@ class ReadinessTests(unittest.TestCase):
         (state/'execution-owner.json').write_text(json.dumps({'owner':'home'}))
         return home
 
-    def test_home_update_never_builds_or_stops_during_cooldown(self):
+    def test_home_repair_preserves_cooldown_and_retains_old_container(self):
         with tempfile.TemporaryDirectory() as directory:
-            home=self.update_fixture(directory,{'browser_retry_after':module.time.time()+3600})
-            with patch.object(module.Path,'home',return_value=home),patch.object(module,'command') as command,patch.object(module,'compose') as compose:
+            native={'browser_retry_after':module.time.time()+3600,'browser_block_reason':'meta_planner_unavailable','items':{'due':{'status':'scheduled','error':'native_worker_check_failed'}}}
+            home=self.update_fixture(directory,native)
+            calls=[]
+            def command(args,*unused):
+                calls.append(args)
+                if args[:2]==['docker','inspect']:
+                    if args[2]=='funzug-home-worker':return json.dumps([{'State':{'Running':False}}])
+                    return json.dumps([{'State':{'Running':False}},{'State':{'Running':False}}])
+                if args[0]=='git':return 'a'*40
+                return ''
+            with patch.object(module.Path,'home',return_value=home),patch.object(module,'command',side_effect=command),patch.object(module,'compose') as compose,patch.object(module,'private_write') as write:
                 result=module.update_home()
-            self.assertEqual(result['failed_checks'],['browser_restricted'])
-            command.assert_not_called()
-            compose.assert_not_called()
+            self.assertEqual(result['result'],'home_update_started')
+            self.assertEqual(json.loads((home/'apps/funzug-automation/scheduler/native-state/native-worker.json').read_text()),native)
+            self.assertFalse(any(args[:2] in (['docker','rm'],['docker','restart']) for args in calls))
+            self.assertTrue(any(args[:2]==['docker','rename'] for args in calls))
+            compose.assert_any_call('up','-d','--no-build',project='funzug-home-'+'a'*12)
+            self.assertEqual(write.call_args.args[0],module.BASE/'home-update.json')
 
     def test_home_update_preserves_actual_restriction_after_timer_expiry(self):
         with tempfile.TemporaryDirectory() as directory:

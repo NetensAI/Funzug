@@ -229,7 +229,7 @@ def update_home():
     """
     directory=Path.home()/'apps/funzug-automation/scheduler/native-state'
     native=json.loads((directory/'native-worker.json').read_text())
-    if native.get('browser_retry_after',0)>time.time() or native.get('browser_block_reason')=='meta_temporarily_blocked':
+    if native.get('browser_block_reason')=='meta_temporarily_blocked':
         return {'result':'home_update_blocked','failed_checks':['browser_restricted']}
     marker=json.loads((directory/'execution-owner.json').read_text())
     if marker.get('owner')!='home':
@@ -248,10 +248,11 @@ def update_home():
              '--cap-drop=ALL','--security-opt=no-new-privileges','funzug-home-worker:local',
              'python','-m','unittest','tests.test_home_executor','tests.test_native_runner',
              'tests.test_native_browser_cleanup','tests.test_home_readiness'],180)
-    # Recheck cooldown after a potentially slow build. Do not replace a worker
-    # that has independently entered a fresh restriction in the meantime.
+    # Preserve an unavailable-Planner timer unchanged. The replacement reads
+    # the same state and must wait for it; deploying code is not Meta access.
+    # A positively identified actual block still refuses the update.
     native=json.loads((directory/'native-worker.json').read_text())
-    if native.get('browser_retry_after',0)>time.time() or native.get('browser_block_reason')=='meta_temporarily_blocked':
+    if native.get('browser_block_reason')=='meta_temporarily_blocked':
         return {'result':'home_update_blocked','failed_checks':['browser_restricted']}
     backup='funzug-home-worker-backup-'+str(time.time_ns())
     command(['docker','stop','--timeout','90','funzug-home-worker'])
