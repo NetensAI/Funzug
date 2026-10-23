@@ -1,0 +1,20 @@
+# Readiness profile only. No production executor is enabled by this release.
+# A complete executor/fence release must replace this before any cutover.
+services:
+  readiness:
+    profiles: [readiness]
+    image: funzug-native-worker:repair-20261023053035
+    entrypoint: [python, -m, scheduler.native_health]
+    restart: "no"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    user: "1000:1000"
+    volumes:
+      - ../scheduler/native-state:/state:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
