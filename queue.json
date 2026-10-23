@@ -3582,7 +3582,16 @@
           "facebook",
           "instagram"
         ],
-        "receipts": {},
+        "receipts": {
+          "facebook": {
+            "platform": "facebook",
+            "schedule_id": "1163496262683973",
+            "scheduled_at": "2026-10-25T08:33:00+05:30",
+            "content_hash": "2f6a94539b2597fbc15aaaeb75df7a9f1b60548e46ad3720f8918dd6e385531a",
+            "planner_url": "https://business.facebook.com/latest/content_calendar?business_id=327637346385766&asset_id=124454514239741&calendar_type=WEEK",
+            "checked_at": "2026-10-23T11:09:42.322884+05:30"
+          }
+        },
         "submission_started_at": "2026-10-23T10:59:22.291213+05:30"
       }
     },
