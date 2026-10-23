@@ -4,3 +4,6 @@
 scheduler/secrets/
 scheduler/state/
 scheduler/native-state/
+**/home-secrets.json
+**/*-envelope.json
+**/__pycache__/

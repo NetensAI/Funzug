@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   inspect:
+    if: vars.FUNZUG_EXECUTION_OWNER == 'github'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     environment: funzug-publish

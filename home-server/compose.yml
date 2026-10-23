@@ -1,18 +1,33 @@
-# Readiness profile only. No production executor is enabled by this release.
-# A complete executor/fence release must replace this before any cutover.
 services:
-  readiness:
-    profiles: [readiness]
-    image: funzug-native-worker:repair-20261023053035
-    entrypoint: [python, -m, scheduler.native_health]
-    restart: "no"
-    network_mode: none
+  home-worker:
+    container_name: funzug-home-worker
+    build:
+      context: ..
+      dockerfile: home-server/Dockerfile
+    image: funzug-home-worker:local
+    restart: unless-stopped
+    network_mode: container:funzug-meta-browser
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     user: "1000:1000"
+    environment:
+      TZ: Asia/Kolkata
+      PYTHONDONTWRITEBYTECODE: "1"
+      FUNZUG_NATIVE_BROWSER_ENABLED: "1"
+      FUNZUG_NATIVE_MIXED_ENABLED: "0"
+      FUNZUG_NATIVE_ACCEPTANCE_ENABLED: "0"
     volumes:
-      - ../scheduler/native-state:/state:ro
+      - ${FUNZUG_DEPLOYMENT_ROOT}/scheduler/secrets:/run/secrets:ro
+      - ${FUNZUG_DEPLOYMENT_ROOT}/scheduler/native-state:/state
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=0700
+    healthcheck:
+      test: [CMD, python, -m, home_server.health]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
     logging:
       driver: json-file
       options:
