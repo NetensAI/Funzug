@@ -84,6 +84,10 @@ def command(args,timeout=120,env=None):
     if result.returncode:
         status=re.search(r'HTTP(?: Error| status|)?[ :]+([1-5][0-9]{2})',result.stderr)
         code='deployment_http_'+status.group(1) if status else 'deployment_command_failed'
+        for text,label in [('read-only file system','readonly'),('permission denied','permission'),('no module named','missing_module'),('not found','not_found'),('failed to solve','build_failed'),('FAILED (','tests_failed')]:
+            if text.lower() in result.stderr.lower():
+                code+='_'+label
+                break
         raise DeploymentFailure(code)
     return result.stdout
 
@@ -355,7 +359,8 @@ if __name__ == '__main__':
     except Exception as error:
         import traceback
         frames=[frame for frame in traceback.extract_tb(error.__traceback__) if Path(frame.filename).name=='deploy.py']
-        location='deploy_line_'+str(frames[-1].lineno) if frames else 'deployment_location_unavailable'
+        callers=[frame for frame in frames if frame.name!='command']
+        location='deploy_line_'+str(callers[-1].lineno) if callers else 'deployment_location_unavailable'
         kind=type(error).__name__
         if kind not in {'RuntimeError','TypeError','KeyError','FileNotFoundError','HTTPError','PermissionError','TimeoutExpired','ValueError'}:kind='Exception'
         print(json.dumps({'result': 'readiness_failed', 'dry_run_passed': False,
