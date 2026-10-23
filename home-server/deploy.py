@@ -7,6 +7,11 @@ import subprocess
 import sys
 import hashlib
 import time
+import re
+
+
+class DeploymentFailure(RuntimeError):
+    def __init__(self,code):self.code=code
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = Path.home() / '.local/lib/funzug-phase2'
@@ -76,7 +81,10 @@ def assess(queue, probe):
 
 def command(args,timeout=120,env=None):
     result=subprocess.run(args,capture_output=True,text=True,timeout=timeout,env=env)
-    if result.returncode:raise RuntimeError('deployment_command_failed')
+    if result.returncode:
+        status=re.search(r'HTTP(?: Error| status|)?[ :]+([1-5][0-9]{2})',result.stderr)
+        code='deployment_http_'+status.group(1) if status else 'deployment_command_failed'
+        raise DeploymentFailure(code)
     return result.stdout
 
 
@@ -299,4 +307,4 @@ if __name__ == '__main__':
         kind=type(error).__name__
         if kind not in {'RuntimeError','TypeError','KeyError','FileNotFoundError','HTTPError','PermissionError','TimeoutExpired','ValueError'}:kind='Exception'
         print(json.dumps({'result': 'readiness_failed', 'dry_run_passed': False,
-                          'failed_checks': ['deployment_error_'+kind,location]}))
+                          'failed_checks': [error.code if isinstance(error,DeploymentFailure) else 'deployment_error_'+kind,location]}))
