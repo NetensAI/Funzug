@@ -67,6 +67,30 @@ class NativeBrowserCleanupTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             browser.publication_heading('Exact approved caption')
 
+    def test_card_hydration_timeout_is_item_pending_not_browser_cooldown(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        card = Mock()
+        card.locator.return_value.wait_for.side_effect = TimeoutError()
+        with patch.object(browser, 'check_access') as access:
+            with self.assertRaisesRegex(NativeFailure, '^planner_pending_reconciliation$'):
+                browser.wait_for_card_hydration(card)
+        access.assert_called_once_with(browser.planner)
+
+    def test_card_hydration_preserves_actual_meta_restriction(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        card = Mock()
+        card.locator.return_value.wait_for.side_effect = TimeoutError()
+        with patch.object(browser, 'check_access', side_effect=NativeFailure('meta_temporarily_blocked')):
+            with self.assertRaisesRegex(NativeFailure, '^meta_temporarily_blocked$'):
+                browser.wait_for_card_hydration(card)
+
+    def test_card_hydration_does_not_hide_non_timeout_errors(self):
+        browser = MetaBrowser(Mock(), Path('.'))
+        card = Mock()
+        card.locator.return_value.wait_for.side_effect = RuntimeError('fixture')
+        with self.assertRaisesRegex(RuntimeError, '^fixture$'):
+            browser.wait_for_card_hydration(card)
+
     def test_incomplete_browser_creation_closes_its_first_owned_tab(self):
         context, page = Mock(), Mock()
         context.new_page.side_effect = [page, RuntimeError('fixture failure')]

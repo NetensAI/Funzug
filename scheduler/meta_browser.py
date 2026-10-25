@@ -495,6 +495,19 @@ class MetaBrowser:
             return False
         return True
 
+    def wait_for_card_hydration(self, card):
+        """Keep a slow individual card pending without deferring the whole browser."""
+        try:
+            card.locator('[data-visualcompletion="loading-state"]').wait_for(
+                state='hidden', timeout=45000)
+        except Exception as error:
+            if type(error).__name__ != 'TimeoutError':
+                raise
+            # A restriction or login screen still takes precedence over a
+            # local card timeout. Otherwise preserve uncertainty on this item.
+            self.check_access(self.planner)
+            raise NativeFailure('planner_pending_reconciliation') from None
+
     def planner_cards(self, packet: dict, allow_past=False, *, expect_existing=None):
         self.planner.goto(PLANNER, wait_until='domcontentloaded')
         self.visible(self.planner, 'Planner')
@@ -537,7 +550,7 @@ class MetaBrowser:
         # for a descendant link cannot trigger an offscreen placeholder to load.
         for card in cards.all():
             card.scroll_into_view_if_needed(timeout=15000)
-            card.locator('[data-visualcompletion="loading-state"]').wait_for(state='hidden', timeout=45000)
+            self.wait_for_card_hydration(card)
         bounds = header.evaluate('el=>{const r=el.parentElement.getBoundingClientRect();return {left:r.left,right:r.right}}')
         return cards,bounds
 
