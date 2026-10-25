@@ -99,7 +99,8 @@ class MetaBrowser:
         self.timezone(page)
 
     def check_access(self, page):
-        if page.get_by_text(re.compile(r"^You['’]re Temporarily Blocked$", re.I)).count():
+        notices = page.get_by_text(re.compile(r"^You['’]re Temporarily Blocked$", re.I))
+        if any(notice.is_visible() for notice in notices.all()):
             raise NativeFailure('meta_temporarily_blocked')
 
     def selected_platforms(self):

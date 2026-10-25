@@ -43,10 +43,20 @@ class AccountSelectorTests(unittest.TestCase):
     def test_visible_meta_block_stops_before_any_account_action(self):
         browser = MetaBrowser.__new__(MetaBrowser)
         page = Mock()
-        page.get_by_text.return_value.count.return_value = 1
+        notice = Mock()
+        notice.is_visible.return_value = True
+        page.get_by_text.return_value.all.return_value = [notice]
         with self.assertRaisesRegex(NativeFailure,'meta_temporarily_blocked'):
             browser.check_access(page)
         page.get_by_role.assert_not_called()
+
+    def test_hidden_block_text_does_not_classify_a_restriction(self):
+        browser = MetaBrowser.__new__(MetaBrowser)
+        page = Mock()
+        notice = Mock()
+        notice.is_visible.return_value = False
+        page.get_by_text.return_value.all.return_value = [notice]
+        browser.check_access(page)
 
     def test_caption_mentioning_funzug_is_not_an_account_selector(self):
         browser = MetaBrowser.__new__(MetaBrowser)

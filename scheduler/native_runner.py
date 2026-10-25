@@ -159,7 +159,7 @@ def error_backoff_seconds(local):
         if any(job.get('phase') in {'dispatch_intent', 'accepted'}
                for job in checkpoints.values() if isinstance(job, dict)):
             return 60
-    return 300
+    return min(21600, 300 * 2 ** min(6, max(0, local.get('failure_count', 1) - 1)))
 
 
 def tick(config, state_path, context, enabled=False):
@@ -174,7 +174,7 @@ def tick(config, state_path, context, enabled=False):
     state['approved_upcoming_count']=len(selected)
     due=publication_candidates(rows,now)
     state['publication_reconciliation_count']=len(due)
-    selected=selected+due
+    selected=due+selected
     state['active_item_ids']=[row['externalId'] for row in selected]
     state['enabled']=enabled
     def save():
@@ -190,7 +190,10 @@ def tick(config, state_path, context, enabled=False):
         return
     from scheduler.meta_browser import MetaBrowser
     token=None
-    for row in selected:
+    browser_checks=0
+    due_ids={row['externalId'] for row in due}
+    for row in sorted(selected, key=lambda row: (row['externalId'] not in due_ids,
+            state['items'].get(row['externalId'],{}).get('last_attempt_at',0))):
         identifier=row['externalId']
         if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}',identifier):
             raise NativeFailure('invalid_item')
@@ -199,6 +202,11 @@ def tick(config, state_path, context, enabled=False):
             continue
         if local.get('error') and local.get('last_attempt_at',0)>time.time()-error_backoff_seconds(local):
             continue
+        # Bound browser traffic per minute; rotate toward least recently tried
+        # items on subsequent ticks without changing approval or submission state.
+        if browser_checks >= 3:
+            break
+        browser_checks += 1
         local['last_attempt_at']=int(time.time())
         browser=None
         def refresh():return read_api(config,'native-package',{'batchId':BATCH,'externalId':identifier})
@@ -216,6 +224,7 @@ def tick(config, state_path, context, enabled=False):
                 status=advance(packet,local,browser,dispatcher,lambda _:save(),refresh,now)
             local.pop('error',None)
             local.pop('error_diagnostics',None)
+            local.pop('failure_count',None)
             if status=='scheduled':local['last_verified_at']=int(time.time())
             local['status']=status
             if status in {'scheduled', 'published'}:
@@ -223,6 +232,7 @@ def tick(config, state_path, context, enabled=False):
                 state.pop('browser_block_reason', None)
                 state['browser_failure_streak'] = 0
         except NativeFailure as error:
+            local['failure_count']=local.get('failure_count',0)+1
             # Only controller-defined codes are retained; never exception bodies
             # from HTTP, browser, authentication or package decoding libraries.
             local['error']=str(error)
@@ -230,6 +240,7 @@ def tick(config, state_path, context, enabled=False):
             if str(error) == 'meta_temporarily_blocked':
                 defer_browser(state, str(error), time.time())
         except Exception as error:
+            local['failure_count']=local.get('failure_count',0)+1
             local['error']='native_worker_check_failed'
             local['error_diagnostics']=safe_error_diagnostics(error)
             diagnostics = local['error_diagnostics']
