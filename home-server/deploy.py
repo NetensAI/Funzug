@@ -344,7 +344,12 @@ def cutover():
 
 def main():
     operation = sys.argv[1] if len(sys.argv) == 2 else ''
-    if operation == 'dry-run':
+    if operation == 'cutover':
+        # This branch is a monitor-only maintenance release. Do not deploy,
+        # restart, or alter the running executor or any publication state.
+        from monitor_queue_extension import install
+        result = install()
+    elif operation == 'dry-run':
         result = dry_run()
     elif operation == 'cutover' and not (Path.home()/'apps/funzug-automation/scheduler/native-state/home-secrets.json').exists():
         source=(ROOT/'scripts/home_credential_transfer.py').read_text()
