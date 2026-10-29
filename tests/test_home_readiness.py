@@ -11,6 +11,15 @@ spec.loader.exec_module(module)
 
 
 class ReadinessTests(unittest.TestCase):
+    def test_direct_runner_commands(self):
+        for executable in ('python', 'python3'):
+            for flags in ([], ['-u']):
+                self.assertTrue(module.runner_command_valid([executable, *flags, '-m', 'home_server.runner']))
+        for argv in (None, [], ['sh', '-c', 'python -m home_server.runner'],
+                     ['python', '-m', 'another.module'],
+                     ['python', '-m', 'home_server.runner', 'extra']):
+            self.assertFalse(module.runner_command_valid(argv))
+
     def update_fixture(self, directory, native):
         home=Path(directory)
         state=home/'apps/funzug-automation/scheduler/native-state'

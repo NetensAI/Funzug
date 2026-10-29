@@ -182,12 +182,20 @@ def private_write(path,value):
     os.replace(temporary,path)
 
 
+def runner_command_valid(argv):
+    # Accept only direct module execution, including unbuffered Python.
+    return argv in (["python", "-m", "home_server.runner"],
+                    ["python3", "-m", "home_server.runner"],
+                    ["python", "-u", "-m", "home_server.runner"],
+                    ["python3", "-u", "-m", "home_server.runner"])
+
+
 def dry_run():
     if (BASE/'cutover.json').is_file():
         home=json.loads(command(['docker','inspect','funzug-home-worker']))[0]
         old=json.loads(command(['docker','inspect','funzug-native-worker','scheduler-scheduler-1']))
         checks=[]
-        if home['Config'].get('Cmd')!=['python','-m','home_server.runner']:
+        if not runner_command_valid(home['Config'].get('Cmd')):
             checks.append('home_command_unexpected')
         if home['Config'].get('Entrypoint'):
             checks.append('inherited_entrypoint_present')
