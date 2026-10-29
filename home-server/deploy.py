@@ -206,6 +206,9 @@ def dry_run():
             for value in argv:
                 filename=Path(str(value)).name
                 if re.fullmatch(r'[a-z_]+\.py',filename):checks.append('command_script_'+filename.replace('.','_'))
+            for value in argv:
+                if isinstance(value,str) and value.startswith('/app/') and re.fullmatch(r'/app/[A-Za-z0-9_./-]+',value):checks.append('command_app_path_'+value.replace('/','_').replace('.','_'))
+                if value in ('-','-c','-m'):checks.append('command_mode_'+value.replace('-','flag'))
             checks.append('command_contains_runner_text' if any('home_server.runner' in str(v) for v in argv) else 'command_missing_runner_text')
         if home['Config'].get('Entrypoint'):
             checks.append('inherited_entrypoint_present')
