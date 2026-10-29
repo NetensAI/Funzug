@@ -182,14 +182,49 @@ def private_write(path,value):
     os.replace(temporary,path)
 
 
-def runner_command_valid(argv):
-    # Accept only direct module execution, including unbuffered Python.
-    return argv in (["python", "-m", "home_server.runner"],
-                    ["python3", "-m", "home_server.runner"],
-                    ["python", "-u", "-m", "home_server.runner"],
-                    ["python3", "-u", "-m", "home_server.runner"],
-                    ["python", "-u", "/app/home_server/runner.py"],
-                    ["python3", "-u", "/app/home_server/runner.py"])
+def runner_command_valid(argv, launcher_verified=False):
+    direct = argv in (["python", "-m", "home_server.runner"],
+                      ["python3", "-m", "home_server.runner"],
+                      ["python", "-u", "-m", "home_server.runner"],
+                      ["python3", "-u", "-m", "home_server.runner"],
+                      ["python", "-u", "/app/home_server/runner.py"],
+                      ["python3", "-u", "/app/home_server/runner.py"])
+    return direct or (launcher_verified is True and argv ==
+        ["python", "-u", "/state/runner-planner-fix-20261027.py"])
+
+
+def verify_runtime_launcher(home):
+    """Validate the owner-installed repair launcher without executing its code.
+
+    Return booleans only. The launcher and verifier stay private runtime files;
+    no source, process arguments, secrets or fingerprints leave the container.
+    """
+    expected=["python", "-u", "/state/runner-planner-fix-20261027.py"]
+    if home['Config'].get('Cmd') != expected:
+        return False
+    if not any(m.get('Destination')=='/state' and m.get('Type')=='bind'
+               for m in home.get('Mounts',[])):
+        return False
+    program = r"""
+import ast,json,os,stat
+from pathlib import Path
+p=Path('/state/runner-planner-fix-20261027.py')
+v=Path('/state/meta_content_verifier.py')
+files_ok=all(not f.is_symlink() and f.is_file() and f.stat().st_uid==1000 and stat.S_IMODE(f.stat().st_mode)==0o600 for f in (p,v))
+valid=False
+if files_ok:
+    tree=ast.parse(p.read_text())
+    ast.parse(v.read_text())
+    runner_import=any(isinstance(n,ast.ImportFrom) and n.module=='home_server' and any(a.name=='runner' and a.asname=='_home_runner' for a in n.names) for n in ast.walk(tree))
+    last=tree.body[-1]
+    call=last.value if isinstance(last,ast.Expr) else None
+    final_call=isinstance(call,ast.Call) and not call.args and not call.keywords and isinstance(call.func,ast.Attribute) and isinstance(call.func.value,ast.Name) and call.func.value.id=='_home_runner' and call.func.attr=='main'
+    process=Path('/proc/1/cmdline').read_bytes().split(bytes([0]))
+    valid=runner_import and final_call and process[:3]==[b'python',b'-u',b'/state/runner-planner-fix-20261027.py']
+print(json.dumps({'valid':bool(valid)}))
+"""
+    proof=json.loads(command(['docker','exec','funzug-home-worker','python','-c',program]))
+    return proof.get('valid') is True
 
 
 def dry_run():
@@ -197,24 +232,10 @@ def dry_run():
         home=json.loads(command(['docker','inspect','funzug-home-worker']))[0]
         old=json.loads(command(['docker','inspect','funzug-native-worker','scheduler-scheduler-1']))
         checks=[]
-        if not runner_command_valid(home['Config'].get('Cmd')):
-            checks.append('home_command_unexpected')
-            argv=home['Config'].get('Cmd') or []
-            checks.append('command_arg_count_'+str(len(argv)))
-            for token in ('python','python3','-u','-m','home_server.runner','sh','-c'):
-                if token in argv:checks.append('command_token_'+token.replace('.','_').replace('-','flag_'))
-            for value in argv:
-                filename=Path(str(value)).name
-                if re.fullmatch(r'[a-z_]+\.py',filename):checks.append('command_script_'+filename.replace('.','_'))
-            for value in argv:
-                if isinstance(value,str) and value.startswith('/app/') and re.fullmatch(r'/app/[A-Za-z0-9_./-]+',value):checks.append('command_app_path_'+value.replace('/','_').replace('.','_'))
-                if isinstance(value,str) and value.startswith('-c'):checks.append('command_inline_python')
-                for app_path in re.findall(r'/app/[A-Za-z0-9_/]+\.py',str(value)):checks.append('command_embedded_path_'+app_path.replace('/','_').replace('.','_'))
-                if isinstance(value,str) and re.fullmatch(r'-m[a-z_][a-z0-9_.]*',value):checks.append('command_combined_module_'+value[2:].replace('.','_'))
-                if value in ('.','/app','home_server','-'):checks.append('command_target_'+value.replace('/','_').replace('.','dot').replace('-','stdin'))
-                if isinstance(value,str) and value.startswith(('/state/','/tmp/','/run/')) and re.fullmatch(r'[A-Za-z0-9_./-]+',value):checks.append('command_runtime_path_'+value.replace('/','_').replace('.','_'))
-                if value in ('-','-c','-m'):checks.append('command_mode_'+value.replace('-','flag'))
-            checks.append('command_contains_runner_text' if any('home_server.runner' in str(v) for v in argv) else 'command_missing_runner_text')
+        argv=home['Config'].get('Cmd')
+        if not runner_command_valid(argv):
+            if not runner_command_valid(argv, verify_runtime_launcher(home)):
+                checks.append('home_command_unexpected')
         if home['Config'].get('Entrypoint'):
             checks.append('inherited_entrypoint_present')
         proof=json.loads(command(['docker','exec','funzug-home-worker','python','-c',

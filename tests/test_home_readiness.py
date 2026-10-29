@@ -21,6 +21,15 @@ class ReadinessTests(unittest.TestCase):
                      ['python', '-m', 'home_server.runner', 'extra']):
             self.assertFalse(module.runner_command_valid(argv))
 
+    def test_private_repair_launcher_needs_independent_proof(self):
+        argv=['python', '-u', '/state/runner-planner-fix-20261027.py']
+        self.assertFalse(module.runner_command_valid(argv))
+        self.assertTrue(module.runner_command_valid(argv, True))
+        self.assertFalse(module.runner_command_valid(['python','-u','/state/other.py'], True))
+        with patch.object(module,'command') as command:
+            self.assertFalse(module.verify_runtime_launcher({'Config':{'Cmd':argv},'Mounts':[]}))
+        command.assert_not_called()
+
     def update_fixture(self, directory, native):
         home=Path(directory)
         state=home/'apps/funzug-automation/scheduler/native-state'
