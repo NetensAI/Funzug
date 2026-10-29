@@ -10,6 +10,24 @@ from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_unfinished_handoffs_precede_old_schedule_reverification(self):
+        slot=(dt.datetime.now(IST)+dt.timedelta(days=2)).isoformat()
+        rows=[{'externalId':name,'status':'approved','publicationAuthorized':True,
+               'scheduleTimezone':'Asia/Kolkata','proposedSchedule':slot,
+               'nativeHandoff':{'state':phase}}
+              for name,phase in [('old-a','scheduled'),('old-b','scheduled'),
+                                 ('old-c','scheduled'),('pending','reserved')]]
+        seen=[]
+        def read(config,route,query):
+            return {'drafts':rows} if route=='drafts' else {'externalId':query['externalId']}
+        def advance_item(packet,*args):
+            seen.append(packet['externalId'])
+            return 'reserved'
+        with patch('scheduler.native_runner.read_api',side_effect=read),patch('scheduler.native_runner.auth',return_value='fixture'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.CheckpointDispatcher'),patch('scheduler.meta_browser.MetaBrowser'),patch('scheduler.native_runner.advance',side_effect=advance_item):
+            tick({},Path('nonexistent-priority-fixture.json'),None,True)
+        self.assertEqual(seen[0],'pending')
+        self.assertEqual(len(seen),3)
+
     def test_pending_checkpoint_stops_batch_before_another_dispatch(self):
         slot=(dt.datetime.now(IST)+dt.timedelta(days=1)).isoformat()
         rows=[{'externalId':name,'status':'approved','publicationAuthorized':True,
