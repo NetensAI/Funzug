@@ -15,7 +15,7 @@ class NativeRunnerTests(unittest.TestCase):
         rows=[{'externalId':name,'status':'approved','publicationAuthorized':True,
                'scheduleTimezone':'Asia/Kolkata','proposedSchedule':slot,
                'nativeHandoff':{'state':phase}}
-              for name,phase in [('old-a','scheduled'),('old-b','scheduled'),
+              for name,phase in [('fresh',None),('old-a','scheduled'),('old-b','scheduled'),
                                  ('old-c','scheduled'),('pending','reserved')]]
         seen=[]
         def read(config,route,query):

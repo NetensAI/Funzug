@@ -193,7 +193,8 @@ def tick(config, state_path, context, enabled=False):
     browser_checks=0
     due_ids={row['externalId'] for row in due}
     for row in sorted(selected, key=lambda row: (0 if row['externalId'] in due_ids else
-            2 if (row.get('nativeHandoff') or {}).get('state') == 'scheduled' else 1,
+            3 if (row.get('nativeHandoff') or {}).get('state') == 'scheduled' else
+            1 if (row.get('nativeHandoff') or {}).get('state') in {'reserved','submitting'} else 2,
             state['items'].get(row['externalId'],{}).get('last_attempt_at',0))):
         identifier=row['externalId']
         if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}',identifier):
