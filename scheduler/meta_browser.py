@@ -589,11 +589,11 @@ class MetaBrowser:
                 raise NativeFailure('duplicate_planner_candidates')
             matching[0].click()
             dialog = self.planner.get_by_role('dialog', name='Post details', exact=True)
-            dialog.wait_for(state='visible', timeout=15000)
+            self.schedule_detail_wait(dialog)
             if dialog.count() != 1:
                 raise NativeFailure('planner_detail_not_unique')
             detail = dialog.get_by_text(re.compile(r'^ID: [0-9]+$'))
-            detail.wait_for(state='visible', timeout=15000)
+            self.schedule_detail_wait(detail)
             if detail.count() != 1:
                 raise NativeFailure('planner_identifier_not_visible')
             identifier = re.fullmatch(r'ID: ([0-9]+)', detail.inner_text())
@@ -682,6 +682,15 @@ class MetaBrowser:
         Actual access restrictions still take precedence over pending details.
         """
         self.publication_detail_wait(self.planner.get_by_role('heading', name=caption, exact=True),45000)
+
+    def schedule_detail_wait(self, locator):
+        try:
+            locator.wait_for(state='visible', timeout=45000)
+        except Exception as error:
+            if type(error).__name__ != 'TimeoutError':
+                raise
+            self.check_access(self.planner)
+            raise NativeFailure('schedule_detail_pending') from None
 
     def publication_detail_wait(self, locator, timeout):
         """All required insight-detail evidence fails closed per item."""

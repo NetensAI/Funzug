@@ -10,6 +10,24 @@ import datetime as dt
 
 
 class NativeBrowserCleanupTests(unittest.TestCase):
+    def test_schedule_detail_timeout_preserves_pending_evidence(self):
+        browser=MetaBrowser(Mock(),Path('.'))
+        locator=Mock()
+        locator.wait_for.side_effect=TimeoutError()
+        with patch.object(browser,'check_access') as access:
+            with self.assertRaisesRegex(NativeFailure,'^schedule_detail_pending$'):
+                browser.schedule_detail_wait(locator)
+        access.assert_called_once_with(browser.planner)
+        locator.wait_for.assert_called_once_with(state='visible',timeout=45000)
+
+    def test_schedule_detail_timeout_preserves_real_restriction(self):
+        browser=MetaBrowser(Mock(),Path('.'))
+        locator=Mock()
+        locator.wait_for.side_effect=TimeoutError()
+        with patch.object(browser,'check_access',side_effect=NativeFailure('meta_temporarily_blocked')):
+            with self.assertRaisesRegex(NativeFailure,'^meta_temporarily_blocked$'):
+                browser.schedule_detail_wait(locator)
+
     def test_published_instagram_identity_uses_observed_badge_and_account(self):
         browser=MetaBrowser(Mock(),Path('.'))
         browser.planner.get_by_role.return_value.count.return_value=1
