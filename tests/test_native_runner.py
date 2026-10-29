@@ -10,13 +10,22 @@ from scheduler.native_worker import IST,NativeFailure
 
 
 class NativeRunnerTests(unittest.TestCase):
+    def test_only_postsubmission_detail_read_retries_are_capped(self):
+        for error in ('schedule_detail_pending','native_worker_check_failed'):
+            item={'phase':'submission_intent','error':error,'failure_count':9,
+                  'error_diagnostics':{'exception_type':'TimeoutError','code_location':'meta_browser.py:592'}}
+            self.assertEqual(error_backoff_seconds(item),600)
+            item['phase']='reserved'
+            self.assertEqual(error_backoff_seconds(item),19200)
+        self.assertEqual(error_backoff_seconds({'phase':'submission_intent','error':'meta_temporarily_blocked','failure_count':9}),19200)
+
     def test_unfinished_handoffs_precede_old_schedule_reverification(self):
         slot=(dt.datetime.now(IST)+dt.timedelta(days=2)).isoformat()
         rows=[{'externalId':name,'status':'approved','publicationAuthorized':True,
                'scheduleTimezone':'Asia/Kolkata','proposedSchedule':slot,
                'nativeHandoff':{'state':phase}}
               for name,phase in [('fresh',None),('old-a','scheduled'),('old-b','scheduled'),
-                                 ('old-c','scheduled'),('pending','reserved')]]
+                                 ('old-c','scheduled'),('pending','reserved'),('existing','submitting')]]
         seen=[]
         def read(config,route,query):
             return {'drafts':rows} if route=='drafts' else {'externalId':query['externalId']}
@@ -25,7 +34,7 @@ class NativeRunnerTests(unittest.TestCase):
             return 'reserved'
         with patch('scheduler.native_runner.read_api',side_effect=read),patch('scheduler.native_runner.auth',return_value='fixture'),patch('scheduler.native_runner.write_state'),patch('scheduler.native_runner.CheckpointDispatcher'),patch('scheduler.meta_browser.MetaBrowser'),patch('scheduler.native_runner.advance',side_effect=advance_item):
             tick({},Path('nonexistent-priority-fixture.json'),None,True)
-        self.assertEqual(seen[0],'pending')
+        self.assertEqual(seen[:2],['existing','pending'])
         self.assertEqual(len(seen),3)
 
     def test_pending_checkpoint_stops_batch_before_another_dispatch(self):

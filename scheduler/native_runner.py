@@ -159,7 +159,15 @@ def error_backoff_seconds(local):
         if any(job.get('phase') in {'dispatch_intent', 'accepted'}
                for job in checkpoints.values() if isinstance(job, dict)):
             return 60
-    return min(21600, 300 * 2 ** min(6, max(0, local.get('failure_count', 1) - 1)))
+    delay = min(21600, 300 * 2 ** min(6, max(0, local.get('failure_count', 1) - 1)))
+    diagnostics = local.get('error_diagnostics', {})
+    detail_pending = local.get('error') == 'schedule_detail_pending' or (
+        local.get('error') == 'native_worker_check_failed'
+        and diagnostics.get('exception_type') == 'TimeoutError'
+        and diagnostics.get('code_location') == 'meta_browser.py:592')
+    if local.get('phase') == 'submission_intent' and detail_pending:
+        return min(delay, 600)
+    return delay
 
 
 def tick(config, state_path, context, enabled=False):
@@ -193,8 +201,9 @@ def tick(config, state_path, context, enabled=False):
     browser_checks=0
     due_ids={row['externalId'] for row in due}
     for row in sorted(selected, key=lambda row: (0 if row['externalId'] in due_ids else
-            3 if (row.get('nativeHandoff') or {}).get('state') == 'scheduled' else
-            1 if (row.get('nativeHandoff') or {}).get('state') in {'reserved','submitting'} else 2,
+            1 if (row.get('nativeHandoff') or {}).get('state') == 'submitting' else
+            2 if (row.get('nativeHandoff') or {}).get('state') == 'reserved' else
+            4 if (row.get('nativeHandoff') or {}).get('state') == 'scheduled' else 3,
             state['items'].get(row['externalId'],{}).get('last_attempt_at',0))):
         identifier=row['externalId']
         if not isinstance(identifier,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,199}',identifier):
