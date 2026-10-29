@@ -210,6 +210,9 @@ def dry_run():
                 if isinstance(value,str) and value.startswith('/app/') and re.fullmatch(r'/app/[A-Za-z0-9_./-]+',value):checks.append('command_app_path_'+value.replace('/','_').replace('.','_'))
                 if isinstance(value,str) and value.startswith('-c'):checks.append('command_inline_python')
                 for app_path in re.findall(r'/app/[A-Za-z0-9_/]+\.py',str(value)):checks.append('command_embedded_path_'+app_path.replace('/','_').replace('.','_'))
+                if isinstance(value,str) and re.fullmatch(r'-m[a-z_][a-z0-9_.]*',value):checks.append('command_combined_module_'+value[2:].replace('.','_'))
+                if value in ('.','/app','home_server','-'):checks.append('command_target_'+value.replace('/','_').replace('.','dot').replace('-','stdin'))
+                if isinstance(value,str) and value.startswith(('/state/','/tmp/','/run/')) and re.fullmatch(r'[A-Za-z0-9_./-]+',value):checks.append('command_runtime_path_'+value.replace('/','_').replace('.','_'))
                 if value in ('-','-c','-m'):checks.append('command_mode_'+value.replace('-','flag'))
             checks.append('command_contains_runner_text' if any('home_server.runner' in str(v) for v in argv) else 'command_missing_runner_text')
         if home['Config'].get('Entrypoint'):
