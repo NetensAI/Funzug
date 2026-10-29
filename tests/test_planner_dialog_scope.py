@@ -50,6 +50,7 @@ class PlannerDialogScopeTests(unittest.TestCase):
         driver.planner = Mock(url='https://business.facebook.com/latest/content_calendar')
         dialog = Mock()
         dialog.count.return_value = dialog_count
+        dialog.filter.return_value = dialog
         driver.planner.get_by_role.return_value = dialog
         identifier = dialog.get_by_text.return_value
         identifier.count.return_value = 1
@@ -71,7 +72,8 @@ class PlannerDialogScopeTests(unittest.TestCase):
         driver, dialog, close, packet = self.fixture()
         receipts = driver.inspect(packet)
         self.assertEqual(receipts['facebook']['schedule_id'], '123')
-        driver.planner.get_by_role.assert_any_call('dialog', name='Post details', exact=True)
+        driver.planner.get_by_role.assert_any_call('dialog')
+        driver.planner.get_by_role.assert_any_call('heading', name='Post details', exact=True)
         self.assertEqual(sum(call.args[0] == 'dialog' for call in driver.planner.get_by_role.call_args_list), 1)
         dialog.get_by_role.assert_called_once_with('button', name='Close', exact=True)
         close.click.assert_called_once()

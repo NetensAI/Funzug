@@ -588,7 +588,8 @@ class MetaBrowser:
             if len(matching) != 1:
                 raise NativeFailure('duplicate_planner_candidates')
             matching[0].click()
-            dialog = self.planner.get_by_role('dialog', name='Post details', exact=True)
+            dialog = self.planner.get_by_role('dialog').filter(
+                has=self.planner.get_by_role('heading', name='Post details', exact=True))
             self.schedule_detail_wait(dialog)
             if dialog.count() != 1:
                 raise NativeFailure('planner_detail_not_unique')
