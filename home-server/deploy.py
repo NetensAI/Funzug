@@ -197,6 +197,11 @@ def dry_run():
         checks=[]
         if not runner_command_valid(home['Config'].get('Cmd')):
             checks.append('home_command_unexpected')
+            argv=home['Config'].get('Cmd') or []
+            checks.append('command_arg_count_'+str(len(argv)))
+            for token in ('python','python3','-u','-m','home_server.runner','sh','-c'):
+                if token in argv:checks.append('command_token_'+token.replace('.','_').replace('-','flag_'))
+            checks.append('command_contains_runner_text' if any('home_server.runner' in str(v) for v in argv) else 'command_missing_runner_text')
         if home['Config'].get('Entrypoint'):
             checks.append('inherited_entrypoint_present')
         proof=json.loads(command(['docker','exec','funzug-home-worker','python','-c',
