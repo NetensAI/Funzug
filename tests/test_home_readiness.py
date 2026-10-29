@@ -15,6 +15,7 @@ class ReadinessTests(unittest.TestCase):
         for executable in ('python', 'python3'):
             for flags in ([], ['-u']):
                 self.assertTrue(module.runner_command_valid([executable, *flags, '-m', 'home_server.runner']))
+        self.assertTrue(module.runner_command_valid(['python', '-u', '/app/home_server/runner.py']))
         for argv in (None, [], ['sh', '-c', 'python -m home_server.runner'],
                      ['python', '-m', 'another.module'],
                      ['python', '-m', 'home_server.runner', 'extra']):

@@ -187,7 +187,9 @@ def runner_command_valid(argv):
     return argv in (["python", "-m", "home_server.runner"],
                     ["python3", "-m", "home_server.runner"],
                     ["python", "-u", "-m", "home_server.runner"],
-                    ["python3", "-u", "-m", "home_server.runner"])
+                    ["python3", "-u", "-m", "home_server.runner"],
+                    ["python", "-u", "/app/home_server/runner.py"],
+                    ["python3", "-u", "/app/home_server/runner.py"])
 
 
 def dry_run():
@@ -201,6 +203,9 @@ def dry_run():
             checks.append('command_arg_count_'+str(len(argv)))
             for token in ('python','python3','-u','-m','home_server.runner','sh','-c'):
                 if token in argv:checks.append('command_token_'+token.replace('.','_').replace('-','flag_'))
+            for value in argv:
+                filename=Path(str(value)).name
+                if re.fullmatch(r'[a-z_]+\.py',filename):checks.append('command_script_'+filename.replace('.','_'))
             checks.append('command_contains_runner_text' if any('home_server.runner' in str(v) for v in argv) else 'command_missing_runner_text')
         if home['Config'].get('Entrypoint'):
             checks.append('inherited_entrypoint_present')
