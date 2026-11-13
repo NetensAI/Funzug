@@ -102,7 +102,9 @@ class BrandFlowPayloadTests(unittest.TestCase):
             patch.object(sync.pipeline, "load_json", side_effect=[drafts, queue, queue]),
             patch.object(sync, "require_matching_approved_content") as match,
             patch.object(sync.pipeline, "host_and_approve_draft") as process,
+            patch.object(sync.dt, "datetime", wraps=sync.dt.datetime) as clock,
         ):
+            clock.now.return_value = clock.fromisoformat("2026-11-12T18:00:00+05:30")
             sync.process_approvals()
         passed_drafts = process.call_args.args[0]
         self.assertEqual(passed_drafts["items"][0]["scheduled_at"], "2026-11-12T19:15:00+05:30")
